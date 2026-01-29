@@ -7,7 +7,7 @@ import Landing from "@/pages/Landing";
 import Signup from "@/pages/Signup";
 import DashboardOverview from "@/pages/DashboardOverview";
 import BusinessProfile from "@/pages/BusinessProfile";
-import Campaigns from "@/pages/Campaigns";
+
 import BusinessOnboarding from "@/pages/BusinessOnboarding";
 import Splash from "@/pages/Splash";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -22,7 +22,7 @@ function Router() {
       {/* Business Dashboard Routes */}
       <Route path="/business/:id/onboarding" component={BusinessOnboarding} />
       <Route path="/business/:id/profile" component={BusinessProfile} />
-      <Route path="/business/:id/campaigns" component={Campaigns} />
+
       <Route path="/business/:id" component={DashboardOverview} />
 
       {/* End User Splash Page */}

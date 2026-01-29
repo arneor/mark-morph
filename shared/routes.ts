@@ -30,11 +30,14 @@ export const api = {
     login: {
       method: "POST" as const,
       path: "/api/login",
-      input: z.object({ username: z.string() }),
+      input: z.object({
+        email: z.string().email(),
+        password: z.string().min(1)
+      }),
       responses: {
         200: z.object({
           id: z.number(),
-          username: z.string(),
+          email: z.string(),
           role: z.enum(["admin", "business", "user"]),
           businessId: z.number().optional(),
         }),
@@ -45,14 +48,15 @@ export const api = {
       method: "POST" as const,
       path: "/api/signup",
       input: z.object({
-        username: z.string().min(1),
-        email: z.string().email().optional(),
         businessName: z.string().min(1),
+        email: z.string().email(),
+        password: z.string().min(6),
+        location: z.string().min(1),
       }),
       responses: {
         201: z.object({
           id: z.number(),
-          username: z.string(),
+          email: z.string(),
           role: z.literal("business"),
           businessId: z.number(),
         }),

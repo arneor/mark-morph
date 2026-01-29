@@ -1,0 +1,20 @@
+{
+    "short_name": "MarkMorph",
+    "name": "MarkMorph WiFi Marketing",
+    "icons": [
+        {
+            "src": "black_icon.webp",
+            "sizes": "192x192",
+            "type": "image/webp"
+        },
+        {
+            "src": "black_icon.webp",
+            "sizes": "512x512",
+            "type": "image/webp"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#9EE53B",
+    "background_color": "#ffffff"
+}

@@ -11,27 +11,27 @@ export async function registerRoutes(
 
   // Login (Mock)
   app.post(api.auth.login.path, async (req, res) => {
-    const { username } = req.body;
-    // Simple mock login logic
-    let user = await storage.getUserByUsername(username);
+    const { email } = req.body;
+    // Simple mock login logic - map email to username for now since we store email as username in signup
+    let user = await storage.getUserByUsername(email);
 
-    // If user doesn't exist, created seeded users based on username content
     if (!user) {
-      if (username === "admin") {
-        // Create mock admin
+      if (email === "admin@example.com") {
         user = await storage.createUser({
-          username: "admin",
+          username: email,
           password: "password",
           role: "admin",
           name: "Admin User",
+          email: email
         });
-      } else if (username === "business") {
+      } else if (email === "owner@example.com") {
         // Create mock business owner
         user = await storage.createUser({
-          username: "business",
+          username: email,
           password: "password",
           role: "business",
           name: "Joe Coffee",
+          email: email
         });
         // Ensure business profile exists
         const existingBiz = await storage.getBusinessByOwnerId(user.id);
@@ -53,7 +53,7 @@ export async function registerRoutes(
 
     res.json({
       id: user.id,
-      username: user.username,
+      email: user.username, // Returning username as email
       role: user.role,
       businessId: business?.id,
     });
@@ -62,14 +62,15 @@ export async function registerRoutes(
   app.post(api.auth.signup.path, async (req, res) => {
     const input = api.auth.signup.input.parse(req.body);
 
-    const existing = await storage.getUserByUsername(input.username);
+    // Check by email (which we store as username)
+    const existing = await storage.getUserByUsername(input.email);
     if (existing) {
-      return res.status(400).json({ message: "Username already exists" });
+      return res.status(400).json({ message: "Email already exists" });
     }
 
     const user = await storage.createUser({
-      username: input.username,
-      password: "password",
+      username: input.email, // using email as username
+      password: input.password,
       role: "business",
       name: input.businessName,
       email: input.email,
@@ -79,12 +80,13 @@ export async function registerRoutes(
       ownerId: user.id,
       name: input.businessName,
       contactEmail: input.email,
+      address: input.location,
       onboardingCompleted: false,
     });
 
     res.status(201).json({
       id: user.id,
-      username: user.username,
+      email: user.username,
       role: "business",
       businessId: business.id,
     });

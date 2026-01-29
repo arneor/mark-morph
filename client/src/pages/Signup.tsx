@@ -24,8 +24,9 @@ import {
 
 const signupSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
-  username: z.string().min(1, "Username is required"),
-  email: z.string().email("Enter a valid email").optional().or(z.literal("")),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  location: z.string().min(1, "Location is required"),
 });
 
 type SignupValues = z.infer<typeof signupSchema>;
@@ -35,7 +36,7 @@ export default function Signup() {
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { businessName: "", username: "", email: "" },
+    defaultValues: { businessName: "", email: "", password: "", location: "" },
   });
 
   const onSubmit = (data: SignupValues) => {
@@ -70,6 +71,7 @@ export default function Signup() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-4"
                 >
+                  {/* Business Name */}
                   <FormField
                     control={form.control}
                     name="businessName"
@@ -88,16 +90,17 @@ export default function Signup() {
                     )}
                   />
 
+                  {/* Location */}
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Location</FormLabel>
                         <FormControl>
                           <Input
                             className="h-12"
-                            placeholder="e.g. dailygrind_owner"
+                            placeholder="e.g. 123 Main St, New York"
                             {...field}
                           />
                         </FormControl>
@@ -106,17 +109,38 @@ export default function Signup() {
                     )}
                   />
 
+                  {/* Email */}
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email (optional)</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input
                             className="h-12"
                             type="email"
                             placeholder="owner@business.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Password */}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-12"
+                            type="password"
+                            placeholder="Create a password"
                             {...field}
                           />
                         </FormControl>

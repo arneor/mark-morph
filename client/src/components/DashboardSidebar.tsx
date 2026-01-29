@@ -2,7 +2,6 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
   Store,
-  Megaphone,
   LogOut,
   Menu,
   Wand2,
@@ -35,11 +34,7 @@ export function DashboardSidebar({ businessId }: SidebarProps) {
       label: "Business Profile",
       icon: Store,
     },
-    {
-      href: `/business/${businessId}/campaigns`,
-      label: "Ad Campaigns",
-      icon: Megaphone,
-    },
+
   ];
 
   const NavContent = () => (
