@@ -42,7 +42,7 @@ import { MediaModule } from './modules/media/media.module';
                 throttlers: [
                     {
                         ttl: configService.get<number>('THROTTLE_TTL') || 60000,
-                        limit: configService.get<number>('THROTTLE_LIMIT') || 10,
+                        limit: configService.get<number>('THROTTLE_LIMIT') || 100,
                     },
                 ],
             }),
