@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export type OtpPurpose = 'admin_login' | 'wifi_access' | 'business_auth';
 
@@ -16,15 +17,37 @@ interface OtpEmailData {
 export class EmailService {
     private readonly logger = new Logger(EmailService.name);
     private transporter: nodemailer.Transporter | null = null;
+    private resend: Resend | null = null;
+    private useResend = false;
     private readonly DEFAULT_EXPIRY_MINUTES = 10;
 
     constructor(private configService: ConfigService) {
-        this.initializeTransporter();
+        this.initializeEmailProvider();
     }
 
-    private initializeTransporter(): void {
+    private initializeEmailProvider(): void {
+        const nodeEnv = this.configService.get<string>('NODE_ENV') || 'development';
+        const isProduction = nodeEnv === 'production';
+
+        this.logger.log(`📧 Initializing email service for environment: ${nodeEnv}`);
+
+        // In PRODUCTION: Use Resend (works on cloud platforms like Render)
+        if (isProduction) {
+            const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+
+            if (resendApiKey) {
+                this.resend = new Resend(resendApiKey);
+                this.useResend = true;
+                this.logger.log('📧 [PRODUCTION] Email service configured with Resend API');
+                return;
+            } else {
+                this.logger.warn('⚠️ [PRODUCTION] RESEND_API_KEY not found! Emails will fail.');
+            }
+        }
+
+        // In DEVELOPMENT: Use Gmail SMTP (works locally)
         const host = this.configService.get<string>('EMAIL_HOST');
-        const port = this.configService.get<number>('EMAIL_PORT') || 465;
+        const port = this.configService.get<number>('EMAIL_PORT') || 587;
         const user = this.configService.get<string>('EMAIL_USER');
         const pass = this.configService.get<string>('EMAIL_PASS');
 
@@ -34,17 +57,17 @@ export class EmailService {
             this.transporter = nodemailer.createTransport({
                 host,
                 port,
-                secure: true, // Use SSL
+                secure: port === 465,
                 auth: { user, pass },
-                connectionTimeout: 10000, // 10 seconds
+                connectionTimeout: 10000,
                 greetingTimeout: 10000,
                 socketTimeout: 15000,
             });
-            this.logger.log(`📧 Email service configured with host: ${host}, user: ${user}, port: ${port}, secure: true`);
+            this.logger.log(`📧 [DEVELOPMENT] Email service configured with Gmail SMTP: ${host}:${port}`);
         } else {
-            this.logger.warn('⚠️ Email credentials not found. Using MOCK email service.');
-            this.logger.warn(`   Missing: ${!host ? 'EMAIL_HOST ' : ''}${!user ? 'EMAIL_USER ' : ''}${!pass ? 'EMAIL_PASS' : ''}`);
+            this.logger.warn('⚠️ No email credentials found. Using MOCK email service.');
         }
+
     }
 
     /**
@@ -55,32 +78,56 @@ export class EmailService {
 
         const template = this.getEmailTemplate(purpose, otp, expiryMinutes, businessName);
 
+        // Use appropriate from email based on provider
+        const gmailFrom = this.configService.get<string>('EMAIL_FROM') || this.configService.get<string>('EMAIL_USER');
+        const resendFrom = 'noreply@markmorph.in'; // Verified domain in Resend
+
+        // Use Resend if available (production)
+        if (this.useResend && this.resend) {
+            try {
+                this.logger.log(`📧 Sending ${purpose} OTP via Resend to: ${email}`);
+
+                const { data: result, error } = await this.resend.emails.send({
+                    from: `MarkMorph <${resendFrom}>`,
+                    to: [email],
+                    subject: template.subject,
+                    html: template.html,
+                });
+
+                if (error) {
+                    this.logger.error(`❌ Resend error: ${JSON.stringify(error)}`);
+                    throw new Error(error.message);
+                }
+
+                this.logger.log(`✅ ${purpose} OTP email sent via Resend to ${email} | ID: ${result?.id}`);
+                return;
+            } catch (error) {
+                this.logger.error(`❌ Failed to send via Resend: ${error.message}`);
+                throw new Error(`Failed to send verification code. Please try again.`);
+            }
+        }
+
+        // Fallback to SMTP
         if (this.transporter) {
             try {
-                const fromEmail = this.configService.get<string>('EMAIL_FROM') ||
-                    this.configService.get<string>('EMAIL_USER');
-
-                this.logger.log(`📧 Sending ${purpose} OTP to: ${email}`);
+                this.logger.log(`📧 Sending ${purpose} OTP via SMTP to: ${email}`);
 
                 const info = await this.transporter.sendMail({
-                    from: `"MarkMorph" <${fromEmail}>`,
+                    from: `"MarkMorph" <${gmailFrom}>`,
                     to: email,
                     subject: template.subject,
                     html: template.html,
                 });
 
-                this.logger.log(`✅ ${purpose} OTP email sent to ${email} | MessageId: ${info.messageId}`);
+                this.logger.log(`✅ ${purpose} OTP email sent via SMTP to ${email} | MessageId: ${info.messageId}`);
             } catch (error) {
                 this.logger.error(`❌ Failed to send ${purpose} OTP email to ${email}`);
-                this.logger.error(`   Error name: ${error.name}`);
-                this.logger.error(`   Error message: ${error.message}`);
-                this.logger.error(`   Error code: ${error.code || 'N/A'}`);
-                this.logger.error(`   Full error: ${JSON.stringify(error, null, 2)}`);
+                this.logger.error(`   Error: ${error.message} | Code: ${error.code || 'N/A'}`);
                 throw new Error(`Failed to send verification code. Please try again.`);
             }
         } else {
             // Mock mode for development
-            this.logger.warn(`⚠️ [MOCK EMAIL] Transporter not configured`);
+            this.logger.warn(`⚠️ [MOCK EMAIL] No email provider configured`);
             this.logger.log(`📧 [MOCK EMAIL] Purpose: ${purpose} | To: ${email} | OTP: ${otp}`);
         }
     }
