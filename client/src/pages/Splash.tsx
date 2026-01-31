@@ -123,22 +123,8 @@ export default function Splash() {
     }
   }, [countdown]);
 
-  // Auto-close logic when verified
-  useEffect(() => {
-    if (verificationStep === "verified") {
-      // Attempt to close automatically after 2 seconds
-      const timer = setTimeout(() => {
-        try {
-          window.close();
-          // Fallback if blocked: typically browser won't let us close unless we opened it,
-          // but Captive Portals often respect this or have their own behavior.
-        } catch (e) {
-          console.log("Could not auto-close", e);
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [verificationStep]);
+  // Auto-close removed as per user request (manual close preferred)
+  // User stays on page to browse ads
 
   // Track scroll to hide hint
   useEffect(() => {
@@ -966,21 +952,13 @@ export default function Splash() {
                         {/* Done Button & Auto Close */}
                         <div className="mt-6 w-full max-w-xs mx-auto space-y-3">
                           <Button
-                            onClick={() => {
-                              if (isMobile) {
-                                try {
-                                  window.close();
-                                } catch (e) { console.error(e); }
-                              } else {
-                                setIsSheetHidden(true);
-                              }
-                            }}
+                            onClick={() => setIsSheetHidden(true)}
                             className="w-full h-12 rounded-full bg-[#9EE53B] hover:bg-[#8CD035] text-[#222] font-bold text-lg transition-transform active:scale-95 shadow-lg shadow-[#9EE53B]/20"
                           >
                             Done
                           </Button>
                           <p className="text-white/40 text-[10px]">
-                            {isMobile ? "Closing in a few seconds..." : "Click Done to browse offers"}
+                            Click Done to browse offers
                           </p>
                         </div>
                       </motion.div>
