@@ -6,7 +6,7 @@
   
   <!-- Homepage - Highest Priority -->
   <url>
-    <loc>https://markmorph.in/</loc>
+    <loc>https://www.markmorph.in/</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -14,14 +14,14 @@
   
   <!-- Authentication Pages -->
   <url>
-    <loc>https://markmorph.in/login</loc>
+    <loc>https://www.markmorph.in/login</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://markmorph.in/signup</loc>
+    <loc>https://www.markmorph.in/signup</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -29,7 +29,7 @@
   
   <!-- Business Dashboard (Protected but indexable landing) -->
   <url>
-    <loc>https://markmorph.in/dashboard</loc>
+    <loc>https://www.markmorph.in/dashboard</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -37,7 +37,7 @@
   
   <!-- Business Profile Setup -->
   <url>
-    <loc>https://markmorph.in/profile</loc>
+    <loc>https://www.markmorph.in/profile</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

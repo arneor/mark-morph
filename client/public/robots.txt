@@ -23,7 +23,7 @@ User-agent: *
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://markmorph.in/sitemap.xml
+Sitemap: https://www.markmorph.in/sitemap.xml
 
 # Host directive
-Host: https://markmorph.in
+Host: https://www.markmorph.in
