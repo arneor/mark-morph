@@ -1,28 +1,23 @@
-import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { SplashCarousel } from "@/components/SplashCarousel";
+import { useRef, useState } from "react";
+import React from "react";
+import { motion, Reorder, useDragControls, DragControls } from "framer-motion";
 import {
+    Upload,
+    X,
     Plus,
     Trash2,
-    GripVertical,
-    Pencil,
     Star,
+    GripVertical,
     Image,
-    X,
-    Upload,
-    Check,
+    Pencil,
+    Check
 } from "lucide-react";
-import { useState, useRef } from "react";
-import { useEditMode } from "./EditModeContext";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-
+import { SplashCarousel } from "@/components/SplashCarousel";
+import { useEditMode } from "./EditModeContext";
 
 export interface PostItem {
     id: string;
@@ -48,109 +43,47 @@ export function EditablePostGrid({
     businessId,
 }: EditablePostGridProps) {
     const { isEditMode, setHasUnsavedChanges } = useEditMode();
-    const [editingPost, setEditingPost] = useState<PostItem | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
-
-    const handleAddBanner = () => {
-        if (posts.filter(p => p.isFeatured).length >= 3) {
-            alert("Maximum 3 banners allowed");
-            return;
-        }
-        bannerInputRef.current?.click();
-    };
-
-    const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files) return;
-
-        const newPosts: PostItem[] = [];
-        Array.from(files).forEach((file) => {
-            if (posts.length + newPosts.length >= maxPosts) {
-                alert(`Maximum ${maxPosts} total posts allowed`);
-                return;
-            }
-            if (posts.filter(p => p.isFeatured).length + newPosts.filter(p => p.isFeatured).length >= 3) {
-                alert("Maximum 3 banners allowed");
-                return;
-            }
-
-            const url = URL.createObjectURL(file);
-            newPosts.push({
-                id: `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                type: "banner",
-                url,
-                title: file.name.replace(/\.[^/.]+$/, ""),
-                isFeatured: true,
-                file: file
-            });
-        });
-
-        if (newPosts.length > 0) {
-            onPostsChange([...posts, ...newPosts]);
-            setHasUnsavedChanges(true);
-        }
-
-        e.target.value = "";
-    };
-
-    const handleReorder = (newOrder: PostItem[]) => {
-        onPostsChange(newOrder);
-        setHasUnsavedChanges(true);
-    };
-
-    const handleDelete = (id: string) => {
-        const confirmed = window.confirm("Delete this post?");
-        if (confirmed) {
-            onPostsChange(posts.filter((p) => p.id !== id));
-            setHasUnsavedChanges(true);
-        }
-    };
-
-    const handleToggleFeatured = (id: string) => {
-        const post = posts.find((p) => p.id === id);
-        if (!post) return;
-
-        // If trying to feature (currently false), check the limit
-        if (!post.isFeatured) {
-            const currentFeaturedCount = posts.filter((p) => p.isFeatured).length;
-            if (currentFeaturedCount >= 3) {
-                alert("Maximum 3 banners allowed. Please unfeature one first.");
-                return;
-            }
-        } else {
-            // If unfeaturing, check minimum limit (user said "minimum 1")
-            const currentFeaturedCount = posts.filter((p) => p.isFeatured).length;
-            if (currentFeaturedCount <= 1) {
-                alert("Minimum 1 banner required.");
-                return;
-            }
-        }
-
-        onPostsChange(
-            posts.map((p) => ({
-                ...p,
-                isFeatured: p.id === id ? !p.isFeatured : p.isFeatured,
-            }))
-        );
-        setHasUnsavedChanges(true);
-    };
+    const [editingPost, setEditingPost] = useState<PostItem | null>(null);
 
     const handleAddPost = () => {
-        if (posts.length >= maxPosts) {
-            alert(`Maximum ${maxPosts} posts allowed`);
-            return;
-        }
         fileInputRef.current?.click();
     };
 
+    const handleAddBanner = () => {
+        bannerInputRef.current?.click();
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files) return;
+        if (!e.target.files) return;
+        handleFiles(e.target.files);
+    };
+
+    const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        handleFiles(e.target.files, true);
+    };
+
+    const handleFiles = (files: FileList, isBanner = false) => {
+        const featuredCount = posts.filter(p => p.isFeatured).length;
+        const regularCount = posts.filter(p => !p.isFeatured).length;
+
+        const currentCount = isBanner ? featuredCount : regularCount;
+        const maxLimit = isBanner ? 3 : maxPosts;
+
+        if (currentCount >= maxLimit) {
+            alert(`Maximum ${maxLimit} ${isBanner ? 'banners' : 'gallery images'} allowed.`);
+            // Clear inputs immediately
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            if (bannerInputRef.current) bannerInputRef.current.value = "";
+            return;
+        }
 
         const newPosts: PostItem[] = [];
         Array.from(files).forEach((file) => {
-            if (posts.length + newPosts.length >= maxPosts) return;
+            // Check against remaining slots
+            if (currentCount + newPosts.length >= maxLimit) return;
 
             const url = URL.createObjectURL(file);
             newPosts.push({
@@ -158,7 +91,7 @@ export function EditablePostGrid({
                 type: "image",
                 url,
                 title: file.name.replace(/\.[^/.]+$/, ""),
-                isFeatured: false,
+                isFeatured: isBanner,
                 file: file
             });
         });
@@ -168,7 +101,28 @@ export function EditablePostGrid({
             setHasUnsavedChanges(true);
         }
 
-        e.target.value = "";
+        // Reset inputs
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (bannerInputRef.current) bannerInputRef.current.value = "";
+    };
+
+    const handleDelete = (id: string) => {
+        onPostsChange(posts.filter((p) => p.id !== id));
+        setHasUnsavedChanges(true);
+    };
+
+    const handleToggleFeatured = (id: string) => {
+        onPostsChange(
+            posts.map((p) =>
+                p.id === id ? { ...p, isFeatured: !p.isFeatured } : p
+            )
+        );
+        setHasUnsavedChanges(true);
+    };
+
+    const handleReorder = (newPosts: PostItem[]) => {
+        onPostsChange(newPosts);
+        setHasUnsavedChanges(true);
     };
 
     const handleEditPost = (post: PostItem) => {
@@ -189,46 +143,22 @@ export function EditablePostGrid({
 
     return (
         <div className="space-y-4">
-
-
             {/* Featured Posts Section */}
             {(featuredPosts.length > 0 || isEditMode) && (
                 <div>
                     <div className="flex items-center gap-2 mb-3">
                         <Star className="w-4 h-4 text-[#FFD93D]" />
                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
-                            Featured Offers
+                            Featured Offers ({featuredPosts.length}/3)
                         </span>
                     </div>
                     {isEditMode ? (
                         <div className="space-y-2">
                             <p className="text-xs text-white/50 px-1">
-                                Drag to reorder banners. These will appear in the top carousel.
+                                Drag the handle <GripVertical className="inline w-3 h-3" /> to reorder.
                             </p>
-                            <Reorder.Group
-                                axis="x"
-                                values={featuredPosts}
-                                onReorder={(newFeatured) => {
-                                    handleReorder([...newFeatured, ...regularPosts]);
-                                }}
-                                className="flex gap-3 overflow-x-auto pb-4 pt-2 px-1"
-                            >
-                                {featuredPosts.map((post) => (
-                                    <Reorder.Item
-                                        key={post.id}
-                                        value={post}
-                                        className="flex-shrink-0"
-                                    >
-                                        <PostCard
-                                            post={post}
-                                            isEditMode={isEditMode}
-                                            onDelete={() => handleDelete(post.id)}
-                                            onEdit={() => handleEditPost(post)}
-                                            onToggleFeatured={() => handleToggleFeatured(post.id)}
-                                            isFeaturedSection
-                                        />
-                                    </Reorder.Item>
-                                ))}
+
+                            <div className="flex gap-3 overflow-x-auto pb-4 pt-2 px-1 touch-auto">
                                 {featuredPosts.length < 3 && (
                                     <motion.div
                                         whileHover={{ scale: 1.02 }}
@@ -236,13 +166,37 @@ export function EditablePostGrid({
                                         onClick={handleAddBanner}
                                         className="w-72 flex-shrink-0 aspect-[16/9] rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
                                     >
-                                        <Upload className="w-8 h-8 text-white/50 mb-2" />
-                                        <span className="text-xs text-white/50 font-medium">
-                                            Add Banner
+                                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
+                                            <Upload className="w-5 h-5 text-white/50" />
+                                        </div>
+                                        <span className="text-xs text-white/50 font-medium text-center px-2">
+                                            Add Offer Banner
                                         </span>
                                     </motion.div>
                                 )}
-                            </Reorder.Group>
+
+                                <Reorder.Group
+                                    axis="x"
+                                    values={featuredPosts}
+                                    onReorder={(newFeatured) => {
+                                        handleReorder([...newFeatured, ...regularPosts]);
+                                    }}
+                                    className="flex gap-3"
+                                >
+                                    {featuredPosts.map((post) => (
+                                        <SortableItem key={post.id} post={post}>
+                                            <PostCard
+                                                post={post}
+                                                isEditMode={isEditMode}
+                                                onDelete={() => handleDelete(post.id)}
+                                                onEdit={() => handleEditPost(post)}
+                                                onToggleFeatured={() => handleToggleFeatured(post.id)}
+                                                isFeaturedSection
+                                            />
+                                        </SortableItem>
+                                    ))}
+                                </Reorder.Group>
+                            </div>
                         </div>
                     ) : (
                         <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10">
@@ -269,10 +223,10 @@ export function EditablePostGrid({
                     <div className="flex items-center gap-2">
                         <Image className="w-4 h-4 text-[#9EE53B]" />
                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
-                            Gallery ({posts.length}/{maxPosts})
+                            Gallery ({regularPosts.length}/{maxPosts})
                         </span>
                     </div>
-                    {isEditMode && posts.length < maxPosts && (
+                    {isEditMode && regularPosts.length < maxPosts && (
                         <Button
                             size="sm"
                             onClick={handleAddPost}
@@ -284,8 +238,7 @@ export function EditablePostGrid({
                     )}
                 </div>
 
-                {/* Hidden file input */}
-                {/* Hidden file input */}
+                {/* Hidden file inputs */}
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -303,49 +256,32 @@ export function EditablePostGrid({
                     onChange={handleBannerFileChange}
                 />
 
-                {isEditMode ? (
-                    <Reorder.Group
-                        axis="y"
-                        values={regularPosts}
-                        onReorder={(newRegular) => {
-                            handleReorder([...featuredPosts, ...newRegular]);
-                        }}
-                        className="grid grid-cols-2 gap-3"
-                    >
-                        {regularPosts.map((post) => (
-                            <Reorder.Item key={post.id} value={post}>
-                                <PostCard
-                                    post={post}
-                                    isEditMode={isEditMode}
-                                    onDelete={() => handleDelete(post.id)}
-                                    onEdit={() => handleEditPost(post)}
-                                    onToggleFeatured={() => handleToggleFeatured(post.id)}
-                                />
-                            </Reorder.Item>
-                        ))}
+                {/* Content Grid - Static Layout for Stability */}
+                <div className="grid grid-cols-2 gap-3">
+                    {regularPosts.map((post) => (
+                        <PostCard
+                            key={post.id}
+                            post={post}
+                            isEditMode={isEditMode}
+                            onDelete={() => handleDelete(post.id)}
+                            onEdit={() => handleEditPost(post)}
+                            onToggleFeatured={() => handleToggleFeatured(post.id)}
+                        />
+                    ))}
 
-                        {/* Add New Placeholder */}
-                        {posts.length < maxPosts && (
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleAddPost}
-                                className="aspect-[4/5] rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
-                            >
-                                <Upload className="w-8 h-8 text-white/50 mb-2" />
-                                <span className="text-xs text-white/50 font-medium">
-                                    Upload New
-                                </span>
-                            </motion.div>
-                        )}
-                    </Reorder.Group>
-                ) : (
-                    <div className="grid grid-cols-2 gap-3">
-                        {regularPosts.map((post) => (
-                            <PostCard key={post.id} post={post} isEditMode={false} />
-                        ))}
-                    </div>
-                )}
+                    {/* Add New Placeholder - Grid Style */}
+                    {isEditMode && regularPosts.length < maxPosts && (
+                        <div
+                            onClick={handleAddPost}
+                            className="aspect-[4/5] rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
+                        >
+                            <Upload className="w-8 h-8 text-white/50 mb-2" />
+                            <span className="text-xs text-white/50 font-medium">
+                                Upload New
+                            </span>
+                        </div>
+                    )}
+                </div>
 
                 {/* Empty state */}
                 {posts.length === 0 && !isEditMode && (
@@ -392,11 +328,6 @@ export function EditablePostGrid({
                                         onClick={() =>
                                             setEditingPost({
                                                 ...editingPost,
-                                                // Simplified toggle in edit dialog (doesn't check limits here for simplicity, or we should?)
-                                                // Actually, handleSaveEdit just swaps the object.
-                                                // Ideally strictly we should check limit here too, but the main logic is in toggleFeatured.
-                                                // Let's keep it simple or reimplement logic?
-                                                // Since this is local state for editingPost, let's just toggle.
                                                 isFeatured: !editingPost.isFeatured,
                                             })
                                         }
@@ -435,9 +366,30 @@ export function EditablePostGrid({
                     )}
                 </DialogContent>
             </Dialog>
-
-
         </div>
+    );
+}
+
+// Wrapper to handle drag controls
+interface SortableItemProps {
+    post: PostItem;
+    children: React.ReactElement;
+    className?: string;
+}
+
+function SortableItem({ post, children, className }: SortableItemProps) {
+    const dragControls = useDragControls();
+
+    return (
+        <Reorder.Item
+            value={post}
+            dragListener={false}
+            dragControls={dragControls}
+            className={`relative ${className || ''}`}
+        >
+            {/* Clone the child to inject dragControls */}
+            {React.cloneElement(children, { dragControls })}
+        </Reorder.Item>
     );
 }
 
@@ -449,6 +401,7 @@ interface PostCardProps {
     onDelete?: () => void;
     onEdit?: () => void;
     onToggleFeatured?: () => void;
+    dragControls?: DragControls;
 }
 
 function PostCard({
@@ -458,12 +411,15 @@ function PostCard({
     onDelete,
     onEdit,
     onToggleFeatured,
+    dragControls,
 }: PostCardProps) {
     return (
         <motion.div
-            whileHover={{ scale: isEditMode ? 1 : 1.03 }}
-            whileTap={{ scale: isEditMode ? 1 : 0.98 }}
-            className={`relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl group ${isFeaturedSection ? "w-72 flex-shrink-0" : ""
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: isEditMode ? 1.02 : 1.03 }}
+            className={`relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl group ${isFeaturedSection ? "w-72 flex-shrink-0" : "w-full"
                 }`}
         >
             <div className={isFeaturedSection ? "aspect-[16/9]" : "aspect-[4/5]"}>
@@ -495,13 +451,18 @@ function PostCard({
             {/* Edit Mode Controls */}
             {isEditMode && (
                 <>
-                    {/* Drag handle */}
-                    <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center cursor-grab active:cursor-grabbing">
-                        <GripVertical className="w-4 h-4 text-white" />
-                    </div>
+                    {/* Drag handle - ONLY show if dragControls provided (banners) */}
+                    {dragControls && (
+                        <div
+                            onPointerDown={(e) => dragControls.start(e)}
+                            className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center cursor-grab active:cursor-grabbing touch-none z-10 hover:bg-black/60 transition-colors"
+                        >
+                            <GripVertical className="w-4 h-4 text-white" />
+                        </div>
+                    )}
 
                     {/* Action buttons */}
-                    <div className="absolute top-2 right-2 flex gap-1">
+                    <div className="absolute top-2 right-2 flex gap-1 z-10">
                         <button
                             onClick={onToggleFeatured}
                             className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"

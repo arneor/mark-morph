@@ -1,29 +1,22 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
-  Wifi,
   ArrowRight,
   CheckCircle2,
   Sparkles,
   BarChart3,
   Palette,
-  Users,
   Zap,
   Shield,
   Globe,
   QrCode,
   Mail,
   TrendingUp,
-  Star,
   Smartphone,
   Instagram,
   Facebook,
-  Linkedin,
-  Twitter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -31,17 +24,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SEO, SEO_CONFIG } from "@/components/SEO";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -152,6 +138,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
+      {/* SEO Meta Tags */}
+      <SEO {...SEO_CONFIG.homepage} />
+
       {/* ============================================ */}
       {/* HERO SECTION - Vibrant gradient background */}
       {/* ============================================ */}
@@ -263,7 +252,7 @@ export default function Landing() {
                 <Button
                   size="lg"
                   variant="outline"
-                  onClick={() => window.open("https://docs.markmorph.com/demo", "_blank")}
+                  onClick={() => window.open("https://docs.markmorph.in/", "_blank")}
                   className="h-14 px-8 text-lg font-bold rounded-full bg-white/10 text-white border-2 border-white/30 hover:bg-white/20 backdrop-blur-sm transition-all duration-300"
                 >
                   Learn More

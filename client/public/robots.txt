@@ -1,6 +1,29 @@
+# MARK MORPH - Robots.txt
+# Wi-Fi Advertising Platform | Captive Portal Marketing
+
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
+Disallow: /splash/
+Disallow: /_next/
+Disallow: /static/
 
-Sitemap: https://markmorph.com/sitemap.xml
+# Block splash/captive portal pages from indexing (guest sessions)
+User-agent: Googlebot
+Disallow: /splash/*
+Disallow: /connect/*
+
+User-agent: Bingbot
+Disallow: /splash/*
+Disallow: /connect/*
+
+# Crawl-delay for respectful crawling
+User-agent: *
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://markmorph.in/sitemap.xml
+
+# Host directive
+Host: https://markmorph.in
