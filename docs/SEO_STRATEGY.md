@@ -9,9 +9,9 @@
       "title": "Turn Free Wi-Fi Into Sales | MARK MORPH",
       "description": "Transform your guest Wi-Fi into a powerful marketing engine. Capture leads, display targeted ads, and boost Google reviews. Zero hardware cost. Setup in 5 minutes.",
       "keywords": "Wi-Fi Advertising Platform, Captive Portal Marketing, Free Wi-Fi for Businesses, Digital Hotspot Ads, Customer Analytics for Restaurants, Monetize Guest Wi-Fi, Google Review Automation, Small Business Marketing Tools, MARK MORPH Wi-Fi",
-      "canonicalUrl": "https://markmorph.in/",
+      "canonicalUrl": "https://www.markmorph.in/",
       "ogType": "website",
-      "ogImage": "https://markmorph.in/ms-icon-310x310.png",
+      "ogImage": "https://www.markmorph.in/ms-icon-310x310.png",
       "twitterCard": "summary_large_image",
       "robots": "index, follow, max-image-preview:large"
     },
@@ -19,14 +19,14 @@
       "title": "Business Insights & Ad Manager | MARK MORPH",
       "description": "Access real-time customer analytics, manage Wi-Fi ad campaigns, and track Google review performance. Your complete business dashboard.",
       "keywords": "Business Dashboard, Customer Analytics, Ad Campaign Manager, Wi-Fi Marketing Analytics, Real-time Insights",
-      "canonicalUrl": "https://markmorph.in/dashboard",
+      "canonicalUrl": "https://www.markmorph.in/dashboard",
       "robots": "index, follow"
     },
     "businessProfile": {
       "title": "Customize Your Brand | MARK MORPH",
       "description": "Set up your business profile, upload branded banners, and create an engaging splash page for your guests. Make every Wi-Fi connection count.",
       "keywords": "Business Profile Setup, Brand Customization, Splash Page Design, Wi-Fi Branding, Guest Experience",
-      "canonicalUrl": "https://markmorph.in/profile",
+      "canonicalUrl": "https://www.markmorph.in/profile",
       "robots": "index, follow"
     },
     "splash": {

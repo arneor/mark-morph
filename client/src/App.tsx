@@ -14,6 +14,8 @@ import Splash from "@/pages/Splash";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminBusinessDetails from "@/pages/AdminBusinessDetails";
+import HowItWorks from "@/pages/HowItWorks";
+import LocalLanding from "@/pages/LocalLanding";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +24,10 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
+
+      {/* SEO Pages */}
+      <Route path="/how-it-works" component={HowItWorks} />
+      <Route path="/wifi-marketing/:city" component={LocalLanding} />
 
       {/* Business Dashboard Routes */}
       <Route path="/business/:id/onboarding" component={BusinessOnboarding} />

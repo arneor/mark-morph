@@ -12,6 +12,14 @@
     <priority>1.0</priority>
   </url>
   
+  <!-- Cornerstone Content -->
+  <url>
+    <loc>https://www.markmorph.in/how-it-works</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
   <!-- Authentication Pages -->
   <url>
     <loc>https://www.markmorph.in/login</loc>
@@ -27,20 +35,146 @@
     <priority>0.8</priority>
   </url>
   
-  <!-- Business Dashboard (Protected but indexable landing) -->
+  <!-- ========== KERALA CITIES (MVP PRIORITY) ========== -->
   <url>
-    <loc>https://www.markmorph.in/dashboard</loc>
+    <loc>https://www.markmorph.in/wifi-marketing/kochi</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.9</priority>
   </url>
   
-  <!-- Business Profile Setup -->
   <url>
-    <loc>https://www.markmorph.in/profile</loc>
+    <loc>https://www.markmorph.in/wifi-marketing/thiruvananthapuram</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/kozhikode</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/thrissur</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/kollam</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/alappuzha</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/kannur</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/kottayam</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/palakkad</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/malappuram</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/idukki</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/wayanad</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/pathanamthitta</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/kasaragod</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- ========== OTHER MAJOR INDIAN CITIES ========== -->
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/bangalore</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/mumbai</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/delhi</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/hyderabad</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/chennai</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.markmorph.in/wifi-marketing/pune</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
 </urlset>

@@ -27,8 +27,8 @@ export function SEO({
     noIndex = false,
     structuredData,
 }: SEOProps) {
-    const siteName = 'MARK MORPH';
-    const siteUrl = 'https://markmorph.in';
+    const siteName = 'Mark Morph';
+    const siteUrl = 'https://www.markmorph.in';
     const fullTitle = title.includes('MARK MORPH') ? title : `${title} | ${siteName}`;
     const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
     const fullCanonicalUrl = canonicalUrl ? (canonicalUrl.startsWith('http') ? canonicalUrl : `${siteUrl}${canonicalUrl}`) : undefined;
@@ -135,7 +135,7 @@ export const SEO_CONFIG = {
             'author': {
                 '@type': 'Organization',
                 'name': 'MARK MORPH',
-                'url': 'https://markmorph.in'
+                'url': 'https://www.markmorph.in'
             },
             'aggregateRating': {
                 '@type': 'AggregateRating',
@@ -179,7 +179,7 @@ export const SEO_CONFIG = {
             'description': 'Create a free account to start your Wi-Fi marketing journey.',
             'potentialAction': {
                 '@type': 'RegisterAction',
-                'target': 'https://markmorph.in/signup'
+                'target': 'https://www.markmorph.in/signup'
             }
         }
     }
