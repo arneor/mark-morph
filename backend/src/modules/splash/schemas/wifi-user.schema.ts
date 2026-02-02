@@ -17,6 +17,40 @@ export class WifiUser {
     @Prop({ required: true, index: true })
     email: string;
 
+    // ===== Google OAuth Fields =====
+    @ApiProperty({ description: 'Google OAuth user ID' })
+    @Prop({ sparse: true })
+    googleId?: string;
+
+    @ApiProperty({ description: 'Full name from Google profile' })
+    @Prop()
+    fullName?: string;
+
+    @ApiProperty({ description: 'First name from Google profile' })
+    @Prop()
+    firstName?: string;
+
+    @ApiProperty({ description: 'Last name from Google profile' })
+    @Prop()
+    lastName?: string;
+
+    @ApiProperty({ description: 'Profile picture URL from Google' })
+    @Prop()
+    profilePictureUrl?: string;
+
+    @ApiProperty({ description: 'Authentication method used', enum: ['google', 'email', 'phone'] })
+    @Prop({ default: 'email' })
+    authMethod: string;
+
+    @ApiProperty({ description: 'Whether email is verified by Google' })
+    @Prop({ default: false })
+    emailVerifiedByGoogle: boolean;
+
+    @ApiProperty({ description: 'Google locale' })
+    @Prop()
+    locale?: string;
+
+    // ===== Legacy Email OTP Fields =====
     @ApiProperty({ description: 'Hashed OTP code' })
     @Prop({ select: false })
     otpCode?: string;
@@ -33,7 +67,8 @@ export class WifiUser {
     @Prop()
     otpWindowStart?: Date;
 
-    @ApiProperty({ description: 'Whether user has verified their email' })
+    // ===== Verification & Session Fields =====
+    @ApiProperty({ description: 'Whether user has verified their email/identity' })
     @Prop({ default: false })
     isVerified: boolean;
 
@@ -49,6 +84,7 @@ export class WifiUser {
     @Prop()
     deviceInfo?: string;
 
+    // ===== Tracking & Analytics Fields =====
     @ApiProperty({ description: 'Total number of visits/connections' })
     @Prop({ default: 1 })
     visitCount: number;
@@ -56,6 +92,14 @@ export class WifiUser {
     @ApiProperty({ description: 'Last visit timestamp' })
     @Prop()
     lastVisitAt?: Date;
+
+    @ApiProperty({ description: 'First login timestamp' })
+    @Prop()
+    firstLoginAt?: Date;
+
+    @ApiProperty({ description: 'Signup source', enum: ['wifi_splash', 'web', 'app'] })
+    @Prop({ default: 'wifi_splash' })
+    signupSource: string;
 
     @ApiProperty({ description: 'Created timestamp' })
     createdAt?: Date;
@@ -70,3 +114,6 @@ export const WifiUserSchema = SchemaFactory.createForClass(WifiUser);
 WifiUserSchema.index({ businessId: 1, email: 1 }, { unique: true });
 WifiUserSchema.index({ email: 1 });
 WifiUserSchema.index({ isVerified: 1 });
+WifiUserSchema.index({ googleId: 1 }, { sparse: true });
+WifiUserSchema.index({ authMethod: 1 });
+

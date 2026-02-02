@@ -32,6 +32,42 @@ import { useToast } from "@/hooks/use-toast";
 import { useConnectWifi, useSplashData } from "@/hooks/use-splash";
 import { splashApi, analyticsApi } from "@/lib/api";
 
+// Google Identity Services types
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+            use_fedcm_for_prompt?: boolean;
+          }) => void;
+          prompt: (callback?: (notification: {
+            isNotDisplayed: () => boolean;
+            isSkippedMoment: () => boolean;
+            isDismissedMoment: () => boolean;
+            getNotDisplayedReason: () => string;
+            getSkippedReason: () => string;
+            getDismissedReason: () => string;
+          }) => void) => void;
+          renderButton: (element: HTMLElement, options: {
+            theme?: 'outline' | 'filled_blue' | 'filled_black';
+            size?: 'large' | 'medium' | 'small';
+            text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+            shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+            logo_alignment?: 'left' | 'center';
+            width?: number;
+          }) => void;
+          cancel: () => void;
+        };
+      };
+    };
+  }
+}
+
 // Ad view countdown seconds before connect is enabled
 const AD_VIEW_COUNTDOWN = 5;
 
@@ -60,6 +96,11 @@ export default function Splash() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+
+  // Google OAuth state
+  const [authMethod, setAuthMethod] = useState<'google' | 'email' | null>(null);
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [googleUserName, setGoogleUserName] = useState<string | null>(null);
 
   // Interaction State
   const [likedAds, setLikedAds] = useState<Set<string>>(new Set());
@@ -123,6 +164,35 @@ export default function Splash() {
     }
   }, [countdown]);
 
+  // SMART AUTO-RECOVERY: Preload Google Script & Detect Blocks
+  useEffect(() => {
+    const preloadGoogleScript = async () => {
+      // If already loaded, do nothing
+      if (window.google) return;
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true;
+          script.defer = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Network block'));
+          document.head.appendChild(script);
+        });
+        // Script loaded successfully
+      } catch (error) {
+        console.warn("Google Sign-In blocked/unavailable. Switching to email fallback.");
+        // Auto-switch to email view if Google is blocked
+        setAuthMethod('email');
+      }
+    };
+
+    // Slight delay to prioritize main content paint
+    const timer = setTimeout(preloadGoogleScript, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Auto-close removed as per user request (manual close preferred)
   // User stays on page to browse ads
 
@@ -153,6 +223,126 @@ export default function Splash() {
     }
   }, [cooldown]);
 
+  // Handle Google Sign-In
+  const handleGoogleSignIn = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setAuthMethod('google');
+    setVerificationError(null);
+
+    try {
+      // Dynamically load Google Identity Services
+      const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+      if (!googleClientId) {
+        throw new Error('Google Sign-In is not configured');
+      }
+
+      // Load Google Identity Services script if not already loaded
+      if (!window.google) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true;
+          script.defer = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load Google Sign-In'));
+          document.head.appendChild(script);
+        });
+      }
+
+      // Initialize Google Sign-In
+      if (!window.google) {
+        throw new Error('Google Sign-In failed to load');
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: { credential: string }) => {
+          try {
+            // Send credential to backend for verification
+            const result = await splashApi.googleAuth(id, response.credential, sessionId);
+
+            if (result.success) {
+              setGoogleUserName(result.name || null);
+              setUserEmail(result.email || '');
+              setVerificationStep("verified");
+              setConnectStep("success");
+              toast({
+                title: result.isNewUser ? "Welcome!" : "Welcome back!",
+                description: result.message,
+              });
+            }
+          } catch (err: any) {
+            setVerificationError(err.message || "Google sign-in failed. Please try again.");
+            toast({
+              title: "Sign-in Failed",
+              description: err.message || "Please try again",
+              variant: "destructive",
+            });
+          } finally {
+            setIsSubmitting(false);
+            setAuthMethod(null);
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: true,
+      });
+
+      // Trigger Google One Tap or popup
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed()) {
+          const reason = notification.getNotDisplayedReason();
+          console.warn('Google One Tap not displayed:', reason);
+
+          // Handle specific reasons
+          if (reason === 'opt_out_or_no_session') {
+            // User opted out or no Google session - show email option
+            setVerificationError("No Google account detected. Please use email verification or sign in to Google in another tab.");
+          } else if (reason === 'browser_not_supported') {
+            setVerificationError("Google Sign-In is not supported on this browser. Please use email verification.");
+          } else {
+            // Other reasons (including 403 from misconfigured origins)
+            setVerificationError("Google Sign-In unavailable. Please try email verification instead.");
+          }
+
+          setIsSubmitting(false);
+          setAuthMethod('email'); // Fallback to email
+        } else if (notification.isSkippedMoment()) {
+          // User dismissed the prompt
+          setIsSubmitting(false);
+          setAuthMethod(null);
+        } else if (notification.isDismissedMoment()) {
+          // User closed the prompt without selecting an account
+          setIsSubmitting(false);
+          setAuthMethod(null);
+        }
+      });
+
+    } catch (err: any) {
+      console.error('Google Sign-In error:', err);
+
+      // Check for specific error types
+      let errorMessage = "Google sign-in failed. Please try again.";
+      if (err.message?.includes('idpiframe_initialization_failed') || err.message?.includes('403')) {
+        errorMessage = "Google Sign-In configuration error. Please use email verification.";
+      } else if (err.message?.includes('popup_closed')) {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      }
+
+      setVerificationError(errorMessage);
+      toast({
+        title: "Sign-In Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      setAuthMethod('email'); // Fallback to email
+    }
+  };
+
   // Handle email submission (Step 1 -> Step 2)
   const handleEmailSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -166,6 +356,7 @@ export default function Splash() {
     }
 
     setIsSubmitting(true);
+    setAuthMethod('email');
     setVerificationError(null);
 
     try {
@@ -756,11 +947,11 @@ export default function Splash() {
               </div>
             </div>
 
-            {/* Fixed Bottom Action Bar with Email Verification Flow */}
+            {/* Fixed Bottom Action Bar with Google OAuth as Primary + Email Verification as Secondary */}
             {!isSheetHidden && (
               <div className="fixed inset-x-0 bottom-0 max-w-md mx-auto z-50">
                 {/* Glass blur background */}
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-2xl border-t border-white/10" />
+                <div className="absolute inset-0 bg-[#1a3a3a]/95 backdrop-blur-2xl border-t border-white/10" />
 
                 <div className="relative p-4 space-y-3">
                   {/* Step Indicator */}
@@ -789,117 +980,229 @@ export default function Splash() {
                       </motion.div>
                     )}
 
-                    {/* Step 1: Email Input */}
+                    {/* === MAIN AUTH FLOW === */}
                     {verificationStep === "email" && canConnect && (
-                      <motion.form
-                        key="email-form"
+                      <motion.div
+                        key="auth-flow"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        onSubmit={handleEmailSubmit}
-                        className="space-y-3"
+                        className="space-y-4" // Increased spacing for cleaner look
                       >
-                        <div className="text-center text-sm text-white/80">
-                          <Mail className="w-5 h-5 inline-block mr-2 text-[#9EE53B]" />
-                          Enter your email to connect to WiFi
-                        </div>
+                        {/* VIEW 1: GOOGLE PRIMARY (Default) */}
+                        {authMethod !== 'email' && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-4"
+                          >
+                            {/* Header */}
+                            <div className="text-center space-y-1 mb-2">
+                              <h3 className="text-lg font-bold text-white">Connect to WiFi</h3>
+                              <p className="text-white/60 text-xs">Secure, one-tap access</p>
+                            </div>
 
-                        {verificationError && (
-                          <div className="text-red-400 text-xs text-center py-1">
-                            {verificationError}
-                          </div>
+                            {/* === GOOGLE SIGN-IN (HERO BUTTON) === */}
+                            <Button
+                              onClick={handleGoogleSignIn}
+                              disabled={isSubmitting}
+                              className="w-full h-[56px] text-[17px] font-medium rounded-2xl bg-white hover:bg-gray-50 text-gray-700 shadow-xl hover:shadow-2xl hover:-translate-y-[1px] active:scale-[0.98] transition-all duration-200 relative overflow-hidden group border-0 ring-0"
+                            >
+                              <div className="absolute inset-0 bg-gray-100 opacity-0 group-hover:opacity-10 transition-opacity" />
+                              <span className="flex items-center justify-center gap-3 relative z-10">
+                                {isSubmitting ? (
+                                  <>
+                                    <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                                    <span className="text-gray-500">Signing in...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {/* Google Logo SVG */}
+                                    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
+                                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                    </svg>
+                                    <span>Sign in with Google</span>
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+
+                            {/* Subtle Alternative Link (Progressive Disclosure) */}
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.8, duration: 0.5 }} // Delayed reveal
+                              className="text-center pt-2"
+                            >
+                              <button
+                                onClick={() => setAuthMethod('email')}
+                                className="text-white/50 hover:text-white/90 text-sm font-medium transition-colors hover:underline decoration-white/30 underline-offset-4"
+                                aria-label="Use alternative sign-in method"
+                              >
+                                Trouble signing in? Try another method →
+                              </button>
+                            </motion.div>
+                          </motion.div>
                         )}
 
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                          <Input
-                            type="email"
-                            placeholder="your@email.com"
-                            value={userEmail}
-                            onChange={(e) => {
-                              setUserEmail(e.target.value);
-                              setVerificationError(null);
-                            }}
-                            className="pl-12 h-14 bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-2xl text-lg focus:border-[#9EE53B] focus:ring-[#9EE53B]"
-                            required
-                            disabled={isSubmitting}
-                          />
-                        </div>
+                        {/* VIEW 2: EMAIL FALLBACK (Hidden by default) */}
+                        {authMethod === 'email' && (
+                          <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-4"
+                          >
+                            {/* Back Button */}
+                            <div className="flex items-center justify-between mb-2">
+                              <button
+                                onClick={() => {
+                                  setAuthMethod(null); // Go back to Google view
+                                  setVerificationError(null);
+                                }}
+                                className="text-white/60 hover:text-white flex items-center gap-1 text-sm font-medium transition-colors pl-1"
+                              >
+                                ← Back
+                              </button>
+                              <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Alternative Login</span>
+                            </div>
 
-                        <Button
-                          type="submit"
-                          className="w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300"
-                          style={{ background: "linear-gradient(135deg, #9EE53B, #43E660)" }}
-                          disabled={!userEmail || isSubmitting}
-                        >
-                          <span className="flex items-center justify-center gap-2 text-[#222]">
-                            {isSubmitting ? (
-                              <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Sending Code...
-                              </>
-                            ) : (
-                              <>
-                                Get Verification Code
-                                <ArrowRight className="w-5 h-5" />
-                              </>
-                            )}
-                          </span>
-                        </Button>
-                      </motion.form>
+                            <div className="rounded-2xl bg-white/5 p-4 border border-white/10 space-y-4">
+                              <div className="text-center">
+                                <div className="text-sm text-white/90 font-medium mb-1">
+                                  Use Email Verification
+                                </div>
+                                <div className="text-xs text-white/50">
+                                  We'll send a temporary code to your inbox
+                                </div>
+                              </div>
+
+                              <motion.form
+                                onSubmit={handleEmailSubmit}
+                                className="space-y-3"
+                              >
+                                {verificationError && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center"
+                                  >
+                                    {verificationError}
+                                  </motion.div>
+                                )}
+
+                                <div className="relative group">
+                                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-[#9EE53B] transition-colors" />
+                                  <Input
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    value={userEmail}
+                                    onChange={(e) => {
+                                      setUserEmail(e.target.value);
+                                      setVerificationError(null);
+                                    }}
+                                    className="pl-12 h-14 bg-black/20 border-white/10 text-white placeholder:text-white/30 rounded-xl text-base focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-medium"
+                                    required
+                                    disabled={isSubmitting}
+                                    autoFocus // Auto-focus when this view activates
+                                    aria-label="Email Address"
+                                  />
+                                </div>
+
+                                <Button
+                                  type="submit"
+                                  className="w-full h-14 text-base font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                                  style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
+                                  disabled={!userEmail || isSubmitting}
+                                >
+                                  <span className="flex items-center justify-center gap-2 text-[#0f2525]">
+                                    {isSubmitting ? (
+                                      <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Sending...
+                                      </>
+                                    ) : (
+                                      <>
+                                        Get Verification Code
+                                        <ArrowRight className="w-5 h-5" />
+                                      </>
+                                    )}
+                                  </span>
+                                </Button>
+                              </motion.form>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Terms - Consistent Footer */}
+                        <div className="text-center pt-1">
+                          <p className="text-white/30 text-[10px]">
+                            By connecting, you agree to our{" "}
+                            <a href="/terms" className="underline hover:text-white/50 transition-colors">Terms</a>
+                            {" "}and{" "}
+                            <a href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy</a>
+                          </p>
+                        </div>
+                      </motion.div>
                     )}
 
-                    {/* Step 2: OTP Verification */}
+                    {/* Step 2: OTP Verification (Same as before but refined styling) */}
                     {verificationStep === "otp" && (
                       <motion.form
                         key="otp-form"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
                         onSubmit={handleOtpSubmit}
-                        className="space-y-3"
+                        className="space-y-4"
                       >
-                        <div className="text-center">
-                          <div className="text-sm text-white/80 mb-1">
-                            <KeyRound className="w-5 h-5 inline-block mr-2 text-[#9EE53B]" />
-                            Enter the 6-digit code sent to
+                        <div className="text-center pb-2">
+                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#9EE53B]/10 mb-3 text-[#9EE53B]">
+                            <KeyRound className="w-6 h-6" />
                           </div>
-                          <div className="text-[#9EE53B] font-medium text-sm">{userEmail}</div>
+                          <div className="text-base font-semibold text-white">Verification Code</div>
+                          <div className="text-sm text-white/60">Sent to <span className="text-white font-medium">{userEmail}</span></div>
                         </div>
 
                         {verificationError && (
-                          <div className="text-red-400 text-xs text-center py-1">
+                          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center">
                             {verificationError}
                           </div>
                         )}
 
                         <div className="relative">
-                          <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                           <Input
                             type="text"
                             inputMode="numeric"
                             maxLength={6}
-                            placeholder="123456"
+                            placeholder="000000"
                             value={otpCode}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "").slice(0, 6);
                               setOtpCode(value);
                               setVerificationError(null);
                             }}
-                            className="pl-12 h-14 bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-2xl text-lg text-center tracking-[0.5em] font-mono focus:border-[#9EE53B] focus:ring-[#9EE53B]"
+                            className="h-16 bg-black/20 border-white/20 text-white placeholder:text-white/10 rounded-2xl text-2xl text-center tracking-[0.7em] font-mono focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-bold"
                             required
                             disabled={isSubmitting}
                             autoFocus
+                            aria-label="6-digit verification code"
                           />
                         </div>
 
                         <Button
                           type="submit"
-                          className="w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300"
-                          style={{ background: "linear-gradient(135deg, #9EE53B, #43E660)" }}
+                          className="w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                          style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
                           disabled={otpCode.length !== 6 || isSubmitting}
                         >
-                          <span className="flex items-center justify-center gap-2 text-[#222]">
+                          <span className="flex items-center justify-center gap-2 text-[#0f2525]">
                             {isSubmitting ? (
                               <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -907,18 +1210,18 @@ export default function Splash() {
                               </>
                             ) : (
                               <>
-                                <Wifi className="w-5 h-5" />
                                 Verify & Connect
+                                <Wifi className="w-5 h-5" />
                               </>
                             )}
                           </span>
                         </Button>
 
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center justify-between text-xs px-2 pt-2">
                           <button
                             type="button"
                             onClick={handleBackToEmail}
-                            className="text-white/60 hover:text-white transition-colors"
+                            className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
                           >
                             ← Change email
                           </button>
@@ -935,34 +1238,31 @@ export default function Splash() {
                       </motion.form>
                     )}
 
-                    {/* Step 3: Success */}
+                    {/* Step 3: Success (Minor visual polish) */}
                     {verificationStep === "verified" && (
                       <motion.div
                         key="success"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="text-center py-4"
+                        className="text-center py-6"
                       >
-                        <div className="w-16 h-16 rounded-full bg-[#9EE53B]/20 flex items-center justify-center mx-auto mb-3">
-                          <CheckCircle2 className="w-10 h-10 text-[#9EE53B]" />
+                        <div className="w-20 h-20 rounded-full bg-[#9EE53B] flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_-10px_#9EE53B]">
+                          <CheckCircle2 className="w-10 h-10 text-[#0f2525]" />
                         </div>
-                        <div className="text-xl font-bold text-white mb-1">You're Connected!</div>
-                        <div className="text-white/70 text-sm">Enjoy free WiFi at {business?.businessName}</div>
+                        <div className="text-2xl font-bold text-white mb-1">
+                          {googleUserName ? `Welcome, ${googleUserName.split(' ')[0]}!` : "You're Connected!"}
+                        </div>
+                        <div className="text-white/60 text-sm mb-6">Enjoy secure, high-speed WiFi at {business?.businessName}</div>
 
-                        {/* Done Button & Auto Close */}
-                        <div className="mt-6 w-full max-w-xs mx-auto space-y-3">
-                          <Button
-                            onClick={() => setIsSheetHidden(true)}
-                            className="w-full h-12 rounded-full bg-[#9EE53B] hover:bg-[#8CD035] text-[#222] font-bold text-lg transition-transform active:scale-95 shadow-lg shadow-[#9EE53B]/20"
-                          >
-                            Done
-                          </Button>
-                          <p className="text-white/40 text-[10px]">
-                            Click Done to browse offers
-                          </p>
-                        </div>
+                        <Button
+                          onClick={() => setIsSheetHidden(true)}
+                          className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg transition-transform active:scale-95 border border-white/20"
+                        >
+                          Continue Browsing
+                        </Button>
                       </motion.div>
                     )}
+
                   </AnimatePresence>
 
                   {/* Powered by */}

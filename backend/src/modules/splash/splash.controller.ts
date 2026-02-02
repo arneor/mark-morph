@@ -23,6 +23,8 @@ import {
     VerifyOtpDto,
     OtpResponseDto,
     VerifyResponseDto,
+    GoogleAuthDto,
+    GoogleAuthResponseDto,
 } from './dto/splash.dto';
 import { BusinessService } from '../business/business.service';
 
@@ -47,6 +49,32 @@ export class SplashController {
     @ApiResponse({ status: 404, description: 'Business not found' })
     async getSplashData(@Param('businessId') businessId: string) {
         return this.businessService.getSplashData(businessId);
+    }
+
+    @Post(':businessId/auth/google')
+    @HttpCode(HttpStatus.OK)
+    @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute per IP
+    @ApiOperation({
+        summary: 'Authenticate with Google OAuth',
+        description: 'Verify Google OAuth token and grant WiFi access'
+    })
+    @ApiParam({ name: 'businessId', description: 'Business ID' })
+    @ApiResponse({ status: 200, description: 'Google auth successful', type: GoogleAuthResponseDto })
+    @ApiResponse({ status: 401, description: 'Invalid Google credentials' })
+    @ApiResponse({ status: 404, description: 'Business not found' })
+    async authenticateWithGoogle(
+        @Param('businessId') businessId: string,
+        @Body() dto: GoogleAuthDto,
+        @Req() req: Request
+    ): Promise<GoogleAuthResponseDto> {
+        // Add IP and device info from request
+        const authDto: GoogleAuthDto = {
+            ...dto,
+            ipAddress: dto.ipAddress || req.ip || req.connection?.remoteAddress,
+            deviceInfo: dto.deviceInfo || req.headers['user-agent'],
+        };
+
+        return this.splashService.authenticateWithGoogle(businessId, authDto);
     }
 
     @Post(':businessId/request-otp')

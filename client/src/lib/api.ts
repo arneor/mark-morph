@@ -797,6 +797,26 @@ export const splashApi = {
     return apiRequest(`/splash/${businessId}`);
   },
 
+  // Authenticate with Google OAuth
+  async googleAuth(
+    businessId: string,
+    credential: string,
+    sessionId?: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    email?: string;
+    name?: string;
+    picture?: string;
+    isNewUser?: boolean;
+    redirectUrl?: string;
+  }> {
+    return apiRequest(`/splash/${businessId}/auth/google`, {
+      method: "POST",
+      body: JSON.stringify({ credential, sessionId }),
+    });
+  },
+
   // Request OTP for WiFi access
   async requestOtp(
     businessId: string,
@@ -837,6 +857,7 @@ export const splashApi = {
   ): Promise<{
     isVerified: boolean;
     visitCount: number;
+    authMethod?: string;
   }> {
     return apiRequest(`/splash/${businessId}/check/${encodeURIComponent(email)}`);
   },

@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsNotEmpty, Length, IsOptional } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, Length, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RequestOtpDto {
@@ -35,6 +35,58 @@ export class VerifyOtpDto {
     @IsOptional()
     sessionId?: string;
 }
+
+// ===== Google OAuth DTOs =====
+
+export class GoogleAuthDto {
+    @ApiProperty({ description: 'Google OAuth credential (ID token from Google Sign-In)' })
+    @IsString()
+    @IsNotEmpty()
+    credential: string;
+
+    @ApiPropertyOptional({ description: 'User IP address' })
+    @IsString()
+    @IsOptional()
+    ipAddress?: string;
+
+    @ApiPropertyOptional({ description: 'Device info / user agent' })
+    @IsString()
+    @IsOptional()
+    deviceInfo?: string;
+
+    @ApiPropertyOptional({ description: 'Client session ID for tracking' })
+    @IsString()
+    @IsOptional()
+    sessionId?: string;
+}
+
+export class GoogleAuthResponseDto {
+    @ApiProperty({ description: 'Whether authentication was successful' })
+    success: boolean;
+
+    @ApiProperty({ description: 'Response message' })
+    message: string;
+
+    @ApiPropertyOptional({ description: 'User email from Google' })
+    email?: string;
+
+    @ApiPropertyOptional({ description: 'User full name from Google' })
+    name?: string;
+
+    @ApiPropertyOptional({ description: 'User profile picture URL' })
+    picture?: string;
+
+    @ApiPropertyOptional({ description: 'Whether this is a new user' })
+    isNewUser?: boolean;
+
+    @ApiPropertyOptional({ description: 'Redirect URL after successful auth' })
+    redirectUrl?: string;
+
+    @ApiPropertyOptional({ description: 'Session token for WiFi access' })
+    sessionToken?: string;
+}
+
+// ===== Existing Response DTOs =====
 
 export class OtpResponseDto {
     @ApiProperty({ description: 'Whether the request was successful' })
@@ -76,4 +128,14 @@ export class WifiUserInfoDto {
 
     @ApiPropertyOptional({ description: 'Last visit date' })
     lastVisitAt?: Date;
+
+    @ApiPropertyOptional({ description: 'Authentication method used' })
+    authMethod?: string;
+
+    @ApiPropertyOptional({ description: 'User full name' })
+    fullName?: string;
+
+    @ApiPropertyOptional({ description: 'Profile picture URL' })
+    profilePictureUrl?: string;
 }
+

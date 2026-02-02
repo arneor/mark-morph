@@ -11,11 +11,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import { WifiUser, WifiUserDocument } from './schemas/wifi-user.schema';
 import { BusinessProfile, BusinessProfileDocument } from '../business/schemas/business-profile.schema';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { EmailService } from '../../common/services/email.service';
-import { RequestOtpDto, OtpResponseDto, VerifyOtpDto, VerifyResponseDto } from './dto/splash.dto';
+import { RequestOtpDto, OtpResponseDto, VerifyOtpDto, VerifyResponseDto, GoogleAuthDto, GoogleAuthResponseDto } from './dto/splash.dto';
+
 @Injectable()
 export class SplashService {
     private readonly logger = new Logger(SplashService.name);
@@ -23,6 +25,7 @@ export class SplashService {
     private readonly OTP_EXPIRY_MINUTES = 10;
     private readonly RESEND_COOLDOWN_SECONDS = 60;
     private readonly BCRYPT_ROUNDS = 10;
+    private googleClient: OAuth2Client;
 
     constructor(
         @InjectModel(WifiUser.name) private wifiUserModel: Model<WifiUserDocument>,
@@ -30,13 +33,146 @@ export class SplashService {
         private configService: ConfigService,
         private emailService: EmailService,
         private analyticsService: AnalyticsService,
-    ) { }
+    ) {
+        // Initialize Google OAuth client
+        const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+        this.googleClient = new OAuth2Client(googleClientId);
+    }
 
     /**
      * Generate a 6-digit OTP
      */
     private generateOtp(): string {
         return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    /**
+     * Authenticate with Google OAuth
+     */
+    async authenticateWithGoogle(
+        businessId: string,
+        dto: GoogleAuthDto
+    ): Promise<GoogleAuthResponseDto> {
+        const { credential, ipAddress, deviceInfo, sessionId } = dto;
+
+        // Verify business exists and is active
+        const business = await this.businessModel.findById(businessId);
+        if (!business) {
+            throw new NotFoundException('Business not found');
+        }
+        if (business.status !== 'active') {
+            throw new BadRequestException('This WiFi network is currently unavailable');
+        }
+
+        // Verify Google token
+        let googlePayload;
+        try {
+            const ticket = await this.googleClient.verifyIdToken({
+                idToken: credential,
+                audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+            });
+            googlePayload = ticket.getPayload();
+        } catch (error) {
+            this.logger.error(`Google token verification failed: ${error.message}`);
+            throw new UnauthorizedException('Invalid Google credentials. Please try again.');
+        }
+
+        if (!googlePayload || !googlePayload.email) {
+            throw new UnauthorizedException('Unable to retrieve email from Google account');
+        }
+
+        const {
+            sub: googleId,
+            email,
+            email_verified,
+            name,
+            given_name,
+            family_name,
+            picture,
+            locale,
+        } = googlePayload;
+
+        // Find or create WiFi user
+        let wifiUser = await this.wifiUserModel.findOne({
+            businessId: new Types.ObjectId(businessId),
+            email: email.toLowerCase(),
+        });
+
+        const isNewUser = !wifiUser;
+        const now = new Date();
+
+        if (wifiUser) {
+            // Update existing user with Google info
+            wifiUser.googleId = googleId;
+            wifiUser.fullName = name || wifiUser.fullName;
+            wifiUser.firstName = given_name || wifiUser.firstName;
+            wifiUser.lastName = family_name || wifiUser.lastName;
+            wifiUser.profilePictureUrl = picture || wifiUser.profilePictureUrl;
+            wifiUser.emailVerifiedByGoogle = email_verified || false;
+            wifiUser.locale = locale || wifiUser.locale;
+            wifiUser.authMethod = 'google';
+            wifiUser.isVerified = true;
+            wifiUser.verifiedAt = now;
+            wifiUser.visitCount = (wifiUser.visitCount || 0) + 1;
+            wifiUser.lastVisitAt = now;
+            wifiUser.ipAddress = ipAddress || wifiUser.ipAddress;
+            wifiUser.deviceInfo = deviceInfo || wifiUser.deviceInfo;
+        } else {
+            // Create new WiFi user with Google info
+            wifiUser = new this.wifiUserModel({
+                businessId: new Types.ObjectId(businessId),
+                email: email.toLowerCase(),
+                googleId,
+                fullName: name,
+                firstName: given_name,
+                lastName: family_name,
+                profilePictureUrl: picture,
+                emailVerifiedByGoogle: email_verified || false,
+                locale,
+                authMethod: 'google',
+                isVerified: true,
+                verifiedAt: now,
+                firstLoginAt: now,
+                lastVisitAt: now,
+                visitCount: 1,
+                ipAddress,
+                deviceInfo,
+                signupSource: 'wifi_splash',
+            });
+        }
+
+        await wifiUser.save();
+
+        // Get redirect URL
+        const redirectUrl = business.googleReviewUrl || 'https://google.com';
+
+        this.logger.log(`Google OAuth successful for ${email} (${isNewUser ? 'new' : 'returning'} user) at business ${businessId}`);
+
+        // Link anonymous session analytics to this user
+        if (sessionId) {
+            this.analyticsService.linkSessionToUser(sessionId, wifiUser._id.toString(), email);
+        }
+
+        // Log compliance
+        await this.analyticsService.logCompliance(
+            businessId,
+            undefined, // macAddress
+            ipAddress,
+            'unknown', // deviceType
+            deviceInfo // userAgent
+        );
+
+        return {
+            success: true,
+            message: isNewUser
+                ? `Welcome, ${given_name || name || 'friend'}! You're connected to WiFi.`
+                : `Welcome back, ${given_name || name || 'friend'}! You're connected to WiFi.`,
+            email,
+            name,
+            picture,
+            isNewUser,
+            redirectUrl,
+        };
     }
 
     /**
@@ -97,6 +233,7 @@ export class SplashService {
             }
 
             wifiUser.otpRequestCount += 1;
+            wifiUser.authMethod = 'email'; // Set auth method
         } else {
             // Create new WiFi user
             wifiUser = new this.wifiUserModel({
@@ -106,6 +243,8 @@ export class SplashService {
                 deviceInfo,
                 otpRequestCount: 1,
                 otpWindowStart: now,
+                authMethod: 'email',
+                signupSource: 'wifi_splash',
             });
         }
 
@@ -175,6 +314,9 @@ export class SplashService {
         wifiUser.otpExpiry = undefined;
         wifiUser.visitCount = (wifiUser.visitCount || 0) + 1;
         wifiUser.lastVisitAt = new Date();
+        if (!wifiUser.firstLoginAt) {
+            wifiUser.firstLoginAt = new Date();
+        }
 
         await wifiUser.save();
 
@@ -225,7 +367,7 @@ export class SplashService {
     async checkVerificationStatus(
         businessId: string,
         email: string
-    ): Promise<{ isVerified: boolean; visitCount: number }> {
+    ): Promise<{ isVerified: boolean; visitCount: number; authMethod?: string }> {
         const wifiUser = await this.wifiUserModel.findOne({
             businessId: new Types.ObjectId(businessId),
             email: email.toLowerCase(),
@@ -234,6 +376,8 @@ export class SplashService {
         return {
             isVerified: wifiUser?.isVerified || false,
             visitCount: wifiUser?.visitCount || 0,
+            authMethod: wifiUser?.authMethod,
         };
     }
 }
+
