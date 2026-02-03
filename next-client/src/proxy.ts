@@ -10,7 +10,7 @@ const adminRoutes = ['/admin/dashboard', '/admin/businesses'];
 // Public routes (redirect to dashboard if already authenticated)
 const publicOnlyRoutes = ['/login', '/signup', '/'];
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Get tokens from cookies
