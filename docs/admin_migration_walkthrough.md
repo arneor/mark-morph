@@ -2,13 +2,13 @@
 # Admin Separation Walkthrough
 
 ## Overview
-We have successfully separated the admin panel into its own project, `admin-client`. The original `next-client` is now exclusively for the customer-facing application.
+We have successfully separated the admin panel into its own project, `admin-client`. The original `user-client` is now exclusively for the customer-facing application.
 
 ## Key Changes
 - **New Project:** `admin-client` created at the root.
 - **Admin API:** Moved all admin-related API calls to `admin-client/src/lib/api.ts`.
-- **Customer API:** Cleaned up `next-client/src/lib/api.ts` (removed admin code).
-- **Routes:** Removed `/admin/*` routes from `next-client`.
+- **Customer API:** Cleaned up `user-client/src/lib/api.ts` (removed admin code).
+- **Routes:** Removed `/admin/*` routes from `user-client`.
 - **Authentication:**  Admin auth now uses `mm_admin_token` and is fully isolated.
 
 ## How to Run Locally
@@ -23,7 +23,7 @@ Access at: `http://localhost:3000` (or whatever port Next.js picks)
 
 ### 2. Run Customer Client
 ```bash
-cd next-client
+cd user-client
 npm install
 npm run dev
 ```
@@ -41,8 +41,8 @@ Access at: `http://localhost:3001`
    - `NEXT_PUBLIC_CUSTOMER_APP_URL`: `https://www.markmorph.in`
 
 ### Customer Client (`www.markmorph.in`)
-1. **Vercel Project:** Go to your existing `next-client` project.
-2. **Root Directory:** Ensure it is set to `next-client`.
+1. **Vercel Project:** Go to your existing `user-client` project.
+2. **Root Directory:** Ensure it is set to `user-client`.
 3. **Redeploy:** Trigger a new deployment to apply the cleanup changes.
 
 ## Verification
