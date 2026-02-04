@@ -4,9 +4,6 @@ import type { NextRequest } from 'next/server';
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/business'];
 
-// Routes that require admin authentication
-const adminRoutes = ['/admin/dashboard', '/admin/businesses'];
-
 // Public routes (redirect to dashboard if already authenticated)
 const publicOnlyRoutes = ['/login', '/signup', '/'];
 
@@ -15,15 +12,9 @@ export default function proxy(request: NextRequest) {
 
     // Get tokens from cookies
     const userToken = request.cookies.get('mm_token')?.value;
-    const adminToken = request.cookies.get('mm_admin_token')?.value;
 
     // Check if route is protected (requires user auth)
     const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route)
-    );
-
-    // Check if route is admin protected
-    const isAdminRoute = adminRoutes.some((route) =>
         pathname.startsWith(route)
     );
 
@@ -31,13 +22,6 @@ export default function proxy(request: NextRequest) {
     const isPublicOnlyRoute = publicOnlyRoutes.some((route) =>
         pathname === route
     );
-
-    // Admin route protection
-    if (isAdminRoute && !adminToken) {
-        const loginUrl = new URL('/admin/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(loginUrl);
-    }
 
     // Protected route protection
     if (isProtectedRoute && !userToken) {
@@ -47,13 +31,7 @@ export default function proxy(request: NextRequest) {
     }
 
     // Redirect authenticated users away from login/signup pages
-    // Redirect authenticated users away from login/signup pages
     if (isPublicOnlyRoute) {
-        // If admin is logged in, redirect to admin dashboard
-        if (adminToken) {
-            return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-        }
-
         // If user is logged in, redirect to business dashboard
         if (userToken) {
             // Try to get businessId from cookie or redirect to home
@@ -63,11 +41,6 @@ export default function proxy(request: NextRequest) {
             }
             // If no businessId, let them continue to signup to create one
         }
-    }
-
-    // Allow admin login page for unauthenticated admins
-    if (pathname === '/admin/login' && adminToken) {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
     }
 
     return NextResponse.next();

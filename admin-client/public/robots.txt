@@ -1,0 +1,8 @@
+# MARK MORPH ADMIN - Robots.txt
+# Private Admin Portal
+
+User-agent: *
+Disallow: /
+
+# Host directive
+Host: https://admin.markmorph.in

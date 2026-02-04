@@ -17,7 +17,7 @@ async function bootstrap() {
     const origins = process.env.CORS_ORIGINS;
     const corsOrigins = origins
         ? origins.split(',').map(o => o.trim())
-        : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'https://www.markmorph.in', 'https://markmorph.in'];
+        : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002', 'http://localhost:5173', 'http://127.0.0.1:3000', 'https://www.markmorph.in', 'https://markmorph.in', 'https://admin.markmorph.in'];
 
     app.enableCors({
         origin: corsOrigins,
