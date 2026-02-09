@@ -8,11 +8,16 @@ import {
     LogOut,
     Menu,
     Wand2,
+    Wifi,
+    TreePine,
+    ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
-import { useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState, useEffect } from 'react';
 import { useLogout } from '@/hooks/use-auth';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
     businessId: string;
@@ -23,7 +28,18 @@ export function Sidebar({ businessId }: SidebarProps) {
     const [open, setOpen] = useState(false);
     const logout = useLogout();
 
-    const links = [
+    // Check if we're on any profile page
+    const isOnProfilePage = pathname.includes('/profile') || pathname.includes('/tree-profile');
+    const [profileOpen, setProfileOpen] = useState(isOnProfilePage);
+
+    // Keep dropdown open when navigating to profile pages
+    useEffect(() => {
+        if (isOnProfilePage) {
+            setProfileOpen(true);
+        }
+    }, [isOnProfilePage]);
+
+    const mainLinks = [
         {
             href: `/dashboard/${businessId}`,
             label: 'Overview',
@@ -35,17 +51,25 @@ export function Sidebar({ businessId }: SidebarProps) {
             label: 'Setup Wizard',
             icon: Wand2,
         },
+    ];
+
+    const profileLinks = [
         {
             href: `/dashboard/${businessId}/profile`,
-            label: 'Business Profile',
-            icon: Store,
+            label: 'WiFi Profile',
+            icon: Wifi,
+        },
+        {
+            href: `/dashboard/${businessId}/tree-profile`,
+            label: 'Tree Profile',
+            icon: TreePine,
         },
     ];
 
     const renderNavContent = () => (
         <div className="flex flex-col h-full py-6">
             <div className="px-6 mb-8">
-                <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-display font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                     MarkMorph
                 </h1>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-1">
@@ -54,7 +78,8 @@ export function Sidebar({ businessId }: SidebarProps) {
             </div>
 
             <nav className="flex-1 px-4 space-y-1">
-                {links.map((link) => {
+                {/* Main Navigation Links */}
+                {mainLinks.map((link) => {
                     const isActive = link.exact
                         ? pathname === link.href
                         : pathname.startsWith(link.href);
@@ -82,6 +107,80 @@ export function Sidebar({ businessId }: SidebarProps) {
                         </Link>
                     );
                 })}
+
+                {/* Business Profile Dropdown */}
+                <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
+                    <CollapsibleTrigger asChild>
+                        <button
+                            className={cn(
+                                'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group',
+                                isOnProfilePage
+                                    ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                            )}
+                        >
+                            <Store
+                                className={cn(
+                                    'w-5 h-5',
+                                    isOnProfilePage
+                                        ? 'text-primary'
+                                        : 'text-muted-foreground group-hover:text-foreground',
+                                )}
+                            />
+                            <span className="flex-1 text-left">Business Profile</span>
+                            <motion.div
+                                animate={{ rotate: profileOpen ? 180 : 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <ChevronDown className="w-4 h-4" />
+                            </motion.div>
+                        </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <AnimatePresence>
+                            {profileOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="ml-4 mt-1 space-y-1 border-l-2 border-muted pl-4"
+                                >
+                                    {profileLinks.map((link) => {
+                                        const isActive = pathname === link.href;
+
+                                        return (
+                                            <Link
+                                                key={link.href}
+                                                href={link.href}
+                                                onClick={() => setOpen(false)}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer group',
+                                                        isActive
+                                                            ? 'bg-primary/10 text-primary font-semibold'
+                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                                    )}
+                                                >
+                                                    <link.icon
+                                                        className={cn(
+                                                            'w-4 h-4',
+                                                            isActive
+                                                                ? 'text-primary'
+                                                                : 'text-muted-foreground group-hover:text-foreground',
+                                                        )}
+                                                    />
+                                                    <span className="text-sm">{link.label}</span>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </CollapsibleContent>
+                </Collapsible>
             </nav>
 
             <div className="px-4 mt-auto">
@@ -123,3 +222,4 @@ export function Sidebar({ businessId }: SidebarProps) {
         </>
     );
 }
+
