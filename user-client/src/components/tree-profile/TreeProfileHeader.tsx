@@ -132,6 +132,8 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                         src={data.bannerImage}
                         alt="Banner"
                         fill
+                        priority
+                        sizes="(max-width: 768px) 100vw, 896px"
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                 ) : (
@@ -195,6 +197,8 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                                 src={data.profileImage}
                                 alt={data.businessName}
                                 fill
+                                priority
+                                sizes="128px"
                                 className="object-cover"
                             />
                         ) : (
