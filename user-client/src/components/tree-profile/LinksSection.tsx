@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, memo } from 'react';
+import { motion } from 'framer-motion';
 import { ExternalLink, Plus } from 'lucide-react';
 import { CustomLink, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ interface LinkBlockProps {
     onEdit?: () => void;
 }
 
-export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockProps) {
+const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBlockProps) => {
     // Check if theme is likely light mode
     const isLightTheme = theme.textColor === '#000000' || theme.textColor === '#0f172a' || theme.textColor === '#831843';
 
@@ -37,16 +37,21 @@ export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockP
         glass: 'rounded-xl',
     };
 
-    const styleClasses = {
+    const styleClasses: Record<string, string> = {
         default: cardBaseStyles[theme.cardStyle || 'glass'],
-        featured: `bg-gradient-to-r from-[${theme.primaryColor}]/20 to-purple-500/20 border-[${theme.primaryColor}]/50`,
+        featured: `border-white/50`, // Background handled via inline style for CSS var support
         outline: 'bg-transparent border-white/40 hover:bg-white/5',
         gradient: '',
     };
 
     const gradientStyle = link.style === 'gradient' ? {
-        background: `linear-gradient(135deg, ${theme.primaryColor}30, #A855F730)`,
-        borderColor: `${theme.primaryColor}50`,
+        background: `linear-gradient(135deg, color-mix(in srgb, var(--primary) 30%, transparent), color-mix(in srgb, #A855F7 30%, transparent))`,
+        borderColor: `color-mix(in srgb, var(--primary) 50%, transparent)`,
+    } : {};
+
+    const featuredStyle = link.style === 'featured' ? {
+        background: `linear-gradient(to right, color-mix(in srgb, var(--primary) 20%, transparent), color-mix(in srgb, #a855f7 20%, transparent))`,
+        borderColor: `color-mix(in srgb, var(--primary) 50%, transparent)`,
     } : {};
 
     return (
@@ -72,12 +77,14 @@ export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockP
                 'group relative block w-full p-4 border transition-all duration-300',
                 buttonShapeStyles[theme.buttonStyle || 'rounded'],
                 'shadow-lg hover:shadow-xl',
-                link.style !== 'gradient' && (styleClasses[link.style] || styleClasses.default),
+                link.style !== 'gradient' && link.style !== 'featured' && (styleClasses[link.style] || styleClasses.default),
+                link.style === 'featured' && styleClasses.featured,
                 isEditMode && 'cursor-pointer hover:border-dashed hover:border-white/60',
             )}
             style={{
                 ...gradientStyle,
-                boxShadow: `0 4px 20px ${theme.primaryColor}10`,
+                ...featuredStyle,
+                boxShadow: `0 4px 20px color-mix(in srgb, var(--primary) 10%, transparent)`,
             }}
             onClick={(e) => {
                 if (isEditMode) {
@@ -93,18 +100,18 @@ export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockP
                     buttonShapeStyles[theme.buttonStyle || 'rounded']
                 )}
                 style={{
-                    boxShadow: `inset 0 0 30px ${theme.primaryColor}15, 0 0 30px ${theme.primaryColor}10`,
+                    boxShadow: `inset 0 0 30px color-mix(in srgb, var(--primary) 15%, transparent), 0 0 30px color-mix(in srgb, var(--primary) 10%, transparent)`,
                 }}
             />
 
             {/* Content */}
             <div className="relative flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg truncate" style={{ color: theme.textColor }}>
+                    <h3 className="font-semibold text-lg truncate" style={{ color: 'var(--text-color)' }}>
                         {link.title}
                     </h3>
                     {link.description && (
-                        <p className="text-sm mt-0.5 truncate" style={{ color: theme.textColor, opacity: 0.7 }}>
+                        <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--text-color)', opacity: 0.7 }}>
                             {link.description}
                         </p>
                     )}
@@ -125,7 +132,7 @@ export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockP
                 <div
                     className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
                     style={{
-                        background: theme.primaryColor,
+                        background: 'var(--primary)',
                         color: isLightTheme ? '#fff' : '#000',
                     }}
                 >
@@ -146,7 +153,19 @@ export function LinkBlock({ link, index, theme, isEditMode, onEdit }: LinkBlockP
             )}
         </motion.a>
     );
-}
+};
+
+export const LinkBlock = memo(LinkBlockComponent, (prev, next) => {
+    return (
+        prev.link === next.link &&
+        prev.index === next.index &&
+        prev.isEditMode === next.isEditMode &&
+        prev.theme.cardStyle === next.theme.cardStyle &&
+        prev.theme.buttonStyle === next.theme.buttonStyle &&
+        prev.theme.textColor === next.theme.textColor
+        // Ignore primaryColor, backgroundType/Value
+    );
+});
 
 interface LinksSectionProps {
     links: CustomLink[];
@@ -155,7 +174,7 @@ interface LinksSectionProps {
     onUpdate?: (links: CustomLink[]) => void;
 }
 
-export function LinksSection({ links, theme, isEditMode, onUpdate }: LinksSectionProps) {
+function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSectionProps) {
     const activeLinks = links.filter(l => l.isActive);
 
     // Modal State
@@ -217,30 +236,7 @@ export function LinksSection({ links, theme, isEditMode, onUpdate }: LinksSectio
             transition={{ delay: 0.6 }}
             className="space-y-3"
         >
-            {/* Section header */}
-            <div className="flex items-center justify-between px-1 mb-4">
-                <h2
-                    className="text-xs font-bold uppercase tracking-[0.2em]"
-                    style={{ color: theme.textColor, opacity: 0.5 }}
-                >
-                    🔗 Quick Links
-                </h2>
-                {isEditMode && (
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={openForAdd}
-                        className={cn(
-                            "px-3 py-1 rounded-full text-xs font-semibold transition-colors border flex items-center gap-1",
-                            isLightTheme
-                                ? "bg-black/5 text-black/70 hover:bg-black/10 hover:text-black border-black/20"
-                                : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border-white/20"
-                        )}
-                    >
-                        <Plus className="w-3 h-3" /> Add Link
-                    </motion.button>
-                )}
-            </div>
+
 
             {/* Links list */}
             <div className="space-y-3">
@@ -254,6 +250,28 @@ export function LinksSection({ links, theme, isEditMode, onUpdate }: LinksSectio
                         onEdit={() => openForEdit(link)}
                     />
                 ))}
+                {isEditMode && activeLinks.length > 0 && (
+                    <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={openForAdd}
+                        className={cn(
+                            "w-full py-3 rounded-2xl border-2 border-dashed flex items-center justify-center gap-2 transition-all group",
+                            isLightTheme
+                                ? "border-black/10 hover:border-black/20 hover:bg-black/5 text-black/60"
+                                : "border-white/10 hover:border-white/20 hover:bg-white/5 text-white/60"
+                        )}
+                        style={{ color: 'var(--text-color)' }}
+                    >
+                        <div className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center transition-colors",
+                            isLightTheme ? "bg-black/5 group-hover:bg-black/10" : "bg-white/10 group-hover:bg-white/20"
+                        )}>
+                            <Plus className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium opacity-80">Add New Link</span>
+                    </motion.button>
+                )}
             </div>
 
             {/* Empty state for edit mode */}
@@ -262,11 +280,13 @@ export function LinksSection({ links, theme, isEditMode, onUpdate }: LinksSectio
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="p-8 rounded-2xl border-2 border-dashed border-white/20 text-center"
+                    style={{ borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
                 >
-                    <p className="text-white/50 mb-3">No links added yet</p>
+                    <p className="text-white/50 mb-3" style={{ color: 'var(--text-color)', opacity: 0.5 }}>No links added yet</p>
                     <button
                         onClick={openForAdd}
-                        className="px-4 py-2 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-colors"
+                        className="px-4 py-2 rounded-xl bg-white/10 font-medium hover:bg-white/20 transition-colors"
+                        style={{ color: 'var(--text-color)', background: 'color-mix(in srgb, var(--text-color) 10%, transparent)' }}
                     >
                         Add Your First Link
                     </button>
@@ -280,8 +300,19 @@ export function LinksSection({ links, theme, isEditMode, onUpdate }: LinksSectio
                 onSave={handleSave}
                 onDelete={editingLink ? handleDelete : undefined}
                 initialData={editingLink}
+                key={editingLink ? editingLink.id : 'new'}
                 primaryColor={theme.primaryColor}
             />
         </motion.div>
     );
 }
+
+export const LinksSection = memo(LinksSectionComponent, (prev, next) => {
+    return (
+        prev.links === next.links &&
+        prev.isEditMode === next.isEditMode &&
+        prev.theme.cardStyle === next.theme.cardStyle &&
+        prev.theme.buttonStyle === next.theme.buttonStyle &&
+        prev.theme.textColor === next.theme.textColor
+    );
+});

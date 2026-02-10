@@ -20,7 +20,7 @@ export const dynamicParams = true;
 // Metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ businessId: string }> }): Promise<Metadata> {
     // Await params because in Next.js 15+ params are async
-    const { businessId } = await params;
+    await params;
 
     // In a real app, fetch the business name here
     const title = `${dummyTreeProfileData.businessName} | Profile`;
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ businessI
 }
 
 // Simulated Server-Side Data Fetching with caching
-async function getProfileData(businessId: string) {
+async function getProfileData() {
     // Simulate network delay to demonstrate Suspense
     // In production: const res = await fetch(`.../api/business/${businessId}`, { next: { revalidate: 3600 } });
 
@@ -50,17 +50,17 @@ async function getProfileData(businessId: string) {
 
 export default async function TreeProfilePage({ params }: { params: Promise<{ businessId: string }> }) {
     // Await the params object (Next.js 15+ requirement)
-    const { businessId } = await params;
+    await params;
 
     return (
         <Suspense fallback={<TreeProfileSkeleton />}>
-            <ProfileFetcher businessId={businessId} />
+            <ProfileFetcher />
         </Suspense>
     );
 }
 
 // Intermediate component to handle async data fetching
-async function ProfileFetcher({ businessId }: { businessId: string }) {
-    const profileData = await getProfileData(businessId);
+async function ProfileFetcher() {
+    const profileData = await getProfileData();
     return <TreeProfileEditor initialData={profileData} />;
 }

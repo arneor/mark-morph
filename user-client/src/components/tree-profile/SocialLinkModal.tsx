@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Link as LinkIcon, Instagram, Facebook, Twitter, Youtube, Linkedin, Mail, Phone, Globe } from 'lucide-react';
+import { X, Trash2, Link as LinkIcon, Instagram, Facebook, Twitter, Youtube, Linkedin, Mail, Phone } from 'lucide-react';
 import { SocialLink } from '@/lib/dummyTreeProfileData';
 import { cn } from '@/lib/utils';
 
@@ -40,21 +40,9 @@ interface SocialLinkModalProps {
 }
 
 export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData }: SocialLinkModalProps) {
-    const [selectedPlatform, setSelectedPlatform] = useState<string>('instagram');
-    const [url, setUrl] = useState('');
-    const [label, setLabel] = useState('');
-
-    useEffect(() => {
-        if (initialData) {
-            setSelectedPlatform(initialData.platform);
-            setUrl(initialData.url);
-            setLabel(initialData.label || '');
-        } else {
-            setSelectedPlatform('instagram');
-            setUrl('');
-            setLabel('');
-        }
-    }, [initialData, isOpen]);
+    const [selectedPlatform, setSelectedPlatform] = useState<string>(initialData?.platform || 'instagram');
+    const [url, setUrl] = useState(initialData?.url || '');
+    const [label, setLabel] = useState(initialData?.label || '');
 
     const handleSave = () => {
         if (!url) return;

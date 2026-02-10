@@ -1,22 +1,22 @@
 
 'use client';
 
-import { useState, useCallback, useMemo, memo, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TreeProfileData, CustomLink, CatalogItem, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
+import { TreeProfileData } from '@/lib/dummyTreeProfileData';
 
 // Critical components loaded immediately
 import { TreeProfileHeader } from '@/components/tree-profile/TreeProfileHeader';
 import { LinksSection } from '@/components/tree-profile/LinksSection';
-import { TreeProfileBackground } from '@/components/tree-profile/TreeProfileBackground';
+import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
+import { CarouselSection } from '@/components/tree-profile/CarouselSection';
+import { GallerySection } from '@/components/tree-profile/GallerySection';
 
-// Heavy interactive components loaded lazily
-const CatalogSection = dynamic(() =>
-    import('@/components/tree-profile/CatalogSection').then(mod => mod.CatalogSection), {
-    loading: () => <div className="h-64 w-full bg-gray-800/10 rounded-xl animate-pulse" />,
-    ssr: false // Client-only interaction usually
-});
+const TreeProfileBackground = dynamic(() => import('@/components/tree-profile/TreeProfileBackground').then(mod => mod.TreeProfileBackground));
+
+import { CatalogSection } from '@/components/tree-profile/CatalogSection';
 
 const TreeProfileEditControls = dynamic(() =>
     import('@/components/tree-profile/TreeProfileEditControls').then(mod => mod.TreeProfileEditControls), {
@@ -33,76 +33,53 @@ interface TreeProfileEditorProps {
 }
 
 function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
-    // State
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [hasChanges, setHasChanges] = useState(false);
-    const [isThemeOpen, setIsThemeOpen] = useState(false);
-    const [profileData, setProfileData] = useState<TreeProfileData>(initialData);
+    // Zustand Store
+    const {
+        profileData,
+        isEditMode,
+        isThemeOpen,
+        setProfileData,
+        setIsThemeOpen,
+        updateHeader,
+        updateLinks,
+        updateCatalogItems,
+        updateSectionTitle,
 
-    // Optimized Handlers with useCallback
-    const handleSave = useCallback(() => {
-        // console.log('Saving profile data:', profileData);
-        // Implement actual save logic here
-        setHasChanges(false);
-        setIsEditMode(false);
-        setIsThemeOpen(false);
-    }, [profileData]); // Dependency on profileData is necessary for the log/save
+        updateLinksTitle,
+        updateBanners,
+        updateGallery
+    } = useTreeProfileStore();
 
-    const handleDiscard = useCallback(() => {
-        setProfileData(initialData);
-        setHasChanges(false);
-        setIsThemeOpen(false);
-    }, [initialData]);
+    // Tab State
+    const [activeTab, setActiveTab] = useState<'links' | 'menu'>('links');
 
-    const handleUpdateLinks = useCallback((links: CustomLink[]) => {
-        setProfileData(prev => ({ ...prev, customLinks: links }));
-        setHasChanges(true);
-    }, []);
+    // Initialize Store
+    useEffect(() => {
+        if (initialData) {
+            setProfileData(initialData);
+        }
+    }, [initialData, setProfileData]);
 
-    const handleUpdateItems = useCallback((items: CatalogItem[]) => {
-        setProfileData(prev => ({ ...prev, catalogItems: items }));
-        setHasChanges(true);
-    }, []);
+    // CSS Variables for HIGH PERFORMANCE (No JS re-renders for styles)
+    const cssVariables = useMemo(() => ({
+        '--primary': profileData.theme?.primaryColor || '#9EE53B',
+        '--bg-color': profileData.theme?.backgroundColor || '#000000',
+        '--font-main': profileData.theme?.fontFamily || 'Inter',
+        '--text-color': profileData.theme?.textColor || '#FFFFFF',
+    } as React.CSSProperties), [profileData.theme]);
 
-    const handleUpdateHeader = useCallback((updates: Partial<TreeProfileData>) => {
-        setProfileData(prev => ({ ...prev, ...updates }));
-        setHasChanges(true);
-    }, []);
-
-    const handleUpdateTitle = useCallback((title: string) => {
-        setProfileData(prev => ({ ...prev, sectionTitle: title }));
-        setHasChanges(true);
-    }, []);
-
-    const handleThemeUpdate = useCallback((updates: Partial<TreeProfileTheme>) => {
-        setProfileData(prev => ({
-            ...prev,
-            theme: { ...prev.theme, ...updates }
-        }));
-        setHasChanges(true);
-    }, []);
-
-    const toggleTheme = useCallback(() => {
-        setIsThemeOpen(prev => !prev);
-    }, []);
+    if (!profileData.theme) return null; // Prevent render before hydration
 
     return (
         <div
             className="min-h-screen relative overflow-hidden bg-black text-rendering-optimize-legibility"
-            style={{ fontFamily: profileData.theme.fontFamily }}
+            style={cssVariables}
         >
             {/* Optimized Background */}
             <TreeProfileBackground theme={profileData.theme} />
 
             {/* Edit Controls - Lazy Loaded */}
-            <TreeProfileEditControls
-                isEditMode={isEditMode}
-                setIsEditMode={setIsEditMode}
-                hasChanges={hasChanges}
-                onSave={handleSave}
-                onDiscard={handleDiscard}
-                onOpenTheme={toggleTheme}
-            />
+            <TreeProfileEditControls />
 
             {/* Main Content */}
             <div className="relative z-10 flex justify-center transform-gpu">
@@ -112,33 +89,116 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
                         <TreeProfileHeader
                             data={profileData}
                             isEditMode={isEditMode}
-                            onUpdate={handleUpdateHeader}
+                            onUpdate={updateHeader}
                         />
 
                         <div className="px-4 space-y-8 content-visibility-auto contain-content">
-                            {/* Links Section */}
-                            <div className="mt-2">
-                                <LinksSection
-                                    links={profileData.customLinks}
-                                    theme={profileData.theme}
-                                    isEditMode={isEditMode}
-                                    onUpdate={handleUpdateLinks}
-                                />
+                            {/* Animated Tab Navigation */}
+                            <div className="flex items-center justify-center gap-2 mb-6 relative">
+                                {/* Tab: Quick Links */}
+                                <button
+                                    onClick={() => setActiveTab('links')}
+                                    className={`relative px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${activeTab === 'links' ? 'text-(--text-color)' : 'text-(--text-color) opacity-50 hover:opacity-80'}`}
+                                >
+                                    {isEditMode ? (
+                                        <input
+                                            value={profileData.linksTitle ?? "Quick Links"}
+                                            onChange={(e) => updateLinksTitle(e.target.value)}
+                                            className="bg-transparent text-center outline-none w-full min-w-[80px]"
+                                            style={{ color: 'inherit' }}
+                                        />
+                                    ) : (
+                                        profileData.linksTitle ?? "Quick Links"
+                                    )}
+                                    {activeTab === 'links' && (
+                                        <motion.div
+                                            layoutId="activeTabIndicator"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                            style={{ background: 'var(--primary)' }}
+                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                        />
+                                    )}
+                                </button>
+
+                                {/* Divider */}
+                                <div className="w-px h-4 bg-(--text-color) opacity-20" />
+
+                                {/* Tab: Our Menu */}
+                                <button
+                                    onClick={() => setActiveTab('menu')}
+                                    className={`relative px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${activeTab === 'menu' ? 'text-(--text-color)' : 'text-(--text-color) opacity-50 hover:opacity-80'}`}
+                                >
+                                    {isEditMode ? (
+                                        <input
+                                            value={profileData.sectionTitle}
+                                            onChange={(e) => updateSectionTitle(e.target.value)}
+                                            className="bg-transparent text-center outline-none w-full min-w-[80px]"
+                                            style={{ color: 'inherit' }}
+                                        />
+                                    ) : (
+                                        profileData.sectionTitle
+                                    )}
+                                    {activeTab === 'menu' && (
+                                        <motion.div
+                                            layoutId="activeTabIndicator"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                            style={{ background: 'var(--primary)' }}
+                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                        />
+                                    )}
+                                </button>
                             </div>
 
-                            {/* Catalog Section - Dynamic Import */}
-                            <CatalogSection
-                                title={profileData.sectionTitle}
-                                categories={profileData.categories}
-                                items={profileData.catalogItems}
-                                theme={profileData.theme}
-                                isEditMode={isEditMode}
-                                onUpdateItems={handleUpdateItems}
-                                onUpdateTitle={handleUpdateTitle}
-                            />
+                            {/* Content Area - Keep Mounted Strategy for Instant Switching */}
+                            <div className="relative min-h-[400px]">
+                                {/* Links Section */}
+                                <div className={cn(
+                                    "transition-opacity duration-300",
+                                    activeTab === 'links' ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 -z-10 pointer-events-none h-0 overflow-hidden"
+                                )}>
+                                    <LinksSection
+                                        links={profileData.customLinks}
+                                        theme={profileData.theme}
+                                        isEditMode={isEditMode}
+                                        onUpdate={updateLinks}
+                                    />
+
+                                    {/* New Sections Below Links */}
+                                    <div className="mt-8 space-y-8">
+                                        <CarouselSection
+                                            banners={profileData.banners || []} // Provide fallback empty array
+                                            theme={profileData.theme}
+                                            isEditMode={isEditMode}
+                                            onUpdate={updateBanners}
+                                        />
+
+                                        <GallerySection
+                                            images={profileData.gallery || []}
+                                            theme={profileData.theme}
+                                            isEditMode={isEditMode}
+                                            onUpdate={updateGallery}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Menu/Catalog Section */}
+                                <div className={cn(
+                                    "transition-opacity duration-300",
+                                    activeTab === 'menu' ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 -z-10 pointer-events-none h-0 overflow-hidden"
+                                )}>
+                                    <CatalogSection
+                                        title={profileData.sectionTitle}
+                                        categories={profileData.categories}
+                                        items={profileData.catalogItems}
+                                        theme={profileData.theme}
+                                        isEditMode={isEditMode}
+                                        onUpdateItems={updateCatalogItems}
+                                    />
+                                </div>
+                            </div>
 
                             {/* Footer */}
-                            <Footer theme={profileData.theme} />
+                            <Footer />
                         </div>
                     </div>
                 </main>
@@ -164,10 +224,7 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
                             className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
                             style={{ willChange: 'transform' }}
                         >
-                            <ThemeCustomizer
-                                theme={profileData.theme}
-                                onUpdate={handleThemeUpdate}
-                            />
+                            <ThemeCustomizer />
                         </motion.div>
                     </>
                 )}
@@ -177,17 +234,17 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
 }
 
 // Memoized Footer Component
-const Footer = memo(function Footer({ theme }: { theme: TreeProfileTheme }) {
+const Footer = memo(function Footer() {
     return (
         <div className="text-center pt-8 pb-4 opacity-100 transition-opacity duration-500">
             <span
                 className="text-[11px] font-medium"
-                style={{ color: theme.textColor, opacity: 0.4 }}
+                style={{ color: 'var(--text-color)', opacity: 0.4 }}
             >
                 Powered by{' '}
                 <span
                     className="font-semibold"
-                    style={{ color: `${theme.primaryColor}70` }}
+                    style={{ color: 'color-mix(in srgb, var(--primary) 70%, transparent)' }}
                 >
                     MarkMorph
                 </span>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Link as LinkIcon, Type, Layout, Star, Sparkles } from 'lucide-react';
+import { X, Trash2, Link as LinkIcon, Type, Layout, Star, Sparkles, LucideIcon } from 'lucide-react';
 import { CustomLink } from '@/lib/dummyTreeProfileData';
 import { cn } from '@/lib/utils';
 
@@ -16,24 +16,10 @@ interface AddLinkModalProps {
 }
 
 export function AddLinkModal({ isOpen, onClose, onSave, onDelete, initialData, primaryColor = '#9EE53B' }: AddLinkModalProps) {
-    const [title, setTitle] = useState('');
-    const [url, setUrl] = useState('');
-    const [description, setDescription] = useState('');
-    const [style, setStyle] = useState<CustomLink['style']>('default');
-
-    useEffect(() => {
-        if (initialData) {
-            setTitle(initialData.title);
-            setUrl(initialData.url);
-            setDescription(initialData.description || '');
-            setStyle(initialData.style);
-        } else {
-            setTitle('');
-            setUrl('');
-            setDescription('');
-            setStyle('default');
-        }
-    }, [initialData, isOpen]);
+    const [title, setTitle] = useState(initialData?.title || '');
+    const [url, setUrl] = useState(initialData?.url || '');
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [style, setStyle] = useState<CustomLink['style']>(initialData?.style || 'default');
 
     const handleSave = () => {
         if (!title || !url) return;
@@ -41,7 +27,7 @@ export function AddLinkModal({ isOpen, onClose, onSave, onDelete, initialData, p
         onClose();
     };
 
-    const styles: { id: CustomLink['style']; label: string; icon: any }[] = [
+    const styles: { id: CustomLink['style']; label: string; icon: LucideIcon }[] = [
         { id: 'default', label: 'Default', icon: Layout },
         { id: 'featured', label: 'Featured', icon: Star },
         { id: 'outline', label: 'Outline', icon: LinkIcon },

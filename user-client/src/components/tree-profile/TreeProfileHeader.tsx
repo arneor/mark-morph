@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -50,10 +50,10 @@ const socialIconMap: Record<string, React.ReactNode> = {
     youtube: <Youtube className="w-5 h-5" />,
     email: <Mail className="w-5 h-5" />,
     phone: <Phone className="w-5 h-5" />,
-    linkedin: <LinkIcon className="w-5 h-5" />, // Default fallback
+    linkedin: <LinkIcon className="w-5 h-5" />,
 };
 
-export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHeaderProps) {
+function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileHeaderProps) {
     const bannerInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +62,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
     const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
 
     // Check if theme is likely light mode based on text color (simple heuristic)
+    // We retain this logic using the prop, but render styles using CSS variables where possible
     const isLightTheme = data.theme.textColor === '#000000' || data.theme.textColor === '#0f172a' || data.theme.textColor === '#831843';
 
     const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,14 +90,14 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
             // Update existing
             newLinks = newLinks.map(link =>
                 link.id === editingLink.id
-                    ? { ...link, ...linkData, platform: linkData.platform as any }
+                    ? { ...link, ...linkData, platform: linkData.platform as SocialLink['platform'] }
                     : link
             );
         } else {
             // Add new
             const newLink: SocialLink = {
                 id: `social-${Date.now()}`,
-                platform: linkData.platform as any,
+                platform: linkData.platform as SocialLink['platform'],
                 url: linkData.url,
                 label: linkData.label
             };
@@ -126,7 +127,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
             className="relative w-full mb-8"
         >
             {/* Banner Image */}
-            <div className="relative w-full h-48 md:h-64 rounded-b-[2.5rem] overflow-hidden shadow-2xl -mt-20 sm:-mt-24 mx-auto max-w-4xl group">
+            <div className="relative w-full h-56 md:h-72 rounded-b-[2.5rem] overflow-hidden shadow-2xl -mt-20 sm:-mt-24 mx-auto max-w-4xl group">
                 {data.bannerImage ? (
                     <Image
                         src={data.bannerImage}
@@ -140,7 +141,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                     <div
                         className="w-full h-full opacity-30"
                         style={{
-                            background: `linear-gradient(to bottom, ${data.theme.primaryColor}, #000)`,
+                            background: `linear-gradient(to bottom, var(--primary), #000)`,
                         }}
                     />
                 )}
@@ -173,13 +174,13 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
             </div>
 
             {/* Content Container - Overlapping Banner */}
-            <div className="relative px-6 -mt-20 text-center z-10">
+            <div className="relative px-6 -mt-16 text-center z-10">
                 {/* Avatar with Animated Ring */}
-                <div className="relative w-32 h-32 mx-auto mb-4 group">
+                <div className="relative w-36 h-36 mx-auto mb-6 group">
                     <motion.div
                         className="absolute inset-[-4px] rounded-full"
                         style={{
-                            backgroundImage: `linear-gradient(135deg, ${data.theme.primaryColor}, #A855F7, ${data.theme.primaryColor})`,
+                            backgroundImage: `linear-gradient(135deg, var(--primary), #A855F7, var(--primary))`,
                             backgroundSize: '300% 300%',
                         }}
                         animate={{
@@ -198,7 +199,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                                 alt={data.businessName}
                                 fill
                                 priority
-                                sizes="128px"
+                                sizes="144px"
                                 className="object-cover"
                             />
                         ) : (
@@ -232,15 +233,15 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                             onChange={(e) => onUpdate?.({ businessName: e.target.value })}
                             className="text-3xl font-display font-extrabold text-center bg-transparent border-b outline-none w-full max-w-xs transition-colors"
                             style={{
-                                color: data.theme.textColor,
-                                borderColor: `${data.theme.textColor}30`,
+                                color: 'var(--text-color)',
+                                borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)',
                             }}
                             placeholder="Business Name"
                         />
                     ) : (
                         <h1
                             className="text-3xl font-display font-extrabold tracking-tight"
-                            style={{ color: data.theme.textColor }}
+                            style={{ color: 'var(--text-color)' }}
                         >
                             {data.businessName}
                         </h1>
@@ -248,7 +249,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                     {data.isVerified && (
                         <BadgeCheck
                             className="w-6 h-6 shrink-0"
-                            style={{ color: data.theme.primaryColor }}
+                            style={{ color: 'var(--primary)' }}
                         />
                     )}
                 </div>
@@ -262,16 +263,16 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                             onChange={(e) => onUpdate?.({ tagline: e.target.value })}
                             className="text-lg font-medium text-center bg-transparent border-b outline-none w-full max-w-sm transition-colors py-1"
                             style={{
-                                color: data.theme.textColor,
+                                color: 'var(--text-color)',
                                 opacity: 0.8,
-                                borderColor: `${data.theme.textColor}30`
+                                borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
                             }}
                             placeholder="Add a tagline..."
                         />
                     ) : (
                         <p
                             className="text-lg font-medium"
-                            style={{ color: data.theme.textColor, opacity: 0.8 }}
+                            style={{ color: 'var(--text-color)', opacity: 0.8 }}
                         >
                             {data.tagline}
                         </p>
@@ -281,7 +282,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                 {/* Location */}
                 <div
                     className="flex items-center justify-center gap-1.5 mb-6"
-                    style={{ color: data.theme.textColor, opacity: 0.6 }}
+                    style={{ color: 'var(--text-color)', opacity: 0.6 }}
                 >
                     <MapPin className="w-4 h-4 shrink-0" />
                     {isEditMode ? (
@@ -292,7 +293,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                             className="text-sm bg-transparent border-b outline-none min-w-[150px] text-center transition-colors"
                             style={{
                                 color: 'inherit',
-                                borderColor: `${data.theme.textColor}30`
+                                borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
                             }}
                             placeholder="Add location"
                         />
@@ -326,7 +327,7 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                                     : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white" // Dark Theme
                             )}
                             style={{
-                                boxShadow: `0 0 15px ${data.theme.primaryColor}15`,
+                                boxShadow: `0 0 15px color-mix(in srgb, var(--primary) 15%, transparent)`,
                             }}
                         >
                             {socialIconMap[social.platform] || <Mail className="w-4 h-4" />}
@@ -362,12 +363,32 @@ export function TreeProfileHeader({ data, isEditMode, onUpdate }: TreeProfileHea
                 isOpen={isSocialModalOpen}
                 onClose={() => {
                     setIsSocialModalOpen(false);
-                    setEditingLink(null);
                 }}
                 onSave={handleSaveSocialLink}
                 onDelete={handleDeleteSocialLink}
                 initialData={editingLink}
+                key={editingLink ? editingLink.id : 'new'}
             />
         </motion.div>
     );
 }
+
+export const TreeProfileHeader = memo(TreeProfileHeaderComponent, (prev, next) => {
+    // Return true if props are equivalent (should NOT re-render)
+    if (prev.isEditMode !== next.isEditMode) return false;
+
+    // Check Content
+    if (prev.data.businessName !== next.data.businessName) return false;
+    if (prev.data.tagline !== next.data.tagline) return false;
+    if (prev.data.location !== next.data.location) return false;
+    if (prev.data.profileImage !== next.data.profileImage) return false;
+    if (prev.data.bannerImage !== next.data.bannerImage) return false;
+    if (prev.data.isVerified !== next.data.isVerified) return false;
+    if (prev.data.socialLinks !== next.data.socialLinks) return false;
+
+    // Check Logic-Affecting Theme Props
+    if (prev.data.theme.textColor !== next.data.theme.textColor) return false;
+    if (prev.data.theme.fontFamily !== next.data.theme.fontFamily) return false;
+
+    return true;
+});

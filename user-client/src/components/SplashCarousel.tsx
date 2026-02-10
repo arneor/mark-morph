@@ -61,7 +61,7 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
   if (carouselItems.length === 0) {
     // Fallback if no ads - vibrant gradient welcome
     return (
-      <div className="w-full aspect-[16/9] relative overflow-hidden rounded-2xl">
+      <div className="w-full aspect-video relative overflow-hidden rounded-2xl">
         {/* Animated gradient background */}
         <div className="absolute inset-0 gradient-purple-pink" />
 
@@ -93,7 +93,7 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
   }
 
   return (
-    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-2xl group">
+    <div className="relative w-full aspect-video overflow-hidden rounded-2xl group">
       {/* Glow effect behind carousel */}
       <div className="absolute -inset-2 gradient-lime-cyan opacity-20 blur-2xl" />
 
@@ -129,7 +129,7 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
             />
 
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
             {/* Content overlay */}
             <div className="absolute inset-0 flex flex-col justify-end p-5">
@@ -194,7 +194,7 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
 
         {/* Shimmer effect on active slide */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
         </div>
       </div>
     </div>

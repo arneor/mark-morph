@@ -5,35 +5,40 @@ import { Eye, Pencil, Save, X, Palette, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
 
-interface TreeProfileEditControlsProps {
-    isEditMode: boolean;
-    setIsEditMode: (value: boolean) => void;
-    hasChanges: boolean;
-    onSave: () => void;
-    onDiscard: () => void;
-    onOpenTheme?: () => void;
-}
+export function TreeProfileEditControls() {
+    const {
+        isEditMode,
+        setIsEditMode,
+        hasChanges,
+        setHasChanges,
+        setIsThemeOpen,
+        profileData
+    } = useTreeProfileStore();
 
-export function TreeProfileEditControls({
-    isEditMode,
-    setIsEditMode,
-    hasChanges,
-    onSave,
-    onDiscard,
-    onOpenTheme,
-}: TreeProfileEditControlsProps) {
     const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
     const businessId = params.businessId as string;
 
     const handleSave = () => {
-        onSave();
+        // Here you would typically trigger the API call
+        // const currentData = useTreeProfileStore.getState().profileData;
+        // await saveToApi(currentData);
+
+        console.log('Saving data:', profileData);
+        setHasChanges(false);
+        setIsEditMode(false);
+
         toast({
             title: '✨ Changes Saved!',
             description: 'Your Tree Profile has been updated successfully.',
         });
+    };
+
+    const handleDiscard = () => {
+        setIsEditMode(false);
     };
 
     const handleBack = () => {
@@ -68,9 +73,9 @@ export function TreeProfileEditControls({
                     {/* Right side controls - Edit Mode Toggle */}
                     <Button
                         onClick={() => setIsEditMode(!isEditMode)}
-                        className={`h-10 px-4 rounded-full font-semibold transition-all shadow-lg ${isEditMode
-                            ? "bg-white text-[#222] hover:bg-white/90"
-                            : "bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90"
+                        className={`h-10 px-4 rounded-full font-semibold transition-all shadow-lg backdrop-blur-md ${isEditMode
+                            ? "bg-white text-black hover:bg-gray-200"
+                            : "bg-black/80 text-white hover:bg-black"
                             }`}
                     >
                         {isEditMode ? (
@@ -97,28 +102,26 @@ export function TreeProfileEditControls({
                         exit={{ opacity: 0, y: -50 }}
                         className="fixed top-16 inset-x-0 max-w-md mx-auto z-40 px-4"
                     >
-                        <div className="bg-[#9EE53B]/20 backdrop-blur-xl border border-[#9EE53B]/30 rounded-2xl p-3 flex items-center justify-between shadow-lg">
+                        <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-lg">
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-white drop-shadow-md tracking-wide">
+                                <span className="text-sm font-bold text-white drop-shadow-md tracking-wide pl-2">
                                     Edit Mode
                                 </span>
                             </div>
                             <div className="flex items-center gap-1">
-                                {onOpenTheme && (
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={onOpenTheme}
-                                        className="h-8 w-8 p-0 text-white hover:text-white hover:bg-white/20 rounded-full"
-                                        title="Customize Theme"
-                                    >
-                                        <Palette className="w-4 h-4" />
-                                    </Button>
-                                )}
                                 <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={onDiscard}
+                                    onClick={() => setIsThemeOpen(true)}
+                                    className="h-8 w-8 p-0 text-white hover:text-white hover:bg-white/20 rounded-full"
+                                    title="Customize Theme"
+                                >
+                                    <Palette className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleDiscard}
                                     className="h-8 px-3 text-white hover:text-white hover:bg-white/20 rounded-lg"
                                 >
                                     <X className="w-4 h-4 mr-1" />
@@ -128,7 +131,7 @@ export function TreeProfileEditControls({
                                     size="sm"
                                     onClick={handleSave}
                                     disabled={!hasChanges}
-                                    className="h-8 px-4 bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 disabled:opacity-50 font-bold rounded-lg shadow-sm"
+                                    className="h-8 px-4 bg-white text-black hover:bg-gray-200 disabled:opacity-50 font-bold rounded-lg shadow-sm"
                                 >
                                     <Save className="w-4 h-4 mr-1" />
                                     Save
@@ -148,10 +151,10 @@ export function TreeProfileEditControls({
                         exit={{ opacity: 0, y: 50 }}
                         className="fixed bottom-0 inset-x-0 max-w-md mx-auto z-50"
                     >
-                        <div className="bg-black/60 backdrop-blur-2xl border-t border-white/10 p-4">
+                        <div className="bg-black/80 backdrop-blur-xl border-t border-white/10 p-4">
                             <Button
                                 onClick={handleSave}
-                                className="w-full h-14 text-lg font-bold rounded-2xl bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 shadow-[0_0_20px_rgba(158,229,59,0.3)] transition-all hover:shadow-[0_0_30px_rgba(158,229,59,0.5)]"
+                                className="w-full h-14 text-lg font-bold rounded-2xl bg-white text-black hover:bg-gray-200 shadow-xl"
                             >
                                 <Save className="w-5 h-5 mr-2" />
                                 Publish Changes

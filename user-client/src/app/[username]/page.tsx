@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { businessApi } from '@/lib/api';
-import { Business } from '@/lib/api';
+
 import { Loader2 } from 'lucide-react';
 
 // Tree Profile Components
@@ -22,6 +23,7 @@ export default function PublicProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [profileData, setProfileData] = useState<TreeProfileData | null>(null);
+    const [activeTab, setActiveTab] = useState<'links' | 'menu'>('links');
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -130,26 +132,76 @@ export default function PublicProfilePage() {
                         />
 
                         <div className="px-4 space-y-8">
-                            {/* Links Section */}
-                            <div className="mt-2">
-                                <LinksSection
-                                    links={profileData.customLinks}
-                                    theme={profileData.theme}
-                                    isEditMode={false}
-                                    onUpdate={() => { }} // Read-only
-                                />
+                            {/* Tab Navigation */}
+                            <div className="flex items-center justify-center gap-2 mb-6 relative">
+                                {/* Tab: Quick Links */}
+                                <button
+                                    onClick={() => setActiveTab('links')}
+                                    className={`relative px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${activeTab === 'links' ? '' : 'opacity-50 hover:opacity-80'}`}
+                                    style={{ color: profileData.theme.textColor }}
+                                >
+                                    {profileData.linksTitle ?? "Quick Links"}
+                                    {activeTab === 'links' && (
+                                        <motion.div
+                                            layoutId="activeTabIndicator"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                            style={{ background: profileData.theme.primaryColor }}
+                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                        />
+                                    )}
+                                </button>
+
+                                {/* Divider */}
+                                <div className="w-px h-4 opacity-20" style={{ backgroundColor: profileData.theme.textColor }} />
+
+                                {/* Tab: Our Menu */}
+                                <button
+                                    onClick={() => setActiveTab('menu')}
+                                    className={`relative px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${activeTab === 'menu' ? '' : 'opacity-50 hover:opacity-80'}`}
+                                    style={{ color: profileData.theme.textColor }}
+                                >
+                                    {profileData.sectionTitle}
+                                    {activeTab === 'menu' && (
+                                        <motion.div
+                                            layoutId="activeTabIndicator"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                            style={{ background: profileData.theme.primaryColor }}
+                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                        />
+                                    )}
+                                </button>
                             </div>
 
-                            {/* Catalog Section */}
-                            <CatalogSection
-                                title={profileData.sectionTitle}
-                                categories={profileData.categories}
-                                items={profileData.catalogItems}
-                                theme={profileData.theme}
-                                isEditMode={false}
-                                onUpdateItems={() => { }} // Read-only
-                                onUpdateTitle={() => { }} // Read-only
-                            />
+                            {/* Content Area - Keep Mounted Strategy */}
+                            <div className="relative min-h-[400px]">
+                                {/* Links Section */}
+                                <div className={cn(
+                                    "transition-opacity duration-300",
+                                    activeTab === 'links' ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 -z-10 pointer-events-none h-0 overflow-hidden"
+                                )}>
+                                    <LinksSection
+                                        links={profileData.customLinks}
+                                        theme={profileData.theme}
+                                        isEditMode={false}
+                                        onUpdate={() => { }} // Read-only
+                                    />
+                                </div>
+
+                                {/* Menu/Catalog Section */}
+                                <div className={cn(
+                                    "transition-opacity duration-300",
+                                    activeTab === 'menu' ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 -z-10 pointer-events-none h-0 overflow-hidden"
+                                )}>
+                                    <CatalogSection
+                                        title={profileData.sectionTitle}
+                                        categories={profileData.categories}
+                                        items={profileData.catalogItems}
+                                        theme={profileData.theme}
+                                        isEditMode={false}
+                                        onUpdateItems={() => { }} // Read-only
+                                    />
+                                </div>
+                            </div>
 
                             {/* Footer */}
                             <motion.div

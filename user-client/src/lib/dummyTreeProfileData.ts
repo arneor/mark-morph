@@ -37,6 +37,29 @@ export interface CatalogItem {
     isAvailable: boolean;
 }
 
+export interface ProfileBanner {
+    id: string;
+    imageUrl: string;
+    title?: string;
+    linkUrl?: string;
+    isActive: boolean;
+}
+
+export interface ProfileGalleryImage {
+    id: string;
+    imageUrl: string;
+    caption?: string;
+}
+
+export interface ProfileReview {
+    id: string;
+    reviewerName: string;
+    rating: number; // 1-5
+    comment: string;
+    date: string;
+    avatarUrl?: string;
+}
+
 export interface TreeProfileTheme {
     templateId?: string; // To track if a standard template is active
     primaryColor: string;
@@ -61,11 +84,16 @@ export interface TreeProfileData {
     avatarUrl?: string; // Deprecated
     isVerified: boolean;
     sectionTitle: string;
+    linksTitle: string;
     theme: TreeProfileTheme;
     socialLinks: SocialLink[];
     customLinks: CustomLink[];
     categories: CatalogCategory[];
+
     catalogItems: CatalogItem[];
+    banners?: ProfileBanner[];
+    gallery?: ProfileGalleryImage[];
+    reviews?: ProfileReview[];
 }
 
 // Sample Coffee Shop Data
@@ -80,6 +108,7 @@ export const dummyTreeProfileData: TreeProfileData = {
     coverUrl: "",
     isVerified: true,
     sectionTitle: "✨ Our Menu",
+    linksTitle: "🔗 Quick Links",
     theme: {
         templateId: 'clean-minimal',
         primaryColor: "#000000",
@@ -137,6 +166,50 @@ export const dummyTreeProfileData: TreeProfileData = {
             style: "default",
             isActive: true,
         },
+    ],
+    banners: [
+        {
+            id: "banner1",
+            imageUrl: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=2670&auto=format&fit=crop",
+            title: "50% OFF on First Order",
+            isActive: true,
+            linkUrl: "#"
+        },
+        {
+            id: "banner2",
+            imageUrl: "https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=2574&auto=format&fit=crop",
+            title: "New Summer Menu",
+            isActive: true,
+            linkUrl: "#"
+        }
+    ],
+    gallery: [
+        { id: "g1", imageUrl: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80", caption: "Latte Art Perfection" },
+        { id: "g2", imageUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80", caption: "Cozy Corner" },
+        { id: "g3", imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80", caption: "Morning Brew" },
+        { id: "g4", imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80", caption: "Coffee Time" },
+        { id: "g5", imageUrl: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=800&q=80", caption: "Delicious Pastries" },
+        { id: "g6", imageUrl: "https://images.unsplash.com/photo-1517487881594-2787fef5ebf7?w=800&q=80", caption: "Fresh Croissants" },
+        { id: "g7", imageUrl: "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=80", caption: "Espresso Shot" },
+        { id: "g8", imageUrl: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80", caption: "Sweet Treats" },
+    ],
+    reviews: [
+        {
+            id: "r1",
+            reviewerName: "Alex Johnson",
+            rating: 5,
+            comment: "Best coffee in town! The ambiance is amazing.",
+            date: "2 days ago",
+            avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg"
+        },
+        {
+            id: "r2",
+            reviewerName: "Sarah Smith",
+            rating: 4,
+            comment: "Loved the pastries. Coffee was a bit strong for me though.",
+            date: "1 week ago",
+            avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg"
+        }
     ],
     categories: [
         { id: "cat1", name: "Hot Beverages", emoji: "☕" },
@@ -337,19 +410,6 @@ export const TEMPLATES = {
         buttonStyle: 'glass' as const,
         cardStyle: 'glass' as const,
     },
-    'oceanic-depth': {
-        id: 'oceanic-depth',
-        name: 'Oceanic Depth',
-        type: 'Premium',
-        primaryColor: '#38BDF8',
-        backgroundColor: '#0c4a6e',
-        backgroundType: 'animated' as const,
-        backgroundValue: 'linear-gradient(180deg, #0c4a6e 0%, #020617 100%)',
-        textColor: '#e0f2fe',
-        fontFamily: 'DM Sans',
-        buttonStyle: 'pill' as const,
-        cardStyle: 'minimal' as const,
-    },
     'modern-salon': {
         id: 'modern-salon',
         name: 'Modern Salon',
@@ -389,19 +449,6 @@ export const TEMPLATES = {
         fontFamily: 'DM Sans',
         buttonStyle: 'rounded' as const,
         cardStyle: 'minimal' as const,
-    },
-    'arabic-luxury': {
-        id: 'arabic-luxury',
-        name: 'Arabic Luxury',
-        type: 'Cultural',
-        primaryColor: '#EAB308', // Gold
-        backgroundColor: '#000000',
-        backgroundType: 'animated' as const,
-        backgroundValue: 'linear-gradient(45deg, #000000, #141414, #2a2a2a)',
-        textColor: '#FEF9C3', // Yellow-100
-        fontFamily: 'Playfair Display',
-        buttonStyle: 'soft' as const,
-        cardStyle: 'outline' as const,
     }
 };
 

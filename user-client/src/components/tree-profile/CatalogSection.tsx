@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Star, Sparkles, Flame, Leaf, Edit2, Plus, Trash2 } from 'lucide-react';
@@ -17,7 +17,7 @@ interface CatalogItemCardProps {
     onDelete?: () => void;
 }
 
-function CatalogItemCard({ item, index, theme, isEditMode, onEdit, onDelete }: CatalogItemCardProps) {
+const CatalogItemCardComponent = ({ item, index, theme, isEditMode, onEdit, onDelete }: CatalogItemCardProps) => {
     const tagIcons: Record<string, React.ReactNode> = {
         bestseller: <Star className="w-3 h-3" />,
         new: <Sparkles className="w-3 h-3" />,
@@ -65,7 +65,7 @@ function CatalogItemCard({ item, index, theme, isEditMode, onEdit, onDelete }: C
                 !item.isAvailable && 'opacity-50',
             )}
             style={{
-                boxShadow: `0 4px 24px ${theme.primaryColor}08`,
+                boxShadow: `0 4px 24px color-mix(in srgb, var(--primary) 3%, transparent)`,
             }}
         >
             {/* Image */}
@@ -117,18 +117,18 @@ function CatalogItemCard({ item, index, theme, isEditMode, onEdit, onDelete }: C
 
             {/* Content */}
             <div className="p-3">
-                <h3 className="font-semibold text-sm truncate mb-1" style={{ color: theme.textColor }}>
+                <h3 className="font-semibold text-sm truncate mb-1" style={{ color: 'var(--text-color)' }}>
                     {item.title}
                 </h3>
                 {item.description && (
-                    <p className="text-xs line-clamp-2 mb-2 min-h-8" style={{ color: theme.textColor, opacity: 0.6 }}>
+                    <p className="text-xs line-clamp-2 mb-2 min-h-8" style={{ color: 'var(--text-color)', opacity: 0.6 }}>
                         {item.description}
                     </p>
                 )}
                 <div className="flex items-center justify-between">
                     <span
                         className="text-lg font-bold"
-                        style={{ color: theme.primaryColor }}
+                        style={{ color: 'var(--primary)' }}
                     >
                         {item.currency}{item.price}
                     </span>
@@ -154,7 +154,18 @@ function CatalogItemCard({ item, index, theme, isEditMode, onEdit, onDelete }: C
             )}
         </motion.div>
     );
-}
+};
+
+export const CatalogItemCard = memo(CatalogItemCardComponent, (prev, next) => {
+    return (
+        prev.item === next.item &&
+        prev.index === next.index &&
+        prev.isEditMode === next.isEditMode &&
+        prev.theme.cardStyle === next.theme.cardStyle &&
+        prev.theme.textColor === next.theme.textColor
+        // Ignore primaryColor
+    );
+});
 
 interface CatalogSectionProps {
     title: string;
@@ -163,17 +174,14 @@ interface CatalogSectionProps {
     theme: TreeProfileTheme;
     isEditMode?: boolean;
     onUpdateItems?: (items: CatalogItem[]) => void;
-    onUpdateTitle?: (title: string) => void;
 }
 
-export function CatalogSection({
-    title,
+function CatalogSectionComponent({
     categories,
     items,
     theme,
     isEditMode,
-    onUpdateItems,
-    onUpdateTitle
+    onUpdateItems
 }: CatalogSectionProps) {
     const [activeCategory, setActiveCategory] = useState<string | null>(categories[0]?.id || null);
 
@@ -239,39 +247,7 @@ export function CatalogSection({
             transition={{ delay: 0.8 }}
             className="mt-8"
         >
-            {/* Section header */}
-            <div className="flex items-center justify-between px-1 mb-4">
-                {isEditMode ? (
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => onUpdateTitle?.(e.target.value)}
-                        className="text-xs font-bold uppercase tracking-[0.2em] bg-transparent border-b outline-none w-full max-w-[200px]"
-                        style={{ color: `${theme.textColor}80`, borderColor: `${theme.textColor}20` }}
-                        placeholder="SECTION TITLE"
-                    />
-                ) : (
-                    <h2 className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: `${theme.textColor}80` }}>
-                        {title}
-                    </h2>
-                )}
 
-                {isEditMode && (
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={openForAdd}
-                        className={cn(
-                            "px-3 py-1 rounded-full text-xs font-semibold transition-colors border flex items-center gap-1",
-                            isLightTheme
-                                ? "bg-black/5 text-black/70 hover:bg-black/10 hover:text-black border-black/20"
-                                : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border-white/20"
-                        )}
-                    >
-                        <Plus className="w-3 h-3" /> Add Item
-                    </motion.button>
-                )}
-            </div>
 
             {/* Category Pills */}
             <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
@@ -289,10 +265,10 @@ export function CatalogSection({
                         )}
                         style={{
                             background: activeCategory === category.id
-                                ? theme.primaryColor
+                                ? 'var(--primary)'
                                 : undefined,
-                            color: activeCategory === category.id ? '#fff' : theme.textColor,
-                            borderColor: activeCategory === category.id ? 'transparent' : `${theme.textColor}30`,
+                            color: activeCategory === category.id ? '#fff' : 'var(--text-color)',
+                            borderColor: activeCategory === category.id ? 'transparent' : 'color-mix(in srgb, var(--text-color) 30%, transparent)',
                         }}
                     >
                         {category.emoji && <span className="mr-1">{category.emoji}</span>}
@@ -339,6 +315,28 @@ export function CatalogSection({
                             onDelete={() => handleDeleteItem(item)}
                         />
                     ))}
+                    {isEditMode && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={openForAdd}
+                            className={cn(
+                                "aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-colors group",
+                                isLightTheme
+                                    ? "border-black/10 hover:border-black/20 hover:bg-black/5"
+                                    : "border-white/10 hover:border-white/20 hover:bg-white/5"
+                            )}
+                            style={{ color: 'var(--text-color)' }}
+                        >
+                            <div className={cn(
+                                "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                isLightTheme ? "bg-black/5 group-hover:bg-black/10" : "bg-white/10 group-hover:bg-white/20"
+                            )}>
+                                <Plus className="w-5 h-5 opacity-70" />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-wider opacity-60">Add Item</span>
+                        </motion.button>
+                    )}
                 </motion.div>
             </AnimatePresence>
 
@@ -348,12 +346,14 @@ export function CatalogSection({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="p-8 rounded-2xl border-2 border-dashed border-white/20 text-center"
+                    style={{ borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
                 >
-                    <p className="text-white/50 mb-3">No items in {categories.find(c => c.id === activeCategory)?.name}</p>
+                    <p className="text-white/50 mb-3" style={{ color: 'var(--text-color)', opacity: 0.5 }}>No items in {categories.find(c => c.id === activeCategory)?.name}</p>
                     {isEditMode && (
                         <button
                             onClick={openForAdd}
-                            className="px-4 py-2 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-colors"
+                            className="px-4 py-2 rounded-xl bg-white/10 font-medium hover:bg-white/20 transition-colors"
+                            style={{ color: 'var(--text-color)', background: 'color-mix(in srgb, var(--text-color) 10%, transparent)' }}
                         >
                             Add Item
                         </button>
@@ -371,7 +371,20 @@ export function CatalogSection({
                 onSave={handleSaveItem}
                 onDelete={editingItem ? () => handleDeleteItem(editingItem) : undefined}
                 initialData={editingItem}
+                key={editingItem ? editingItem.id : 'new'}
             />
         </motion.div>
     );
 }
+
+export const CatalogSection = memo(CatalogSectionComponent, (prev, next) => {
+    return (
+        prev.title === next.title &&
+        prev.categories === next.categories &&
+        prev.items === next.items &&
+        prev.isEditMode === next.isEditMode &&
+        prev.theme.cardStyle === next.theme.cardStyle &&
+        prev.theme.textColor === next.theme.textColor
+        // Ignore primaryColor
+    );
+});

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import {
     Wifi,
     Loader2,
@@ -1081,9 +1082,9 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                                 <div className="text-center pt-1">
                                                     <p className="text-white/30 text-[10px]">
                                                         By connecting, you agree to our{" "}
-                                                        <a href="/terms" className="underline hover:text-white/50 transition-colors">Terms</a>
+                                                        <Link href="/terms" className="underline hover:text-white/50 transition-colors">Terms</Link>
                                                         {" "}and{" "}
-                                                        <a href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy</a>
+                                                        <Link href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy</Link>
                                                     </p>
                                                 </div>
                                             </motion.div>

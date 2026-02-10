@@ -35,7 +35,8 @@ export function Sidebar({ businessId }: SidebarProps) {
     // Keep dropdown open when navigating to profile pages
     useEffect(() => {
         if (isOnProfilePage) {
-            setProfileOpen(true);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setProfileOpen(prev => prev ? prev : true);
         }
     }, [isOnProfilePage]);
 

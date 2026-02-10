@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Camera, Star, Sparkles, Flame, Leaf, ShoppingBag, CreditCard, Tag } from 'lucide-react';
+import { X, Trash2, Camera, Star, Sparkles, Flame, Leaf, ShoppingBag, CreditCard, Tag, LucideIcon } from 'lucide-react';
 import { CatalogItem } from '@/lib/dummyTreeProfileData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ interface AddItemModalProps {
     currency?: string;
 }
 
-const TAGS: { id: string; label: string; icon: any; color: string }[] = [
+const TAGS: { id: string; label: string; icon: LucideIcon; color: string }[] = [
     { id: 'bestseller', label: 'Bestseller', icon: Star, color: 'text-amber-400' },
     { id: 'new', label: 'New', icon: Sparkles, color: 'text-purple-400' },
     { id: 'featured', label: 'Featured', icon: Flame, color: 'text-orange-400' },
@@ -28,30 +28,12 @@ const TAGS: { id: string; label: string; icon: any; color: string }[] = [
 export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, currency = '₹' }: AddItemModalProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
-    const [image, setImage] = useState('');
-    const [selectedTags, setSelectedTags] = useState<string[]>([]);
-    const [isAvailable, setIsAvailable] = useState(true);
-
-    useEffect(() => {
-        if (initialData) {
-            setTitle(initialData.title);
-            setDescription(initialData.description || '');
-            setPrice(initialData.price.toString());
-            setImage(initialData.imageUrl || '');
-            setSelectedTags(initialData.tags || []);
-            setIsAvailable(initialData.isAvailable !== false);
-        } else {
-            setTitle('');
-            setDescription('');
-            setPrice('');
-            setImage('');
-            setSelectedTags([]);
-            setIsAvailable(true);
-        }
-    }, [initialData, isOpen]);
+    const [title, setTitle] = useState(initialData?.title || '');
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [price, setPrice] = useState(initialData?.price.toString() || '');
+    const [image, setImage] = useState(initialData?.imageUrl || '');
+    const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
+    const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable !== false);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -76,7 +58,7 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
             description,
             price: parseFloat(price),
             imageUrl: image,
-            tags: selectedTags as any,
+            tags: selectedTags as CatalogItem['tags'],
             isAvailable,
             currency
         });
