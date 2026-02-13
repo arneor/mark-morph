@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Link as LinkIcon, Instagram, Facebook, Twitter, Youtube, Linkedin, Mail, Phone } from 'lucide-react';
-import { SocialLink } from '@/lib/dummyTreeProfileData';
+import { SocialLink } from '@/lib/treeProfileTypes';
 import { cn } from '@/lib/utils';
 
 // Custom Icons

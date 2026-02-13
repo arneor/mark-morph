@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TreeProfileData, TreeProfileTheme, CatalogItem, CustomLink, ProfileBanner, ProfileGalleryImage, ProfileReview } from '@/lib/dummyTreeProfileData';
+import { TreeProfileData, TreeProfileTheme, CatalogItem, CatalogCategory, CustomLink, ProfileBanner, ProfileGalleryImage, ProfileReview } from '@/lib/treeProfileTypes';
 
 interface TreeProfileState {
     profileData: TreeProfileData;
@@ -20,6 +20,8 @@ interface TreeProfileState {
     updateCatalogItems: (items: CatalogItem[]) => void;
     updateSectionTitle: (title: string) => void;
     updateLinksTitle: (title: string) => void;
+
+    updateCategories: (categories: CatalogCategory[]) => void;
 
     // New Feature Actions
     updateBanners: (banners: ProfileBanner[]) => void;
@@ -62,6 +64,11 @@ export const useTreeProfileStore = create<TreeProfileState>()(
 
             updateCatalogItems: (items) => set((state) => ({
                 profileData: { ...state.profileData, catalogItems: items },
+                hasChanges: true
+            })),
+
+            updateCategories: (categories) => set((state) => ({
+                profileData: { ...state.profileData, categories: categories },
                 hasChanges: true
             })),
 

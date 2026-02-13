@@ -12,6 +12,8 @@ import {
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
+// ---- Shared Sub-document DTOs ----
+
 export class AdDto {
     @ApiProperty({ description: 'Ad title' })
     @IsString()
@@ -48,6 +50,160 @@ export class AdDto {
     @IsOptional()
     ctaUrl?: string;
 }
+
+export class ProfileBannerDto {
+    @ApiProperty({ description: 'Banner ID' })
+    @IsString()
+    @IsOptional()
+    id?: string;
+
+    @ApiProperty({ description: 'Banner image URL' })
+    @IsString()
+    @IsOptional()
+    imageUrl?: string;
+
+    @ApiProperty({ description: 'Banner title' })
+    @IsString()
+    @IsOptional()
+    title?: string;
+
+    @ApiProperty({ description: 'Banner link URL' })
+    @IsString()
+    @IsOptional()
+    linkUrl?: string;
+
+    @ApiProperty({ description: 'Whether banner is active' })
+    @IsBoolean()
+    @IsOptional()
+    isActive?: boolean;
+
+    @ApiProperty({ description: 'S3 Key' })
+    @IsString()
+    @IsOptional()
+    s3Key?: string;
+}
+
+export class ProfileGalleryImageDto {
+    @ApiProperty({ description: 'Gallery image ID' })
+    @IsString()
+    @IsOptional()
+    id?: string;
+
+    @ApiProperty({ description: 'Gallery image URL' })
+    @IsString()
+    @IsOptional()
+    imageUrl?: string;
+
+    @ApiProperty({ description: 'Image caption' })
+    @IsString()
+    @IsOptional()
+    caption?: string;
+
+    @ApiProperty({ description: 'S3 Key' })
+    @IsString()
+    @IsOptional()
+    s3Key?: string;
+}
+
+export class CatalogCategoryDto {
+    @ApiProperty({ description: 'Category ID' })
+    @IsString()
+    @IsOptional()
+    id?: string;
+
+    @ApiProperty({ description: 'Category name' })
+    @IsString()
+    @IsOptional()
+    name?: string;
+
+    @ApiProperty({ description: 'Category emoji' })
+    @IsString()
+    @IsOptional()
+    emoji?: string;
+}
+
+export class CatalogItemDto {
+    @ApiProperty({ description: 'Item ID' })
+    @IsString()
+    @IsOptional()
+    id?: string;
+
+    @ApiProperty({ description: 'Category ID' })
+    @IsString()
+    @IsOptional()
+    categoryId?: string;
+
+    @ApiProperty({ description: 'Item title' })
+    @IsString()
+    @IsOptional()
+    title?: string;
+
+    @ApiProperty({ description: 'Item description' })
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @ApiProperty({ description: 'Item price' })
+    @IsOptional()
+    price?: number;
+
+    @ApiProperty({ description: 'Currency code' })
+    @IsString()
+    @IsOptional()
+    currency?: string;
+
+    @ApiProperty({ description: 'Image URL' })
+    @IsString()
+    @IsOptional()
+    imageUrl?: string;
+
+    @ApiProperty({ description: 'Tags' })
+    @IsOptional()
+    tags?: string[];
+
+    @ApiProperty({ description: 'Availability' })
+    @IsBoolean()
+    @IsOptional()
+    isAvailable?: boolean;
+
+    @ApiProperty({ description: 'S3 Key' })
+    @IsString()
+    @IsOptional()
+    s3Key?: string;
+}
+
+export class ProfileReviewDto {
+    @ApiProperty({ description: 'Review ID' })
+    @IsString()
+    @IsOptional()
+    id?: string;
+
+    @ApiProperty({ description: 'Reviewer name' })
+    @IsString()
+    @IsOptional()
+    reviewerName?: string;
+
+    @ApiProperty({ description: 'Rating 1-5' })
+    @IsOptional()
+    rating?: number;
+
+    @ApiProperty({ description: 'Review comment' })
+    @IsString()
+    @IsOptional()
+    comment?: string;
+
+    @ApiProperty({ description: 'Review date' })
+    @IsString()
+    @IsOptional()
+    date?: string;
+
+    @ApiProperty({ description: 'Avatar URL' })
+    @IsString()
+    @IsOptional()
+    avatarUrl?: string;
+}
+
+// ---- Core Business DTOs ----
 
 export class CreateBusinessDto {
     @ApiProperty({ description: 'Business name', example: "Joe's Coffee House" })
@@ -95,41 +251,6 @@ export class CreateBusinessDto {
     @IsOptional()
     primaryColor?: string;
 
-    @ApiProperty({ description: 'WiFi SSID', example: 'Joes_Free_WiFi' })
-    @IsString()
-    @IsOptional()
-    wifiSsid?: string;
-
-    @ApiProperty({ description: 'Google Review URL for CTA redirects' })
-    @IsString()
-    @IsOptional()
-    googleReviewUrl?: string;
-
-    @ApiProperty({ description: 'Welcome banner title on splash screen', example: 'Welcome! Connect for Free WiFi' })
-    @IsString()
-    @IsOptional()
-    welcomeTitle?: string;
-
-    @ApiProperty({ description: 'CTA Button text on splash screen', example: 'View Offers' })
-    @IsString()
-    @IsOptional()
-    ctaButtonText?: string;
-
-    @ApiProperty({ description: 'CTA Button URL on splash screen', example: 'https://example.com/menu' })
-    @IsString()
-    @IsOptional()
-    ctaButtonUrl?: string;
-
-    @ApiProperty({ description: 'Whether to show welcome banner on splash screen', default: true })
-    @IsBoolean()
-    @IsOptional()
-    showWelcomeBanner?: boolean;
-
-    @ApiProperty({ description: 'Operating hours', required: false })
-    @IsObject()
-    @IsOptional()
-    operatingHours?: Record<string, string>;
-
     @ApiProperty({ description: 'Profile type', enum: ['private', 'public'], default: 'private' })
     @IsEnum(['private', 'public'])
     @IsOptional()
@@ -146,6 +267,132 @@ export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {
     @IsBoolean()
     @IsOptional()
     onboardingCompleted?: boolean;
+}
+
+// ---- Tree Profile DTO ----
+
+export class UpdateTreeProfileDto {
+    @ApiProperty({ description: 'Logo URL for tree profile page' })
+    @IsString()
+    @IsOptional()
+    logoUrl?: string;
+
+    @ApiProperty({ description: 'Theme settings' })
+    @IsObject()
+    @IsOptional()
+    theme?: Record<string, string>;
+
+    @ApiProperty({ description: 'Business tagline' })
+    @IsString()
+    @IsOptional()
+    tagline?: string;
+
+    @ApiProperty({ description: 'Section title for menu/catalog' })
+    @IsString()
+    @IsOptional()
+    sectionTitle?: string;
+
+    @ApiProperty({ description: 'Links section title' })
+    @IsString()
+    @IsOptional()
+    linksTitle?: string;
+
+    @ApiProperty({ description: 'Profile image URL' })
+    @IsString()
+    @IsOptional()
+    profileImage?: string;
+
+    @ApiProperty({ description: 'Banner image URL' })
+    @IsString()
+    @IsOptional()
+    bannerImage?: string;
+
+    @ApiProperty({ description: 'Opening hours' })
+    @IsObject()
+    @IsOptional()
+    openingHours?: { start: string; end: string };
+
+    @ApiProperty({ description: 'Social links' })
+    @IsOptional()
+    socialLinks?: Array<Record<string, unknown>>;
+
+    @ApiProperty({ description: 'Custom links' })
+    @IsOptional()
+    customLinks?: Array<Record<string, unknown>>;
+
+    @ApiProperty({ description: 'Tree Profile Banners' })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => ProfileBannerDto)
+    banners?: ProfileBannerDto[];
+
+    @ApiProperty({ description: 'Tree Profile Gallery Images' })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => ProfileGalleryImageDto)
+    gallery?: ProfileGalleryImageDto[];
+
+    @ApiProperty({ description: 'Catalog Categories' })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CatalogCategoryDto)
+    categories?: CatalogCategoryDto[];
+
+    @ApiProperty({ description: 'Catalog Items' })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CatalogItemDto)
+    catalogItems?: CatalogItemDto[];
+
+    @ApiProperty({ description: 'Customer Reviews' })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => ProfileReviewDto)
+    reviews?: ProfileReviewDto[];
+}
+
+// ---- WiFi Profile DTO ----
+
+export class UpdateWifiProfileDto {
+    @ApiProperty({ description: 'Logo URL for WiFi portal page' })
+    @IsString()
+    @IsOptional()
+    logoUrl?: string;
+
+    @ApiProperty({ description: 'WiFi SSID', example: 'Joes_Free_WiFi' })
+    @IsString()
+    @IsOptional()
+    wifiSsid?: string;
+
+    @ApiProperty({ description: 'Google Review URL for CTA redirects' })
+    @IsString()
+    @IsOptional()
+    googleReviewUrl?: string;
+
+    @ApiProperty({ description: 'Welcome banner title on splash screen' })
+    @IsString()
+    @IsOptional()
+    welcomeTitle?: string;
+
+    @ApiProperty({ description: 'CTA Button text on splash screen' })
+    @IsString()
+    @IsOptional()
+    ctaButtonText?: string;
+
+    @ApiProperty({ description: 'CTA Button URL on splash screen' })
+    @IsString()
+    @IsOptional()
+    ctaButtonUrl?: string;
+
+    @ApiProperty({ description: 'Whether to show welcome banner' })
+    @IsBoolean()
+    @IsOptional()
+    showWelcomeBanner?: boolean;
+
+    @ApiProperty({ description: 'Operating hours' })
+    @IsObject()
+    @IsOptional()
+    operatingHours?: Record<string, string>;
 
     @ApiProperty({ description: 'Ads/Banners list', type: [AdDto] })
     @IsOptional()
@@ -154,6 +401,7 @@ export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {
     ads?: AdDto[];
 }
 
+// ---- Response DTOs ----
 
 export class BusinessResponseDto {
     @ApiProperty({ description: 'Business ID' })
@@ -180,12 +428,6 @@ export class BusinessResponseDto {
     @ApiProperty({ description: 'Primary color' })
     primaryColor: string;
 
-    @ApiProperty({ description: 'WiFi SSID' })
-    wifiSsid?: string;
-
-    @ApiProperty({ description: 'Google Review URL' })
-    googleReviewUrl?: string;
-
     @ApiProperty({ description: 'Profile type' })
     profileType: string;
 
@@ -194,9 +436,6 @@ export class BusinessResponseDto {
 
     @ApiProperty({ description: 'Onboarding completed' })
     onboardingCompleted: boolean;
-
-    @ApiProperty({ description: 'Number of ads' })
-    adsCount: number;
 
     @ApiProperty({ description: 'Created timestamp' })
     createdAt: Date;

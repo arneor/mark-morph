@@ -10,7 +10,8 @@ import { AdminAnalyticsService } from './admin-analytics.service'; // New Servic
 import { Admin, AdminSchema } from './schemas/admin.schema';
 import { AdminAccessLog, AdminAccessLogSchema } from './schemas/admin-access-log.schema';
 import { AdminJwtStrategy } from './strategies/admin-jwt.strategy';
-import { BusinessProfile, BusinessProfileSchema } from '../business/schemas/business-profile.schema';
+import { Business, BusinessSchema } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileSchema } from '../business/schemas/wifi-profile.schema';
 import { User, UserSchema } from '../auth/schemas/user.schema';
 import { AnalyticsLog, AnalyticsLogSchema } from '../analytics/schemas/analytics-log.schema';
 import { ComplianceLog, ComplianceLogSchema } from '../compliance/schemas/compliance-log.schema';
@@ -21,7 +22,8 @@ import { WifiUser, WifiUserSchema } from '../splash/schemas/wifi-user.schema'; /
         MongooseModule.forFeature([
             { name: Admin.name, schema: AdminSchema },
             { name: AdminAccessLog.name, schema: AdminAccessLogSchema },
-            { name: BusinessProfile.name, schema: BusinessProfileSchema },
+            { name: Business.name, schema: BusinessSchema },
+            { name: WifiProfile.name, schema: WifiProfileSchema },
             { name: User.name, schema: UserSchema },
             { name: AnalyticsLog.name, schema: AnalyticsLogSchema },
             { name: ComplianceLog.name, schema: ComplianceLogSchema },

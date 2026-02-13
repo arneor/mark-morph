@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { AnalyticsLog, AnalyticsLogDocument } from './schemas/analytics-log.schema';
-import { BusinessProfile, BusinessProfileDocument } from '../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileDocument } from '../business/schemas/wifi-profile.schema';
 import { ComplianceLog, ComplianceLogDocument } from '../compliance/schemas/compliance-log.schema';
 import { TrackInteractionDto, ConnectWifiDto, AnalyticsSummaryDto } from './dto/analytics.dto';
 
@@ -12,7 +13,8 @@ export class AnalyticsService {
 
     constructor(
         @InjectModel(AnalyticsLog.name) private analyticsModel: Model<AnalyticsLogDocument>,
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+        @InjectModel(WifiProfile.name) private wifiProfileModel: Model<WifiProfileDocument>,
         @InjectModel(ComplianceLog.name) private complianceModel: Model<ComplianceLogDocument>,
     ) { }
 
@@ -112,8 +114,8 @@ export class AnalyticsService {
      * Increment ad likes (atomic update)
      */
     private async incrementAdLikes(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.likesCount': 1 } }
         );
     }
@@ -122,8 +124,8 @@ export class AnalyticsService {
      * Increment ad shares (atomic update)
      */
     private async incrementAdShares(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.sharesCount': 1 } }
         );
     }
@@ -132,8 +134,8 @@ export class AnalyticsService {
      * Increment ad expands (atomic update)
      */
     private async incrementAdExpands(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.expandsCount': 1 } }
         );
     }
@@ -143,21 +145,21 @@ export class AnalyticsService {
      */
     private async getRedirectUrl(businessId: string, adId: string): Promise<string> {
         try {
-            const business = await this.businessModel.findById(businessId);
+            const wifiProfile = await this.wifiProfileModel.findOne({ businessId: new Types.ObjectId(businessId) });
 
-            if (!business) {
+            if (!wifiProfile) {
                 return 'https://google.com';
             }
 
             // Find the specific ad
-            const ad = business.ads.find(a => a.id.toString() === adId);
+            const ad = wifiProfile.ads.find(a => a.id.toString() === adId);
 
             if (ad?.ctaUrl) {
                 return ad.ctaUrl;
             }
 
             // Fallback to business Google Review URL
-            return business.googleReviewUrl || 'https://google.com';
+            return wifiProfile.googleReviewUrl || 'https://google.com';
         } catch (error) {
             this.logger.error(`Failed to get redirect URL: ${error.message}`);
             return 'https://google.com';
@@ -178,8 +180,9 @@ export class AnalyticsService {
         this.logCompliance(businessId, macAddress, ipAddress, deviceType, userAgent);
 
         // Get business for redirect URL
-        const business = await this.businessModel.findById(businessId);
-        const redirectUrl = business?.googleReviewUrl || 'https://google.com';
+        // Get business and wifi profile for redirect URL
+        const wifiProfile = await this.wifiProfileModel.findOne({ businessId: new Types.ObjectId(businessId) });
+        const redirectUrl = wifiProfile?.googleReviewUrl || 'https://google.com';
 
         return {
             success: true,
@@ -223,8 +226,8 @@ export class AnalyticsService {
      * Increment ad views (atomic update)
      */
     private async incrementAdViews(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.views': 1 } }
         );
     }
@@ -233,8 +236,8 @@ export class AnalyticsService {
      * Increment ad clicks (atomic update)
      */
     private async incrementAdClicks(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.clicks': 1 } }
         );
     }

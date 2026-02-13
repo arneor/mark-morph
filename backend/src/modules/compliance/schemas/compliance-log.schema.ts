@@ -29,7 +29,7 @@ export class ComplianceLog {
     userId?: Types.ObjectId;
 
     @ApiProperty({ description: 'Business ID', type: String })
-    @Prop({ type: Types.ObjectId, ref: 'BusinessProfile', index: true })
+    @Prop({ type: Types.ObjectId, ref: 'Business', index: true })
     businessId?: Types.ObjectId;
 
     @ApiProperty({ description: 'Login timestamp' })

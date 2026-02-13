@@ -14,7 +14,7 @@ export class AnalyticsLog {
     adId: Types.ObjectId;
 
     @ApiProperty({ description: 'Business ID', type: String })
-    @Prop({ type: Types.ObjectId, ref: 'BusinessProfile', required: true, index: true })
+    @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
     businessId: Types.ObjectId;
 
     @ApiProperty({ description: 'User ID (optional)', type: String })

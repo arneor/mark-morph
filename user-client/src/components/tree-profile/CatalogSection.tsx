@@ -4,9 +4,10 @@ import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Star, Sparkles, Flame, Leaf, Edit2, Plus, Trash2 } from 'lucide-react';
-import { CatalogCategory, CatalogItem, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
-import { cn } from '@/lib/utils';
+import { CatalogCategory, CatalogItem, TreeProfileTheme } from '@/lib/treeProfileTypes';
+import { cn, isColorExclusivelyDark } from '@/lib/utils';
 import { AddItemModal } from './AddItemModal';
+import { AddCategoryModal } from './AddCategoryModal';
 
 interface CatalogItemCardProps {
     item: CatalogItem;
@@ -35,8 +36,8 @@ const CatalogItemCardComponent = ({ item, index, theme, isEditMode, onEdit, onDe
         spicy: 'bg-red-500/20 text-red-300 border-red-500/30',
     };
 
-    // Check if theme is likely light mode based on text color (simple heuristic)
-    const isLightTheme = theme.textColor === '#000000' || theme.textColor === '#0f172a' || theme.textColor === '#831843';
+    // Check if theme is likely light mode based on text color
+    const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
     // Base styles based on theme.cardStyle
     const cardBaseStyles = {
@@ -174,6 +175,8 @@ interface CatalogSectionProps {
     theme: TreeProfileTheme;
     isEditMode?: boolean;
     onUpdateItems?: (items: CatalogItem[]) => void;
+    onUpdateCategories?: (categories: CatalogCategory[]) => void;
+    businessId: string;
 }
 
 function CatalogSectionComponent({
@@ -181,20 +184,81 @@ function CatalogSectionComponent({
     items,
     theme,
     isEditMode,
-    onUpdateItems
+    onUpdateItems,
+    onUpdateCategories,
+    businessId
 }: CatalogSectionProps) {
     const [activeCategory, setActiveCategory] = useState<string | null>(categories[0]?.id || null);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<CatalogCategory | null>(null);
 
     // Check if theme is likely light mode
-    const isLightTheme = theme.textColor === '#000000' || theme.textColor === '#0f172a' || theme.textColor === '#831843';
+    const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
     const filteredItems = activeCategory
         ? items.filter(item => item.categoryId === activeCategory)
         : items;
+
+    // ... (item handlers remain same)
+
+    const handleAddCategory = () => {
+        if (!onUpdateCategories) return;
+        setEditingCategory(null);
+        setIsCategoryModalOpen(true);
+    };
+
+    const handleEditCategoryClick = (category: CatalogCategory, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!onUpdateCategories) return;
+        setEditingCategory(category);
+        setIsCategoryModalOpen(true);
+    };
+
+    const handleDeleteCategory = () => {
+        if (!onUpdateCategories || !editingCategory) return;
+
+        const newCategories = categories.filter(c => c.id !== editingCategory.id);
+        onUpdateCategories(newCategories);
+
+        // If we deleted the active category, switch to the first one available
+        if (activeCategory === editingCategory.id) {
+            setActiveCategory(newCategories[0]?.id || null);
+        }
+    };
+
+    const handleSaveCategory = (name: string, emoji: string) => {
+        if (!onUpdateCategories) return;
+
+        if (editingCategory) {
+            // Update existing
+            const newCategories = categories.map(c =>
+                c.id === editingCategory.id
+                    ? { ...c, name, emoji }
+                    : c
+            );
+            onUpdateCategories(newCategories);
+        } else {
+            // Create new
+            const newCategory: CatalogCategory = {
+                id: `cat-${Date.now()}`,
+                name: name,
+                emoji: emoji
+            };
+
+            const newCategories = [...categories, newCategory];
+            onUpdateCategories(newCategories);
+            setActiveCategory(newCategory.id);
+        }
+
+        setIsCategoryModalOpen(false);
+        setEditingCategory(null);
+    };
+
+    // ... (rest of item handlers)
 
     const handleSaveItem = (itemData: Partial<CatalogItem>) => {
         if (!onUpdateItems || !activeCategory) return;
@@ -252,13 +316,21 @@ function CatalogSectionComponent({
             {/* Category Pills */}
             <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
                 {categories.map((category) => (
-                    <motion.button
+                    <motion.div
+                        role="button"
+                        tabIndex={0}
                         key={category.id}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setActiveCategory(category.id)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setActiveCategory(category.id);
+                            }
+                        }}
                         className={cn(
-                            'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border relative group',
+                            'cursor-pointer shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border relative group select-none',
                             activeCategory === category.id
                                 ? 'text-white border-transparent'
                                 : 'bg-transparent border-white/20 hover:bg-white/10',
@@ -276,18 +348,23 @@ function CatalogSectionComponent({
 
                         {isEditMode && (
                             <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-4 h-4 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                                    <Edit2 className="w-2 h-2 text-white" />
-                                </div>
+                                <button
+                                    onClick={(e) => handleEditCategoryClick(category, e)}
+                                    className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-colors"
+                                >
+                                    <Edit2 className="w-2.5 h-2.5 text-white" />
+                                </button>
                             </div>
                         )}
-                    </motion.button>
+                    </motion.div>
                 ))}
                 {isEditMode && (
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-white/5 border border-dashed border-white/20 text-white/50 hover:bg-white/10 hover:text-white transition-colors"
+                        onClick={handleAddCategory}
+                        className="shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-white/5 border border-dashed border-white/20 text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                        style={{ color: 'var(--text-color)', borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
                     >
                         + New Category
                     </motion.button>
@@ -341,7 +418,7 @@ function CatalogSectionComponent({
             </AnimatePresence>
 
             {/* Empty state */}
-            {filteredItems.length === 0 && (
+            {filteredItems.length === 0 && !isEditMode && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -372,6 +449,21 @@ function CatalogSectionComponent({
                 onDelete={editingItem ? () => handleDeleteItem(editingItem) : undefined}
                 initialData={editingItem}
                 key={editingItem ? editingItem.id : 'new'}
+                businessId={businessId}
+                theme={theme}
+            />
+
+            <AddCategoryModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => {
+                    setIsCategoryModalOpen(false);
+                    setEditingCategory(null);
+                }}
+                onSave={handleSaveCategory}
+                onDelete={editingCategory ? handleDeleteCategory : undefined}
+                theme={theme}
+                initialData={editingCategory}
+                key={editingCategory ? editingCategory.id : 'new-cat'}
             />
         </motion.div>
     );
@@ -379,6 +471,7 @@ function CatalogSectionComponent({
 
 export const CatalogSection = memo(CatalogSectionComponent, (prev, next) => {
     return (
+        prev.businessId === next.businessId &&
         prev.title === next.title &&
         prev.categories === next.categories &&
         prev.items === next.items &&

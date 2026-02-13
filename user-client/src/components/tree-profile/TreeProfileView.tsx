@@ -9,8 +9,9 @@ import {
     CustomLink,
     ProfileBanner,
     ProfileGalleryImage,
-    CatalogItem
-} from '@/lib/dummyTreeProfileData';
+    CatalogItem,
+    CatalogCategory
+} from '@/lib/treeProfileTypes';
 
 // Critical components loaded immediately
 import { TreeProfileHeader } from '@/components/tree-profile/TreeProfileHeader';
@@ -42,6 +43,7 @@ const Footer = memo(function Footer() {
 });
 
 interface TreeProfileViewProps {
+    businessId: string;
     data: TreeProfileData;
     isEditMode?: boolean;
     activeTab?: 'links' | 'menu';
@@ -53,6 +55,7 @@ interface TreeProfileViewProps {
     onUpdateBanners?: (banners: ProfileBanner[]) => void;
     onUpdateGallery?: (images: ProfileGalleryImage[]) => void;
     onUpdateCatalogItems?: (items: CatalogItem[]) => void;
+    onUpdateCategories?: (categories: CatalogCategory[]) => void;
     onUpdateSectionTitle?: (title: string) => void;
     onUpdateLinksTitle?: (title: string) => void;
 
@@ -61,6 +64,7 @@ interface TreeProfileViewProps {
 }
 
 export function TreeProfileView({
+    businessId,
     data,
     isEditMode = false,
     activeTab: controlledActiveTab,
@@ -70,6 +74,7 @@ export function TreeProfileView({
     onUpdateBanners,
     onUpdateGallery,
     onUpdateCatalogItems,
+    onUpdateCategories,
     onUpdateSectionTitle,
     onUpdateLinksTitle,
     children
@@ -113,6 +118,7 @@ export function TreeProfileView({
                     <div className="w-full">
                         {/* Header Section */}
                         <TreeProfileHeader
+                            businessId={businessId}
                             data={data}
                             isEditMode={isEditMode}
                             onUpdate={onUpdateHeader}
@@ -192,6 +198,7 @@ export function TreeProfileView({
                                     {/* New Sections Below Links */}
                                     <div className="mt-8 space-y-8">
                                         <CarouselSection
+                                            businessId={businessId}
                                             banners={data.banners || []}
                                             theme={data.theme}
                                             isEditMode={isEditMode}
@@ -199,6 +206,7 @@ export function TreeProfileView({
                                         />
 
                                         <GallerySection
+                                            businessId={businessId}
                                             images={data.gallery || []}
                                             theme={data.theme}
                                             isEditMode={isEditMode}
@@ -219,6 +227,8 @@ export function TreeProfileView({
                                         theme={data.theme}
                                         isEditMode={isEditMode}
                                         onUpdateItems={onUpdateCatalogItems}
+                                        onUpdateCategories={onUpdateCategories}
+                                        businessId={businessId}
                                     />
                                 </div>
                             </div>

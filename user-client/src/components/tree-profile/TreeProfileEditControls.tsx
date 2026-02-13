@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
+import { businessApi } from '@/lib/api';
 
 export function TreeProfileEditControls() {
     const {
@@ -24,34 +25,6 @@ export function TreeProfileEditControls() {
 
     const handleSave = async () => {
         try {
-            // Map Banners to Ads
-            const bannerAds = (profileData.banners || []).map(b => ({
-                id: b.id.length === 24 ? b.id : undefined, // Keep ID if valid MongoID, else new
-                title: b.title || 'Untitled',
-                mediaUrl: b.imageUrl,
-                mediaType: 'image' as const,
-                placement: 'BANNER',
-                ctaUrl: b.linkUrl,
-                status: b.isActive ? 'active' : 'paused',
-                duration: 5,
-                views: 0,
-                clicks: 0
-            }));
-
-            // Map Gallery to Ads
-            const galleryAds = (profileData.gallery || []).map(g => ({
-                id: g.id.length === 24 ? g.id : undefined,
-                title: g.caption || 'Gallery Image',
-                mediaUrl: g.imageUrl,
-                mediaType: 'image' as const,
-                placement: 'GALLERY',
-                description: g.caption,
-                status: 'active',
-                duration: 5,
-                views: 0,
-                clicks: 0
-            }));
-
             // Prepare Business Update Payload
             const updatePayload = {
                 businessName: profileData.businessName,
@@ -61,9 +34,13 @@ export function TreeProfileEditControls() {
                 tagline: profileData.tagline,
                 sectionTitle: profileData.sectionTitle,
                 linksTitle: profileData.linksTitle,
+                openingHours: profileData.openingHours,
+                profileImage: profileData.profileImage,
+                bannerImage: profileData.bannerImage,
 
                 // Theme Settings
                 theme: {
+                    templateId: profileData.theme.templateId,
                     primaryColor: profileData.theme.primaryColor,
                     secondaryColor: profileData.theme.secondaryColor,
                     backgroundColor: profileData.theme.backgroundColor,
@@ -93,20 +70,57 @@ export function TreeProfileEditControls() {
                     label: link.label
                 })),
 
-                // Combine ads
-                ads: [...bannerAds, ...galleryAds]
+                // Tree Profile Data
+                banners: (profileData.banners || []).map(b => ({
+                    id: b.id,
+                    imageUrl: b.imageUrl,
+                    title: b.title,
+                    linkUrl: b.linkUrl,
+                    isActive: b.isActive,
+                })),
+
+                gallery: (profileData.gallery || []).map(g => ({
+                    id: g.id,
+                    imageUrl: g.imageUrl,
+                    caption: g.caption,
+                })),
+
+                categories: profileData.categories.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    emoji: c.emoji,
+                })),
+
+                catalogItems: profileData.catalogItems.map(item => ({
+                    id: item.id,
+                    categoryId: item.categoryId,
+                    title: item.title,
+                    description: item.description,
+                    price: item.price,
+                    currency: item.currency,
+                    imageUrl: item.imageUrl,
+                    tags: item.tags,
+                    isAvailable: item.isAvailable,
+                })),
+
+                reviews: (profileData.reviews || []).map(r => ({
+                    id: r.id,
+                    reviewerName: r.reviewerName,
+                    rating: r.rating,
+                    comment: r.comment,
+                    date: r.date,
+                    avatarUrl: r.avatarUrl,
+                })),
             };
 
-            // MOCK API CALL - UI UPDATE ONLY
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log('Mock saving profile data:', updatePayload);
+            await businessApi.update(businessId, updatePayload);
 
             setHasChanges(false);
             setIsEditMode(false);
 
             toast({
-                title: '✨ Changes Saved (Mock)',
-                description: 'Profile updated locally for preview.',
+                title: '✨ Changes Saved',
+                description: 'Your profile has been updated successfully.',
             });
         } catch (error) {
             console.error('Failed to save profile:', error);

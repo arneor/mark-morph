@@ -110,6 +110,61 @@ export class SocialLink {
     @Prop() label: string;
 }
 
+@Schema({ _id: false })
+export class ProfileBanner {
+    @Prop() id: string;
+    @Prop() imageUrl: string;
+    @Prop() title: string;
+    @Prop() linkUrl: string;
+    @Prop({ default: true }) isActive: boolean;
+    @Prop() s3Key: string;
+}
+
+@Schema({ _id: false })
+export class ProfileGalleryImage {
+    @Prop() id: string;
+    @Prop() imageUrl: string;
+    @Prop() caption: string;
+    @Prop() s3Key: string;
+}
+
+@Schema({ _id: false })
+export class CatalogCategory {
+    @Prop() id: string;
+    @Prop() name: string;
+    @Prop() emoji: string;
+}
+
+@Schema({ _id: false })
+export class CatalogItem {
+    @Prop() id: string;
+    @Prop() categoryId: string;
+    @Prop() title: string;
+    @Prop() description: string;
+    @Prop() price: number;
+    @Prop({ default: 'INR' }) currency: string;
+    @Prop() imageUrl: string;
+    @Prop({ type: [String], default: [] }) tags: string[];
+    @Prop({ default: true }) isAvailable: boolean;
+    @Prop() s3Key: string;
+}
+
+@Schema({ _id: false })
+export class ProfileReview {
+    @Prop() id: string;
+    @Prop() reviewerName: string;
+    @Prop() rating: number;
+    @Prop() comment: string;
+    @Prop() date: string;
+    @Prop() avatarUrl: string;
+}
+
+export const ProfileBannerSchema = SchemaFactory.createForClass(ProfileBanner);
+export const ProfileGalleryImageSchema = SchemaFactory.createForClass(ProfileGalleryImage);
+export const CatalogCategorySchema = SchemaFactory.createForClass(CatalogCategory);
+export const CatalogItemSchema = SchemaFactory.createForClass(CatalogItem);
+export const ProfileReviewSchema = SchemaFactory.createForClass(ProfileReview);
+
 @Schema({ timestamps: true, collection: 'business_profiles' })
 export class BusinessProfile {
     @ApiProperty({ description: 'Unique identifier' })
@@ -139,6 +194,47 @@ export class BusinessProfile {
     @ApiProperty({ description: 'Business Tagline' })
     @Prop()
     tagline?: string;
+
+    // --- Tree Profile Data ---
+    @ApiProperty({ description: 'Tree Profile Banners' })
+    @Prop({ type: [ProfileBannerSchema], default: [] })
+    banners?: ProfileBanner[];
+
+    @ApiProperty({ description: 'Tree Profile Gallery Images' })
+    @Prop({ type: [ProfileGalleryImageSchema], default: [] })
+    gallery?: ProfileGalleryImage[];
+
+    @ApiProperty({ description: 'Catalog Categories' })
+    @Prop({ type: [CatalogCategorySchema], default: [] })
+    categories?: CatalogCategory[];
+
+    @ApiProperty({ description: 'Catalog Items' })
+    @Prop({ type: [CatalogItemSchema], default: [] })
+    catalogItems?: CatalogItem[];
+
+    @ApiProperty({ description: 'Customer Reviews' })
+    @Prop({ type: [ProfileReviewSchema], default: [] })
+    reviews?: ProfileReview[];
+
+    @ApiProperty({ description: 'Profile Image URL' })
+    @Prop()
+    profileImage?: string;
+
+    @ApiProperty({ description: 'S3 Key for profile image' })
+    @Prop()
+    profileImageS3Key?: string;
+
+    @ApiProperty({ description: 'Banner Image URL' })
+    @Prop()
+    bannerImage?: string;
+
+    @ApiProperty({ description: 'S3 Key for banner image' })
+    @Prop()
+    bannerImageS3Key?: string;
+
+    @ApiProperty({ description: 'Opening hours' })
+    @Prop({ type: Object })
+    openingHours?: { start: string; end: string };
 
     @ApiProperty({ description: 'Business name' })
     @Prop({ required: true })

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     Plus,
     Trash2,
@@ -11,7 +11,7 @@ import {
     Check,
     Grid3x3
 } from 'lucide-react';
-import { ProfileGalleryImage, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
+import { ProfileGalleryImage, TreeProfileTheme } from '@/lib/treeProfileTypes';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,14 +22,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { businessApi } from '@/lib/api';
+
 interface GallerySectionProps {
+    businessId: string;
     images: ProfileGalleryImage[];
     isEditMode: boolean;
     onUpdate: (images: ProfileGalleryImage[]) => void;
     theme: TreeProfileTheme;
 }
 
-export function GallerySection({ images = [], isEditMode, onUpdate, theme }: GallerySectionProps) {
+export function GallerySection({ businessId, images = [], isEditMode, onUpdate, theme }: GallerySectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingImage, setEditingImage] = useState<ProfileGalleryImage | null>(null);
     const MAX_IMAGES = 10;
@@ -38,7 +41,7 @@ export function GallerySection({ images = [], isEditMode, onUpdate, theme }: Gal
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
 
         const files = Array.from(e.target.files);
@@ -48,13 +51,25 @@ export function GallerySection({ images = [], isEditMode, onUpdate, theme }: Gal
             return;
         }
 
-        const newImages: ProfileGalleryImage[] = files.map(file => ({
-            id: crypto.randomUUID(),
-            imageUrl: URL.createObjectURL(file), // Mock S3 upload
-            caption: file.name.replace(/\.[^/.]+$/, "")
-        }));
+        try {
+            const newImagesPromises = files.map(async (file) => {
+                // Upload to S3 via backend
+                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-gallery');
 
-        onUpdate([...images, ...newImages]);
+                return {
+                    id: crypto.randomUUID(),
+                    imageUrl: url,
+                    caption: file.name.replace(/\.[^/.]+$/, "")
+                };
+            });
+
+            const newImages = await Promise.all(newImagesPromises);
+            onUpdate([...images, ...newImages]);
+        } catch (error) {
+            console.error("Failed to upload gallery image:", error);
+            alert("Failed to upload image. Please try again.");
+        }
+
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 

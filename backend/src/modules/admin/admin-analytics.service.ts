@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { BusinessProfile, BusinessProfileDocument } from '../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../business/schemas/business.schema';
 import { WifiUser, WifiUserDocument } from '../splash/schemas/wifi-user.schema';
 import { AnalyticsLog, AnalyticsLogDocument } from '../analytics/schemas/analytics-log.schema';
 import { AdminDashboardResponseDto, BusinessAnalyticsItemDto, KpisDto } from './dto/admin-analytics.dto';
@@ -19,7 +19,7 @@ export class AdminAnalyticsService {
     private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
     constructor(
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
         @InjectModel(WifiUser.name) private wifiUserModel: Model<WifiUserDocument>,
         @InjectModel(AnalyticsLog.name) private analyticsModel: Model<AnalyticsLogDocument>,
     ) { }

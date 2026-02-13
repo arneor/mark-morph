@@ -75,6 +75,50 @@ export interface Business {
   linksTitle?: string;
   tagline?: string;
 
+  // Tree Profile Data arrays
+  banners?: Array<{
+    id: string;
+    imageUrl: string;
+    title?: string;
+    linkUrl?: string;
+    isActive: boolean;
+    s3Key?: string;
+  }>;
+  gallery?: Array<{
+    id: string;
+    imageUrl: string;
+    caption?: string;
+    s3Key?: string;
+  }>;
+  categories?: Array<{
+    id: string;
+    name: string;
+    emoji?: string;
+  }>;
+  catalogItems?: Array<{
+    id: string;
+    categoryId: string;
+    title: string;
+    description?: string;
+    price: number;
+    currency: string;
+    imageUrl?: string;
+    tags?: string[];
+    isAvailable: boolean;
+    s3Key?: string;
+  }>;
+  reviews?: Array<{
+    id: string;
+    reviewerName: string;
+    rating: number;
+    comment: string;
+    date: string;
+    avatarUrl?: string;
+  }>;
+  profileImage?: string;
+  bannerImage?: string;
+  openingHours?: { start: string; end: string };
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -205,6 +249,32 @@ export async function fetchBusinessById(id: string): Promise<Business | null> {
     return response.json();
   } catch (error) {
     console.error('Error fetching business:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch business data by username - Server-side (public profile)
+ */
+export async function fetchBusinessByUsername(username: string): Promise<Business | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/business/u/${username}`, {
+      next: { revalidate: 60 },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new ApiError(response.status, 'Failed to fetch business');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching business by username:', error);
     return null;
   }
 }
@@ -479,7 +549,7 @@ export const businessApi = {
   async uploadMedia(
     businessId: string,
     file: File,
-    placement: 'branding' | 'banner' | 'gallery'
+    placement: 'branding' | 'banner' | 'gallery' | 'tree-profile-banners' | 'tree-profile-gallery' | 'tree-profile-catalog' | 'tree-profile-profile'
   ): Promise<{ url: string; key: string }> {
     const formData = new FormData();
     formData.append('file', file);

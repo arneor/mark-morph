@@ -3,7 +3,7 @@
 import { memo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TreeProfileData } from '@/lib/dummyTreeProfileData';
+import { TreeProfileData } from '@/lib/treeProfileTypes';
 import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
 import { TreeProfileView } from '@/components/tree-profile/TreeProfileView';
 
@@ -17,11 +17,15 @@ const ThemeCustomizer = dynamic(() =>
     ssr: false
 });
 
+import { useParams } from 'next/navigation';
+
 interface TreeProfileEditorProps {
     initialData: TreeProfileData;
 }
 
 function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
+    const params = useParams();
+    const businessId = params.businessId as string;
     // Zustand Store
     const {
         profileData,
@@ -36,7 +40,8 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
 
         updateLinksTitle,
         updateBanners,
-        updateGallery
+        updateGallery,
+        updateCategories
     } = useTreeProfileStore();
 
     // Initialize Store
@@ -52,6 +57,7 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
 
     return (
         <TreeProfileView
+            businessId={businessId}
             data={profileData}
             isEditMode={isEditMode}
             onUpdateHeader={updateHeader}
@@ -59,6 +65,7 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
             onUpdateBanners={updateBanners}
             onUpdateGallery={updateGallery}
             onUpdateCatalogItems={updateCatalogItems}
+            onUpdateCategories={updateCategories}
             onUpdateSectionTitle={updateSectionTitle}
             onUpdateLinksTitle={updateLinksTitle}
         >

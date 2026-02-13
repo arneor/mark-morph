@@ -3,8 +3,8 @@
 import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink, Plus } from 'lucide-react';
-import { CustomLink, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
-import { cn } from '@/lib/utils';
+import { CustomLink, TreeProfileTheme } from '@/lib/treeProfileTypes';
+import { cn, isColorExclusivelyDark } from '@/lib/utils';
 import { AddLinkModal } from './AddLinkModal';
 
 interface LinkBlockProps {
@@ -17,7 +17,7 @@ interface LinkBlockProps {
 
 const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBlockProps) => {
     // Check if theme is likely light mode
-    const isLightTheme = theme.textColor === '#000000' || theme.textColor === '#0f172a' || theme.textColor === '#831843';
+    const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
     // Base styles based on theme.cardStyle
     const cardBaseStyles = {
@@ -56,7 +56,7 @@ const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBloc
 
     return (
         <motion.a
-            href={isEditMode ? undefined : link.url}
+            href={isEditMode ? undefined : (link.url.match(/^https?:\/\//) ? link.url : `https://${link.url}`)}
             target={isEditMode ? undefined : "_blank"}
             rel={isEditMode ? undefined : "noopener noreferrer"}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -301,7 +301,7 @@ function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSect
                 onDelete={editingLink ? handleDelete : undefined}
                 initialData={editingLink}
                 key={editingLink ? editingLink.id : 'new'}
-                primaryColor={theme.primaryColor}
+                theme={theme}
             />
         </motion.div>
     );

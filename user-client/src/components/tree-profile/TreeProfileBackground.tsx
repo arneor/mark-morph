@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { TreeProfileTheme } from '@/lib/dummyTreeProfileData';
+import { TreeProfileTheme } from '@/lib/treeProfileTypes';
 
 interface TreeProfileBackgroundProps {
     theme: TreeProfileTheme;

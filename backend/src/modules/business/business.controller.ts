@@ -23,7 +23,14 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { BusinessService } from './business.service';
-import { CreateBusinessDto, UpdateBusinessDto, BusinessResponseDto, DashboardStatsDto } from './dto/business.dto';
+import {
+    CreateBusinessDto,
+    UpdateBusinessDto,
+    UpdateTreeProfileDto,
+    UpdateWifiProfileDto,
+    BusinessResponseDto,
+    DashboardStatsDto
+} from './dto/business.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -56,10 +63,6 @@ export class BusinessController {
             status: business.status,
             isActive: business.isActive,
             onboardingCompleted: business.onboardingCompleted,
-            welcomeTitle: business.welcomeTitle,
-            ctaButtonText: business.ctaButtonText,
-            ctaButtonUrl: business.ctaButtonUrl,
-            showWelcomeBanner: business.showWelcomeBanner,
             username: business.username,
             message: 'Business registered successfully. Pending admin approval.',
         };
@@ -72,21 +75,35 @@ export class BusinessController {
     @ApiResponse({ status: 200, description: 'Business profile data' })
     @ApiResponse({ status: 404, description: 'Business not found' })
     async getPublicProfileByUsername(@Param('username') username: string) {
-        const business = await this.businessService.findByUsername(username);
+        const merged = await this.businessService.getFullBusinessByUsername(username);
 
-        // Return only public data for the profile page
         return {
-            id: business._id,
-            businessName: business.businessName,
-            username: business.username,
-            location: business.location,
-            category: business.category,
-            logoUrl: business.logoUrl,
-            primaryColor: business.primaryColor,
-            description: business.description,
-            // Add other necessary fields for Tree Profile
-            ads: business.ads.filter(ad => ad.status === 'active'),
-            createdAt: business.createdAt,
+            id: merged.id,
+            businessName: merged.businessName,
+            username: merged.username,
+            location: merged.location,
+            category: merged.category,
+            logoUrl: merged.logoUrl,
+            primaryColor: merged.primaryColor,
+            description: merged.description,
+            // Tree profile data
+            tagline: merged.tagline,
+            sectionTitle: merged.sectionTitle,
+            linksTitle: merged.linksTitle,
+            profileImage: merged.profileImage,
+            bannerImage: merged.bannerImage,
+            openingHours: merged.openingHours,
+            theme: merged.theme,
+            customLinks: merged.customLinks,
+            socialLinks: merged.socialLinks,
+            banners: merged.banners,
+            gallery: merged.gallery,
+            categories: merged.categories,
+            catalogItems: merged.catalogItems,
+            reviews: merged.reviews,
+            // WiFi ads (active only)
+            ads: (merged.ads || []).filter((ad: any) => ad.status === 'active'),
+            createdAt: merged.createdAt,
         };
     }
 
@@ -101,34 +118,50 @@ export class BusinessController {
     @ApiResponse({ status: 200, description: 'Business profile' })
     @ApiResponse({ status: 404, description: 'No business found' })
     async getMyBusiness(@CurrentUser('userId') userId: string) {
-        const business = await this.businessService.findByOwnerId(userId);
+        const merged = await this.businessService.getFullBusinessByOwnerId(userId);
 
-        if (!business) {
+        if (!merged) {
             return { business: null };
         }
 
         return {
-            id: business._id,
-            businessName: business.businessName,
-            location: business.location,
-            contactEmail: business.contactEmail,
-            category: business.category,
-            logoUrl: business.logoUrl,
-            primaryColor: business.primaryColor,
-            wifiSsid: business.wifiSsid,
-            googleReviewUrl: business.googleReviewUrl,
-            description: business.description,
-            welcomeTitle: business.welcomeTitle,
-            ctaButtonText: business.ctaButtonText,
-            ctaButtonUrl: business.ctaButtonUrl,
-            showWelcomeBanner: business.showWelcomeBanner,
-            profileType: business.profileType,
-            status: business.status,
-            isActive: business.isActive,
-            onboardingCompleted: business.onboardingCompleted,
-            adsCount: business.ads.length,
-            rejectionReason: business.rejectionReason,
-            suspensionReason: business.suspensionReason,
+            id: merged.id,
+            businessName: merged.businessName,
+            location: merged.location,
+            contactEmail: merged.contactEmail,
+            category: merged.category,
+            logoUrl: merged.logoUrl,
+            primaryColor: merged.primaryColor,
+            description: merged.description,
+            profileType: merged.profileType,
+            status: merged.status,
+            isActive: merged.isActive,
+            onboardingCompleted: merged.onboardingCompleted,
+            rejectionReason: merged.rejectionReason,
+            suspensionReason: merged.suspensionReason,
+            // WiFi profile fields
+            wifiSsid: merged.wifiSsid,
+            googleReviewUrl: merged.googleReviewUrl,
+            welcomeTitle: merged.welcomeTitle,
+            ctaButtonText: merged.ctaButtonText,
+            ctaButtonUrl: merged.ctaButtonUrl,
+            showWelcomeBanner: merged.showWelcomeBanner,
+            adsCount: (merged.ads || []).length,
+            // Tree profile fields
+            tagline: merged.tagline,
+            sectionTitle: merged.sectionTitle,
+            linksTitle: merged.linksTitle,
+            profileImage: merged.profileImage,
+            bannerImage: merged.bannerImage,
+            openingHours: merged.openingHours,
+            theme: merged.theme,
+            customLinks: merged.customLinks,
+            socialLinks: merged.socialLinks,
+            banners: merged.banners,
+            gallery: merged.gallery,
+            categories: merged.categories,
+            catalogItems: merged.catalogItems,
+            reviews: merged.reviews,
         };
     }
 
@@ -171,9 +204,8 @@ export class BusinessController {
         @Param('id') id: string,
         @CurrentUser() user: any
     ) {
+        // First check ownership with core business doc
         const business = await this.businessService.findById(id);
-
-        // Check ownership (admins can access any business)
         const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
         const isOwner = business.ownerId.toString() === user.userId;
 
@@ -181,56 +213,190 @@ export class BusinessController {
             throw new ForbiddenException('You do not have permission to access this business');
         }
 
+        // Now fetch merged data
+        const merged = await this.businessService.getFullBusiness(id);
+
         return {
-            id: business._id,
-            businessName: business.businessName,
-            location: business.location,
-            contactEmail: business.contactEmail,
-            category: business.category,
-            logoUrl: business.logoUrl,
-            primaryColor: business.primaryColor,
-            wifiSsid: business.wifiSsid,
-            googleReviewUrl: business.googleReviewUrl,
-            description: business.description,
-            welcomeTitle: business.welcomeTitle,
-            ctaButtonText: business.ctaButtonText,
-            ctaButtonUrl: business.ctaButtonUrl,
-            showWelcomeBanner: business.showWelcomeBanner,
-            profileType: business.profileType,
-            status: business.status,
-            isActive: business.isActive,
-            adsCount: business.ads.length,
-            ads: business.ads, // Expose ads for editing
+            id: merged.id,
+            businessName: merged.businessName,
+            location: merged.location,
+            contactEmail: merged.contactEmail,
+            category: merged.category,
+            logoUrl: merged.logoUrl,
+            primaryColor: merged.primaryColor,
+            description: merged.description,
+            profileType: merged.profileType,
+            status: merged.status,
+            isActive: merged.isActive,
+            // WiFi profile
+            wifiSsid: merged.wifiSsid,
+            googleReviewUrl: merged.googleReviewUrl,
+            welcomeTitle: merged.welcomeTitle,
+            ctaButtonText: merged.ctaButtonText,
+            ctaButtonUrl: merged.ctaButtonUrl,
+            showWelcomeBanner: merged.showWelcomeBanner,
+            adsCount: (merged.ads || []).length,
+            ads: merged.ads,
+            // Tree profile
+            tagline: merged.tagline,
+            sectionTitle: merged.sectionTitle,
+            linksTitle: merged.linksTitle,
+            profileImage: merged.profileImage,
+            bannerImage: merged.bannerImage,
+            openingHours: merged.openingHours,
+            theme: merged.theme,
+            customLinks: merged.customLinks,
+            socialLinks: merged.socialLinks,
+            banners: merged.banners,
+            gallery: merged.gallery,
+            categories: merged.categories,
+            catalogItems: merged.catalogItems,
+            reviews: merged.reviews,
         };
     }
+
+    // ---- Update Endpoints ----
 
     @Put(':id')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('JWT-auth')
-    @ApiOperation({ summary: 'Update business profile' })
+    @ApiOperation({ summary: 'Update business profile (backward-compatible, accepts all fields)' })
     @ApiParam({ name: 'id', description: 'Business ID' })
     @ApiResponse({ status: 200, description: 'Business updated' })
-    @ApiResponse({ status: 403, description: 'Forbidden' })
-    @ApiResponse({ status: 404, description: 'Business not found' })
     async update(
         @Param('id') id: string,
         @CurrentUser() user: any,
-        @Body() dto: UpdateBusinessDto,
+        @Body() body: Record<string, any>,
     ) {
-        // Admins can update any business, owners can only update their own
         const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
-        const business = await this.businessService.update(id, user.userId, dto, isAdmin);
 
+        // Core business fields
+        const businessFields = [
+            'businessName', 'username', 'location', 'category', 'description',
+            'contactEmail', 'contactPhone', 'primaryColor', 'profileType',
+            'isActive', 'onboardingCompleted',
+        ];
+
+        // Tree profile fields
+        const treeFields = [
+            'theme', 'tagline', 'sectionTitle', 'linksTitle', 'profileImage',
+            'bannerImage', 'openingHours', 'socialLinks', 'customLinks',
+            'banners', 'gallery', 'categories', 'catalogItems', 'reviews',
+        ];
+
+        // WiFi profile fields
+        const wifiFields = [
+            'wifiSsid', 'googleReviewUrl', 'welcomeTitle', 'ctaButtonText',
+            'ctaButtonUrl', 'showWelcomeBanner', 'operatingHours', 'ads',
+        ];
+
+        // Fields that go to BOTH tree and wifi profiles
+        const sharedProfileFields = ['logoUrl'];
+
+        // Split incoming body into the three DTOs
+        const businessDto: Record<string, any> = {};
+        const treeDto: Record<string, any> = {};
+        const wifiDto: Record<string, any> = {};
+
+        for (const [key, value] of Object.entries(body)) {
+            if (businessFields.includes(key)) {
+                businessDto[key] = value;
+            } else if (treeFields.includes(key)) {
+                treeDto[key] = value;
+            } else if (wifiFields.includes(key)) {
+                wifiDto[key] = value;
+            }
+            // logoUrl goes to both profiles
+            if (sharedProfileFields.includes(key)) {
+                treeDto[key] = value;
+                wifiDto[key] = value;
+            }
+        }
+
+        // Update core business (always)
+        const business = await this.businessService.update(id, user.userId, businessDto as any, isAdmin);
+
+        // Update tree profile if any tree fields were sent
+        if (Object.keys(treeDto).length > 0) {
+            await this.businessService.updateTreeProfile(id, user.userId, treeDto as any, isAdmin);
+        }
+
+        // Update wifi profile if any wifi fields were sent
+        if (Object.keys(wifiDto).length > 0) {
+            await this.businessService.updateWifiProfile(id, user.userId, wifiDto as any, isAdmin);
+        }
+
+        // Return merged data for backward compatibility
+        const merged = await this.businessService.getFullBusiness(id);
         return {
-            id: business._id,
-            businessName: business.businessName,
-            location: business.location,
-            contactEmail: business.contactEmail,
-            status: business.status,
-            isActive: business.isActive,
-            onboardingCompleted: business.onboardingCompleted,
+            id: merged.id,
+            businessName: merged.businessName,
+            location: merged.location,
+            contactEmail: merged.contactEmail,
+            status: merged.status,
+            isActive: merged.isActive,
+            onboardingCompleted: merged.onboardingCompleted,
+            // Include wifi/tree fields so frontend sees updated values
+            googleReviewUrl: merged.googleReviewUrl,
+            ctaButtonText: merged.ctaButtonText,
+            showWelcomeBanner: merged.showWelcomeBanner,
+            ads: merged.ads,
+            tagline: merged.tagline,
+            theme: merged.theme,
         };
     }
+
+    @Put(':id/tree-profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Update tree profile' })
+    @ApiParam({ name: 'id', description: 'Business ID' })
+    @ApiResponse({ status: 200, description: 'Tree profile updated' })
+    async updateTreeProfile(
+        @Param('id') id: string,
+        @CurrentUser() user: any,
+        @Body() dto: UpdateTreeProfileDto,
+    ) {
+        const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
+        const treeProfile = await this.businessService.updateTreeProfile(id, user.userId, dto, isAdmin);
+
+        return {
+            businessId: id,
+            tagline: treeProfile.tagline,
+            sectionTitle: treeProfile.sectionTitle,
+            linksTitle: treeProfile.linksTitle,
+            profileImage: treeProfile.profileImage,
+            bannerImage: treeProfile.bannerImage,
+            theme: treeProfile.theme,
+            message: 'Tree profile updated successfully',
+        };
+    }
+
+    @Put(':id/wifi-profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Update WiFi profile' })
+    @ApiParam({ name: 'id', description: 'Business ID' })
+    @ApiResponse({ status: 200, description: 'WiFi profile updated' })
+    async updateWifiProfile(
+        @Param('id') id: string,
+        @CurrentUser() user: any,
+        @Body() dto: UpdateWifiProfileDto,
+    ) {
+        const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
+        const wifiProfile = await this.businessService.updateWifiProfile(id, user.userId, dto, isAdmin);
+
+        return {
+            businessId: id,
+            wifiSsid: wifiProfile.wifiSsid,
+            googleReviewUrl: wifiProfile.googleReviewUrl,
+            welcomeTitle: wifiProfile.welcomeTitle,
+            adsCount: wifiProfile.ads.length,
+            message: 'WiFi profile updated successfully',
+        };
+    }
+
+    // ---- Upload ----
 
     @Post(':id/upload')
     @UseGuards(JwtAuthGuard)
@@ -249,14 +415,20 @@ export class BusinessController {
             throw new ForbiddenException('No file uploaded');
         }
 
-        // Normalize placement
-        if (!placement || !['branding', 'banner', 'gallery'].includes(placement)) {
+        const validPlacements = [
+            'branding', 'banner', 'gallery',
+            'tree-profile-banners', 'tree-profile-gallery',
+            'tree-profile-catalog', 'tree-profile-profile',
+        ];
+        if (!placement || !validPlacements.includes(placement)) {
             placement = 'gallery';
         }
 
         const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
         return this.businessService.uploadMedia(id, file, placement, user.userId, isAdmin);
     }
+
+    // ---- Stats ----
 
     @Get(':id/stats')
     @UseGuards(JwtAuthGuard)
@@ -269,7 +441,6 @@ export class BusinessController {
         @Param('id') id: string,
         @CurrentUser() user: any,
     ) {
-        // Admins can view any business stats
         const isAdmin = user.type === 'admin' || user.role === 'super_admin' || user.role === 'admin';
         return this.businessService.getDashboardStats(id, user.userId, isAdmin);
     }
@@ -288,7 +459,6 @@ export class BusinessController {
         @Param('id') id: string,
         @CurrentUser() user: any,
     ) {
-        // Verify ownership
         const business = await this.businessService.findById(id);
         if (business.ownerId.toString() !== user.userId) {
             throw new ForbiddenException('You can only view access logs for your own business');
@@ -296,7 +466,4 @@ export class BusinessController {
 
         return this.businessService.getAdminAccessLogs(id);
     }
-
-    // Public endpoint for captive portal - MOVED TO SPLASH MODULE
-    // @Get('splash/:id') is now handled by SplashController
 }

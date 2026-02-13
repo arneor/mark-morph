@@ -18,7 +18,7 @@ import {
     AuthResponseDto,
     OtpResponseDto
 } from '../dto/auth.dto';
-import { BusinessProfile, BusinessProfileDocument } from '../../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../../business/schemas/business.schema';
 import { ComplianceLog, ComplianceLogDocument } from '../../compliance/schemas/compliance-log.schema';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class AuthService {
 
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
         @InjectModel(ComplianceLog.name) private complianceLogModel: Model<ComplianceLogDocument>,
         private jwtService: JwtService,
         private verifyService: VerifyService,

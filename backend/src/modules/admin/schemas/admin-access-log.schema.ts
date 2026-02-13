@@ -18,7 +18,7 @@ export class AdminAccessLog {
     adminEmail: string;
 
     @ApiProperty({ description: 'Business ID that was accessed (if applicable)' })
-    @Prop({ type: Types.ObjectId, ref: 'BusinessProfile', index: true })
+    @Prop({ type: Types.ObjectId, ref: 'Business', index: true })
     businessId?: Types.ObjectId;
 
     @ApiProperty({ description: 'Action performed', enum: ['login', 'view_business', 'update_business', 'activate_business', 'reject_business', 'suspend_business', 'view_dashboard', 'view_analytics'] })

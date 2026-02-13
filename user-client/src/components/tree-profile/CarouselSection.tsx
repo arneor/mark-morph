@@ -7,11 +7,10 @@ import {
     Trash2,
     Star,
     GripVertical,
-    Image as ImageIcon,
     Pencil,
     Check
 } from 'lucide-react';
-import { ProfileBanner, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
+import { ProfileBanner, TreeProfileTheme } from '@/lib/treeProfileTypes';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -23,14 +22,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SplashCarousel } from "@/components/SplashCarousel";
 
+import { businessApi } from '@/lib/api';
+
 interface CarouselSectionProps {
+    businessId: string;
     banners: ProfileBanner[];
     isEditMode: boolean;
     onUpdate: (banners: ProfileBanner[]) => void;
     theme: TreeProfileTheme;
 }
 
-export function CarouselSection({ banners = [], isEditMode, onUpdate, theme }: CarouselSectionProps) {
+export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate, theme }: CarouselSectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingBanner, setEditingBanner] = useState<ProfileBanner | null>(null);
 
@@ -38,7 +40,7 @@ export function CarouselSection({ banners = [], isEditMode, onUpdate, theme }: C
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
 
         const files = Array.from(e.target.files);
@@ -48,15 +50,27 @@ export function CarouselSection({ banners = [], isEditMode, onUpdate, theme }: C
             return;
         }
 
-        const newBanners: ProfileBanner[] = files.map(file => ({
-            id: crypto.randomUUID(),
-            imageUrl: URL.createObjectURL(file), // In real app, upload to S3
-            title: file.name.replace(/\.[^/.]+$/, ""),
-            isActive: true,
-            linkUrl: '#'
-        }));
+        try {
+            const newBannersPromises = files.map(async (file) => {
+                // Upload to S3 via backend
+                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners');
 
-        onUpdate([...banners, ...newBanners]);
+                return {
+                    id: crypto.randomUUID(),
+                    imageUrl: url,
+                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    isActive: true,
+                    linkUrl: '#'
+                };
+            });
+
+            const newBanners = await Promise.all(newBannersPromises);
+            onUpdate([...banners, ...newBanners]);
+        } catch (error) {
+            console.error("Failed to upload banner:", error);
+            alert("Failed to upload image. Please try again.");
+        }
+
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 

@@ -3,7 +3,7 @@
 import { memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, X } from 'lucide-react';
-import { TEMPLATES } from '@/lib/dummyTreeProfileData';
+import { TEMPLATES } from '@/lib/treeProfileTypes';
 import { cn } from '@/lib/utils';
 import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
 

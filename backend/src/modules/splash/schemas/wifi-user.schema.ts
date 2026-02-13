@@ -10,7 +10,7 @@ export class WifiUser {
     _id: Types.ObjectId;
 
     @ApiProperty({ description: 'Business ID this WiFi user connected to' })
-    @Prop({ type: Types.ObjectId, ref: 'BusinessProfile', required: true, index: true })
+    @Prop({ type: Types.ObjectId, ref: 'Business', required: true, index: true })
     businessId: Types.ObjectId;
 
     @ApiProperty({ description: 'User email address' })

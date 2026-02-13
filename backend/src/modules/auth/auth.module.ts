@@ -9,14 +9,14 @@ import { VerifyService } from './services/verify.service';
 import { EmailService } from './services/email.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User, UserSchema } from './schemas/user.schema';
-import { BusinessProfile, BusinessProfileSchema } from '../business/schemas/business-profile.schema';
+import { Business, BusinessSchema } from '../business/schemas/business.schema';
 import { ComplianceLog, ComplianceLogSchema } from '../compliance/schemas/compliance-log.schema';
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             { name: User.name, schema: UserSchema },
-            { name: BusinessProfile.name, schema: BusinessProfileSchema },
+            { name: Business.name, schema: BusinessSchema },
             { name: ComplianceLog.name, schema: ComplianceLogSchema },
         ]),
         PassportModule.register({ defaultStrategy: 'jwt' }),

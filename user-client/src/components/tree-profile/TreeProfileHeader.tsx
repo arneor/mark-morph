@@ -13,14 +13,13 @@ import {
     Youtube,
     Twitter,
     Camera,
-    Upload,
     X,
     Plus,
     Link as LinkIcon,
     Clock,
 } from 'lucide-react';
-import { TreeProfileData, SocialLink } from '@/lib/dummyTreeProfileData';
-import { cn } from '@/lib/utils';
+import { TreeProfileData, SocialLink } from '@/lib/treeProfileTypes';
+import { cn, isColorExclusivelyDark } from '@/lib/utils';
 import { SocialLinkModal } from './SocialLinkModal';
 
 // WhatsApp and TikTok custom icons
@@ -36,7 +35,10 @@ const TikTokIcon = () => (
     </svg>
 );
 
+import { businessApi } from '@/lib/api';
+
 interface TreeProfileHeaderProps {
+    businessId: string;
     data: TreeProfileData;
     isEditMode?: boolean;
     onUpdate?: (updates: Partial<TreeProfileData>) => void;
@@ -54,7 +56,7 @@ const socialIconMap: Record<string, React.ReactNode> = {
     linkedin: <LinkIcon className="w-5 h-5" />,
 };
 
-function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileHeaderProps) {
+function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: TreeProfileHeaderProps) {
     const bannerInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,23 +64,34 @@ function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileH
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
 
-    // Check if theme is likely light mode based on text color (simple heuristic)
-    // We retain this logic using the prop, but render styles using CSS variables where possible
-    const isLightTheme = data.theme.textColor === '#000000' || data.theme.textColor === '#0f172a' || data.theme.textColor === '#831843';
+    // Check if theme is likely light mode based on text color brightness
+    const isLightTheme = isColorExclusivelyDark(data.theme.textColor);
 
-    const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onUpdate) {
-            const url = URL.createObjectURL(file);
-            onUpdate({ bannerImage: url });
+            try {
+                // Upload to S3
+                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners'); // Re-using existing placement or 'tree-profile-header'
+                onUpdate({ bannerImage: url });
+            } catch (error) {
+                console.error("Failed to upload banner:", error);
+                alert("Failed to upload banner. Please try again.");
+            }
         }
     };
 
-    const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onUpdate) {
-            const url = URL.createObjectURL(file);
-            onUpdate({ profileImage: url });
+            try {
+                // Upload to S3
+                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-profile');
+                onUpdate({ profileImage: url });
+            } catch (error) {
+                console.error("Failed to upload profile image:", error);
+                alert("Failed to upload profile image. Please try again.");
+            }
         }
     };
 
@@ -150,10 +163,14 @@ function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileH
 
                 {/* Banner Edit Controls */}
                 {isEditMode && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                        <label className="cursor-pointer flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
-                            <Upload className="w-8 h-8" />
-                            <span className="font-semibold text-sm">Change Banner</span>
+                    <div className="absolute inset-0 z-20 m-2 rounded-b-4xl rounded-t-lg border-2 border-dashed border-white/50 bg-black/20 hover:bg-black/40 hover:border-white transition-all duration-300 group/edit">
+                        <label className="w-full h-full flex flex-col items-center justify-center gap-3 cursor-pointer">
+                            <div className="bg-black/50 p-4 rounded-full backdrop-blur-md group-hover/edit:scale-110 transition-transform shadow-xl">
+                                <Camera className="w-8 h-8 text-white" />
+                            </div>
+                            <span className="font-bold text-white text-sm bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg">
+                                Tap to Change Cover
+                            </span>
                             <input
                                 ref={bannerInputRef}
                                 type="file"
@@ -162,10 +179,19 @@ function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileH
                                 onChange={handleBannerUpload}
                             />
                         </label>
+
+                        {/* Remove Button (Top Right of the overlay) */}
                         {data.bannerImage && (
                             <button
-                                onClick={() => onUpdate?.({ bannerImage: undefined })}
-                                className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (window.confirm('Remove cover image?')) {
+                                        onUpdate?.({ bannerImage: undefined });
+                                    }
+                                }}
+                                className="absolute top-4 right-4 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full shadow-lg transition-transform hover:scale-105 z-30"
+                                title="Remove Cover"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -360,7 +386,7 @@ function TreeProfileHeaderComponent({ data, isEditMode, onUpdate }: TreeProfileH
                     {data.socialLinks.map((social) => (
                         <motion.a
                             key={social.id}
-                            href={isEditMode ? undefined : social.url}
+                            href={isEditMode ? undefined : (social.url.match(/^https?:\/\//) ? social.url : `https://${social.url}`)}
                             target={isEditMode ? undefined : "_blank"}
                             rel={isEditMode ? undefined : "noopener noreferrer"}
                             onClick={(e) => {
@@ -436,6 +462,10 @@ export const TreeProfileHeader = memo(TreeProfileHeaderComponent, (prev, next) =
     if (prev.data.bannerImage !== next.data.bannerImage) return false;
     if (prev.data.isVerified !== next.data.isVerified) return false;
     if (prev.data.socialLinks !== next.data.socialLinks) return false;
+
+    // Fixed: check for opening hours changes
+    if (prev.data.openingHours?.start !== next.data.openingHours?.start) return false;
+    if (prev.data.openingHours?.end !== next.data.openingHours?.end) return false;
 
     // Check Logic-Affecting Theme Props
     if (prev.data.theme.textColor !== next.data.theme.textColor) return false;

@@ -4,7 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { SplashController } from './splash.controller';
 import { SplashService } from './splash.service';
 import { WifiUser, WifiUserSchema } from './schemas/wifi-user.schema';
-import { BusinessProfile, BusinessProfileSchema } from '../business/schemas/business-profile.schema';
+import { Business, BusinessSchema } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileSchema } from '../business/schemas/wifi-profile.schema';
 import { BusinessModule } from '../business/business.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
 
@@ -12,7 +13,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     imports: [
         MongooseModule.forFeature([
             { name: WifiUser.name, schema: WifiUserSchema },
-            { name: BusinessProfile.name, schema: BusinessProfileSchema },
+            { name: Business.name, schema: BusinessSchema },
+            { name: WifiProfile.name, schema: WifiProfileSchema },
         ]),
         ConfigModule,
         forwardRef(() => BusinessModule),

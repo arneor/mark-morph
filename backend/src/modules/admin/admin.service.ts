@@ -12,7 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { Admin, AdminDocument } from './schemas/admin.schema';
 import { AdminAccessLog, AdminAccessLogDocument } from './schemas/admin-access-log.schema';
-import { BusinessProfile, BusinessProfileDocument } from '../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileDocument } from '../business/schemas/wifi-profile.schema';
 import { User, UserDocument } from '../auth/schemas/user.schema';
 import { AnalyticsLog, AnalyticsLogDocument } from '../analytics/schemas/analytics-log.schema';
 import { ComplianceLog, ComplianceLogDocument } from '../compliance/schemas/compliance-log.schema';
@@ -50,7 +51,8 @@ export class AdminService {
     constructor(
         @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
         @InjectModel(AdminAccessLog.name) private accessLogModel: Model<AdminAccessLogDocument>,
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+        @InjectModel(WifiProfile.name) private wifiProfileModel: Model<WifiProfileDocument>,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(AnalyticsLog.name) private analyticsModel: Model<AnalyticsLogDocument>,
         @InjectModel(ComplianceLog.name) private complianceModel: Model<ComplianceLogDocument>,
@@ -309,10 +311,10 @@ export class AdminService {
             this.userModel.countDocuments({ email: { $exists: true, $ne: null } }),
         ]);
 
-        // Count total active ads across all businesses
-        const businessesWithAds = await this.businessModel.find({ status: 'active' }, { ads: 1 });
-        const totalActiveCampaigns = businessesWithAds.reduce((sum, biz) => {
-            return sum + (biz.ads?.filter(ad => ad.status === 'active')?.length || 0);
+        // Count total active ads across all WiFi profiles
+        const allWifiProfiles = await this.wifiProfileModel.find({}, { ads: 1 });
+        const totalActiveCampaigns = allWifiProfiles.reduce((sum, wp) => {
+            return sum + (wp.ads?.filter(ad => ad.status === 'active')?.length || 0);
         }, 0);
 
         // Calculate growth rate
@@ -360,7 +362,7 @@ export class AdminService {
                 ownerEmail: owner?.email,
                 location: biz.location,
                 category: biz.category,
-                adsCount: biz.ads?.length || 0,
+                adsCount: 0, // Ads now in wifi_profiles collection
                 connectionCount,
                 isActive: biz.isActive,
                 status: biz.status || 'pending_approval',
@@ -395,7 +397,7 @@ export class AdminService {
                 ownerEmail: owner?.email,
                 location: biz.location,
                 category: biz.category,
-                adsCount: biz.ads?.length || 0,
+                adsCount: 0, // Ads now in wifi_profiles collection
                 connectionCount: 0,
                 isActive: biz.isActive,
                 status: biz.status,
@@ -435,6 +437,9 @@ export class AdminService {
 
         await business.save();
 
+        // Also mark the owner User as verified
+        await this.userModel.findByIdAndUpdate(business.ownerId, { isVerified: true });
+
         await this.logAccess(
             adminId,
             adminEmail,
@@ -452,7 +457,7 @@ export class AdminService {
             businessName: business.businessName,
             location: business.location,
             category: business.category,
-            adsCount: business.ads?.length || 0,
+            adsCount: 0, // Ads now in wifi_profiles collection
             connectionCount: 0,
             isActive: business.isActive,
             status: business.status,
@@ -488,6 +493,9 @@ export class AdminService {
 
         await business.save();
 
+        // Revoke owner User verification
+        await this.userModel.findByIdAndUpdate(business.ownerId, { isVerified: false });
+
         await this.logAccess(
             adminId,
             adminEmail,
@@ -505,7 +513,7 @@ export class AdminService {
             businessName: business.businessName,
             location: business.location,
             category: business.category,
-            adsCount: business.ads?.length || 0,
+            adsCount: 0, // Ads now in wifi_profiles collection
             connectionCount: 0,
             isActive: business.isActive,
             status: business.status,
@@ -542,6 +550,9 @@ export class AdminService {
 
         await business.save();
 
+        // Revoke owner User verification
+        await this.userModel.findByIdAndUpdate(business.ownerId, { isVerified: false });
+
         await this.logAccess(
             adminId,
             adminEmail,
@@ -559,7 +570,7 @@ export class AdminService {
             businessName: business.businessName,
             location: business.location,
             category: business.category,
-            adsCount: business.ads?.length || 0,
+            adsCount: 0, // Ads now in wifi_profiles collection
             connectionCount: 0,
             isActive: business.isActive,
             status: business.status,
@@ -604,6 +615,9 @@ export class AdminService {
             businessId: business._id,
         });
 
+        // Get WiFi profile for ad metrics
+        const wifiProfile = await this.wifiProfileModel.findOne({ businessId: business._id });
+
         // Aggregate Metrics from Ads
         let totalAdViews = 0;
         let totalAdClicks = 0;
@@ -611,7 +625,7 @@ export class AdminService {
         let totalAdShares = 0;
         let totalAdExpands = 0;
 
-        const ads = business.ads || [];
+        const ads = wifiProfile?.ads || [];
         const topPosts = ads.map((ad: any) => {
             const views = ad.views || 0;
             const clicks = ad.clicks || 0;
@@ -657,8 +671,8 @@ export class AdminService {
             contactEmail: business.contactEmail,
             contactPhone: business.contactPhone,
             logoUrl: business.logoUrl,
-            wifiSsid: business.wifiSsid,
-            googleReviewUrl: business.googleReviewUrl,
+            wifiSsid: wifiProfile?.wifiSsid,
+            googleReviewUrl: wifiProfile?.googleReviewUrl,
             profileType: business.profileType,
 
             isActive: business.isActive,

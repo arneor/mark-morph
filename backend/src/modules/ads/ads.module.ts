@@ -2,13 +2,15 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AdsController } from './ads.controller';
 import { AdsService } from './ads.service';
-import { BusinessProfile, BusinessProfileSchema } from '../business/schemas/business-profile.schema';
+import { Business, BusinessSchema } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileSchema } from '../business/schemas/wifi-profile.schema';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
     imports: [
         MongooseModule.forFeature([
-            { name: BusinessProfile.name, schema: BusinessProfileSchema },
+            { name: Business.name, schema: BusinessSchema },
+            { name: WifiProfile.name, schema: WifiProfileSchema },
         ]),
         AuthModule,
     ],

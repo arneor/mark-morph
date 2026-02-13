@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Edit2, Star, User } from 'lucide-react';
-import { ProfileReview, TreeProfileTheme } from '@/lib/dummyTreeProfileData';
+import { ProfileReview, TreeProfileTheme } from '@/lib/treeProfileTypes';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

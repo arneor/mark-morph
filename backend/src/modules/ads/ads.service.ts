@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { BusinessProfile, BusinessProfileDocument, Ad } from '../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileDocument, Ad } from '../business/schemas/wifi-profile.schema';
 import { CreateAdDto, UpdateAdDto } from './dto/ads.dto';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +21,8 @@ export class AdsService {
     private readonly uploadDir: string;
 
     constructor(
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+        @InjectModel(WifiProfile.name) private wifiProfileModel: Model<WifiProfileDocument>,
         private configService: ConfigService,
     ) {
         this.uploadDir = this.configService.get<string>('UPLOAD_DEST') || './uploads';
@@ -29,6 +31,17 @@ export class AdsService {
         if (!fs.existsSync(this.uploadDir)) {
             fs.mkdirSync(this.uploadDir, { recursive: true });
         }
+    }
+
+    /**
+     * Find or create a wifi profile for the business
+     */
+    private async findOrCreateWifiProfile(businessId: string): Promise<WifiProfileDocument> {
+        let profile = await this.wifiProfileModel.findOne({ businessId: new Types.ObjectId(businessId) });
+        if (!profile) {
+            profile = await this.wifiProfileModel.create({ businessId: new Types.ObjectId(businessId) });
+        }
+        return profile;
     }
 
     /**
@@ -46,7 +59,8 @@ export class AdsService {
             throw new ForbiddenException('You do not have permission to view these ads');
         }
 
-        return business.ads;
+        const wifiProfile = await this.findOrCreateWifiProfile(businessId);
+        return wifiProfile.ads;
     }
 
     /**
@@ -82,13 +96,15 @@ export class AdsService {
             throw new BadRequestException('Media file or URL is required');
         }
 
+        const wifiProfile = await this.findOrCreateWifiProfile(businessId);
+
         const newAd: any = {
             id: new Types.ObjectId(),
             title: dto.title,
             description: dto.description,
             mediaUrl,
             mediaType,
-            ctaUrl: dto.ctaUrl || business.googleReviewUrl,
+            ctaUrl: dto.ctaUrl || wifiProfile.googleReviewUrl,
             duration: dto.duration || 5,
             status: 'active',
             views: 0,
@@ -96,8 +112,8 @@ export class AdsService {
             createdAt: new Date(),
         };
 
-        business.ads.push(newAd);
-        await business.save();
+        wifiProfile.ads.push(newAd);
+        await wifiProfile.save();
 
         this.logger.log(`Created ad "${dto.title}" for business ${businessId}`);
         return newAd;
@@ -123,7 +139,8 @@ export class AdsService {
             throw new ForbiddenException('You do not have permission to update this ad');
         }
 
-        const adIndex = business.ads.findIndex(ad => ad.id.toString() === adId);
+        const wifiProfile = await this.findOrCreateWifiProfile(businessId);
+        const adIndex = wifiProfile.ads.findIndex(ad => ad.id.toString() === adId);
 
         if (adIndex === -1) {
             throw new NotFoundException('Ad not found');
@@ -137,9 +154,9 @@ export class AdsService {
         }
 
         // Update the ad
-        const updatedAd = { ...business.ads[adIndex], ...dto };
-        business.ads[adIndex] = updatedAd as any;
-        await business.save();
+        const updatedAd = { ...wifiProfile.ads[adIndex], ...dto };
+        wifiProfile.ads[adIndex] = updatedAd as any;
+        await wifiProfile.save();
 
         this.logger.log(`Updated ad ${adId} for business ${businessId}`);
         return updatedAd as Ad;
@@ -159,14 +176,15 @@ export class AdsService {
             throw new ForbiddenException('You do not have permission to delete this ad');
         }
 
-        const adIndex = business.ads.findIndex(ad => ad.id.toString() === adId);
+        const wifiProfile = await this.findOrCreateWifiProfile(businessId);
+        const adIndex = wifiProfile.ads.findIndex(ad => ad.id.toString() === adId);
 
         if (adIndex === -1) {
             throw new NotFoundException('Ad not found');
         }
 
-        business.ads.splice(adIndex, 1);
-        await business.save();
+        wifiProfile.ads.splice(adIndex, 1);
+        await wifiProfile.save();
 
         this.logger.log(`Deleted ad ${adId} from business ${businessId}`);
     }
@@ -216,8 +234,8 @@ export class AdsService {
      * Increment ad views (called from analytics)
      */
     async incrementViews(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.views': 1 } }
         );
     }
@@ -226,8 +244,8 @@ export class AdsService {
      * Increment ad clicks (called from analytics)
      */
     async incrementClicks(businessId: string, adId: string): Promise<void> {
-        await this.businessModel.updateOne(
-            { _id: businessId, 'ads.id': new Types.ObjectId(adId) },
+        await this.wifiProfileModel.updateOne(
+            { businessId: new Types.ObjectId(businessId), 'ads.id': new Types.ObjectId(adId) },
             { $inc: { 'ads.$.clicks': 1 } }
         );
     }

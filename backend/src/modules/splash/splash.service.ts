@@ -13,7 +13,8 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { WifiUser, WifiUserDocument } from './schemas/wifi-user.schema';
-import { BusinessProfile, BusinessProfileDocument } from '../business/schemas/business-profile.schema';
+import { Business, BusinessDocument } from '../business/schemas/business.schema';
+import { WifiProfile, WifiProfileDocument } from '../business/schemas/wifi-profile.schema';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { EmailService } from '../../common/services/email.service';
 import { RequestOtpDto, OtpResponseDto, VerifyOtpDto, VerifyResponseDto, GoogleAuthDto, GoogleAuthResponseDto } from './dto/splash.dto';
@@ -29,7 +30,8 @@ export class SplashService {
 
     constructor(
         @InjectModel(WifiUser.name) private wifiUserModel: Model<WifiUserDocument>,
-        @InjectModel(BusinessProfile.name) private businessModel: Model<BusinessProfileDocument>,
+        @InjectModel(Business.name) private businessModel: Model<BusinessDocument>,
+        @InjectModel(WifiProfile.name) private wifiProfileModel: Model<WifiProfileDocument>,
         private configService: ConfigService,
         private emailService: EmailService,
         private analyticsService: AnalyticsService,
@@ -144,7 +146,9 @@ export class SplashService {
         await wifiUser.save();
 
         // Get redirect URL
-        const redirectUrl = business.googleReviewUrl || 'https://google.com';
+        // Get redirect URL from wifi profile
+        const wifiProfile = await this.wifiProfileModel.findOne({ businessId: business._id });
+        const redirectUrl = wifiProfile?.googleReviewUrl || 'https://google.com';
 
         this.logger.log(`Google OAuth successful for ${email} (${isNewUser ? 'new' : 'returning'} user) at business ${businessId}`);
 
@@ -322,7 +326,8 @@ export class SplashService {
 
         // Get business for redirect URL
         const business = await this.businessModel.findById(businessId);
-        const redirectUrl = business?.googleReviewUrl || 'https://google.com';
+        const wifiProfile = await this.wifiProfileModel.findOne({ businessId: new Types.ObjectId(businessId) });
+        const redirectUrl = wifiProfile?.googleReviewUrl || 'https://google.com';
 
         this.logger.log(`WiFi user verified: ${email} for business ${businessId}`);
 
