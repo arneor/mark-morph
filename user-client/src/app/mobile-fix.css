@@ -1,0 +1,178 @@
+/* ============================================================
+   MOBILE PERFORMANCE FIX (GLOBAL)
+   
+   Purpose: Eliminate composite layer explosion, backdrop-filter,
+            complex box-shadows, and excessive will-change usage.
+            Applied globally since user base is 100% mobile.
+   ============================================================ */
+
+/* Mobile touch devices (Android Chrome, Opera GX on Android) */
+
+/* ---- 1. Kill backdrop-filter (instant death on low-end Android) ---- */
+* {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* ---- 2. Simplify all box-shadows (stops paint storms) ---- */
+.shadow-2xl {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.shadow-xl {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ---- 3. Remove will-change everywhere (prevents layer explosion) ---- */
+* {
+    will-change: auto !important;
+}
+
+/* ---- 4. Disable hover transforms (no hover on touch devices anyway) ---- */
+.group:hover .group-hover\:scale-110,
+.group:hover .group-hover\:scale-105,
+.hover\:scale-\[1\.02\]:hover,
+.hover\:scale-\[1\.03\]:hover,
+.hover\:scale-110:hover,
+.hover\:-translate-y-0\.5:hover {
+    transform: none !important;
+}
+
+/* ---- 5. Disable expensive CSS animations ---- */
+.animate-gradient-spin {
+    animation: none !important;
+}
+
+.pulse-glow {
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.animated-gradient {
+    animation: none !important;
+    background-size: 100% 100% !important;
+}
+
+.animate-float,
+.animate-float-delayed,
+.animate-float-delayed-2,
+.animate-float-slow {
+    animation: none !important;
+}
+
+.animate-gradient-slow {
+    animation: none !important;
+}
+
+/* ---- 6. Simplify feature card (backdrop-filter + complex shadows) ---- */
+.feature-card {
+    backdrop-filter: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    transition: none !important;
+}
+
+.feature-card:hover {
+    transform: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ---- 7. Disable blur-3xl on floating orbs (extremely expensive) ---- */
+.blur-3xl {
+    filter: none !important;
+    opacity: 0 !important;
+}
+
+.blur-2xl {
+    filter: none !important;
+    opacity: 0 !important;
+}
+
+/* ---- 8. Optimize scrolling ---- */
+body {
+    overflow-y: scroll !important;
+    overscroll-behavior-y: none !important;
+}
+
+html {
+    scroll-behavior: auto !important;
+}
+
+/* ---- 9. Use contain for paint isolation ---- */
+section,
+article,
+.content-auto,
+.contain-section {
+    contain: layout style paint;
+}
+
+/* ---- 10. Optimize touch interactions ---- */
+button,
+a,
+[role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- 11. Prevent text selection lag during scroll ---- */
+* {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Allow selection on inputs/textareas */
+input,
+textarea,
+[contenteditable="true"] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
+
+/* ---- 12. Disable transition-all (triggers layout on every prop) ---- */
+.transition-all {
+    transition-property: opacity, background-color, color !important;
+    transition-duration: 0.15s !important;
+}
+
+/* ---- 13. Simplify image transitions ---- */
+img {
+    transition: none !important;
+    filter: none !important;
+}
+
+/* ---- 14. Disable drop-shadow on text ---- */
+.drop-shadow-lg {
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+/* ---- 15. Simplify gradient-text (background-clip is expensive on scroll) ---- */
+.gradient-text,
+.gradient-text-pink {
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+}
+
+/* ---- 16. Fix position:fixed + transform compositor bug ---- */
+.transform-gpu {
+    transform: none !important;
+}
+
+.translate-z-0 {
+    transform: none !important;
+}
+
+/* ---- 17. Reduce animation duration for fade-ins ---- */
+.animate-fade-in {
+    animation-duration: 0.1s !important;
+}
+
+/* ---- 18. Simplify noise texture overlay (SVG filter re-renders) ---- */
+[style*="feTurbulence"] {
+    display: none !important;
+}

@@ -292,7 +292,7 @@ function BannerCard({
 }: BannerCardProps) {
     return (
         <div
-            className="relative overflow-hidden rounded-2xl bg-white/10 border border-white/20 shadow-xl group w-72 shrink-0 aspect-video transition-transform duration-200 hover:scale-[1.02] animate-fade-in"
+            className="relative overflow-hidden rounded-2xl bg-white/10 border border-white/20 shadow-md group w-72 shrink-0 aspect-video animate-fade-in"
         >
             {/* Performance: Next.js Image for banner cards */}
             <Image
@@ -301,7 +301,7 @@ function BannerCard({
                 fill
                 sizes="288px"
                 loading="lazy"
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="object-cover"
             />
 
             {/* Gradient overlay */}

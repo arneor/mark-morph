@@ -121,7 +121,7 @@ export function TreeProfileView({
 
     return (
         <div
-            className="min-h-screen relative overflow-hidden bg-black text-rendering-optimize-legibility touch-optimized"
+            className="min-h-screen relative overflow-x-hidden bg-black text-rendering-optimize-legibility touch-optimized"
             style={cssVariables}
         >
             {/* Optimized Background */}
@@ -131,8 +131,8 @@ export function TreeProfileView({
             {children}
 
             {/* Main Content */}
-            <div className="relative z-10 flex justify-center transform-gpu">
-                <main className={`w-full max-w-md min-h-screen ${isEditMode ? 'pt-20 pb-40' : 'pt-0 pb-8'} transition-[padding] duration-300 will-change-[padding]`}>
+            <div className="relative z-10 flex justify-center">
+                <main className={`w-full max-w-md min-h-screen ${isEditMode ? 'pt-20 pb-40' : 'pt-0 pb-8'}`}>
                     <div className="w-full">
                         {/* Header Section */}
                         <TreeProfileHeader

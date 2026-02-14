@@ -61,7 +61,7 @@ const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBloc
             className={cn(
                 'group relative block w-full p-4 border transition-all duration-300 animate-fade-in',
                 buttonShapeStyles[theme.buttonStyle || 'rounded'],
-                'shadow-lg hover:shadow-xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-98',
+                'shadow-sm active:scale-98',
                 link.style !== 'gradient' && link.style !== 'featured' && (styleClasses[link.style] || styleClasses.default),
                 link.style === 'featured' && styleClasses.featured,
                 isEditMode && 'cursor-pointer hover:border-dashed hover:border-white/60',
@@ -69,9 +69,8 @@ const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBloc
             style={{
                 ...gradientStyle,
                 ...featuredStyle,
-                boxShadow: `0 4px 20px color-mix(in srgb, var(--primary) 10%, transparent)`,
-                animationDelay: `${index * 0.1}s`,
-                opacity: 0, // Starts invisible for animation
+                animationDelay: `${index * 0.05}s`,
+                opacity: 0,
                 animationFillMode: 'forwards'
             }}
             onClick={(e) => {
@@ -81,16 +80,7 @@ const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBloc
                 }
             }}
         >
-            {/* Hover glow effect */}
-            <div
-                className={cn(
-                    "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none",
-                    buttonShapeStyles[theme.buttonStyle || 'rounded']
-                )}
-                style={{
-                    boxShadow: `inset 0 0 30px color-mix(in srgb, var(--primary) 15%, transparent), 0 0 30px color-mix(in srgb, var(--primary) 10%, transparent)`,
-                }}
-            />
+            {/* Simplified glow - no overlay div to avoid extra composite layer */}
 
             {/* Content */}
             <div className="relative flex items-center justify-between gap-3">
@@ -107,9 +97,9 @@ const LinkBlockComponent = ({ link, index, theme, isEditMode, onEdit }: LinkBloc
 
                 {/* Arrow icon */}
                 <div
-                    className={cn("shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-45", isLightTheme ? "bg-black/10" : "bg-white/10")}
+                    className={cn("shrink-0 w-8 h-8 rounded-full flex items-center justify-center", isLightTheme ? "bg-black/10" : "bg-white/10")}
                 >
-                    <ExternalLink className={cn("w-4 h-4 transition-colors", isLightTheme ? "text-black/70 group-hover:text-black" : "text-white/70 group-hover:text-white")} />
+                    <ExternalLink className={cn("w-4 h-4", isLightTheme ? "text-black/70" : "text-white/70")} />
                 </div>
             </div>
 

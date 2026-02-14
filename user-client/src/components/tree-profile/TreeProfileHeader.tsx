@@ -144,7 +144,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                         fill
                         priority
                         sizes="(max-width: 768px) 100vw, 896px"
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="object-cover"
                     />
                 ) : (
                     <div
@@ -200,12 +200,9 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                 {/* Avatar with Animated Ring */}
                 <div className="relative w-36 h-36 mx-auto mb-6 group">
                     <div
-                        className="absolute inset-[-4px] rounded-full animate-gradient-spin"
-                        style={{
-                            backgroundImage: `linear-gradient(135deg, var(--primary), #A855F7, var(--primary))`,
-                        }}
+                        className="absolute inset-[-4px] rounded-full bg-linear-to-br from-primary via-[#A855F7] to-primary"
                     />
-                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-[#0f1016] shadow-2xl bg-black">
+                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-[#0f1016] shadow-sm bg-black">
                         {data.profileImage ? (
                             <Image
                                 src={data.profileImage}

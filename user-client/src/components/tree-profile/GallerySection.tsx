@@ -200,7 +200,7 @@ export function GallerySection({ businessId, images = [], isEditMode, onUpdate, 
                                 return (
                                     <div
                                         key={image.id}
-                                        className={`relative overflow-hidden rounded-3xl group cursor-pointer animate-fade-in hover:scale-[1.03] hover:z-10 transition-transform duration-200 ${gridClass}`}
+                                        className={`relative overflow-hidden rounded-3xl group cursor-pointer animate-fade-in transition-opacity duration-200 ${gridClass}`}
                                         style={{ animationDelay: `${idx * 50}ms` }}
                                     >
                                         <div className="relative w-full h-full bg-linear-to-br from-gray-900/50 to-black/50 overflow-hidden rounded-3xl">
@@ -211,7 +211,7 @@ export function GallerySection({ businessId, images = [], isEditMode, onUpdate, 
                                                 fill
                                                 sizes="(max-width: 768px) 50vw, 33vw"
                                                 loading="lazy"
-                                                className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                                                className="object-cover"
                                             />
 
                                             {/* Subtle Border Glow */}
@@ -316,7 +316,7 @@ function GalleryCard({
 }: GalleryCardProps) {
     return (
         <div
-            className="relative overflow-hidden rounded-2xl bg-white/10 border border-white/20 shadow-xl group aspect-4/5 w-full animate-fade-in hover:scale-[1.02] transition-transform duration-200"
+            className="relative overflow-hidden rounded-2xl bg-white/10 border border-white/20 shadow-md group aspect-4/5 w-full animate-fade-in transition-opacity duration-200"
         >
             {/* Performance: Next.js Image for edit mode thumbnails */}
             <Image
@@ -324,7 +324,7 @@ function GalleryCard({
                 alt={image.caption || 'Gallery thumbnail'}
                 fill
                 sizes="200px"
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="object-cover"
             />
 
             {/* Gradient overlay */}

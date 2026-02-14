@@ -44,11 +44,11 @@ function TreeProfileBackgroundComponent({ theme }: TreeProfileBackgroundProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-0 pointer-events-none transform-gpu translate-z-0">
+        <div className="absolute inset-0 z-0 pointer-events-none">
             {/* Base Background Layer - Key forces re-render when type changes */}
             <div
                 key={`bg-${theme.backgroundType}-${theme.templateId}`}
-                className="absolute inset-0 transition-all duration-700 ease-in-out will-change-[background]"
+                className="absolute inset-0 transition-colors duration-700 ease-in-out"
                 style={getBackgroundStyle()}
             />
 
@@ -83,28 +83,7 @@ function TreeProfileBackgroundComponent({ theme }: TreeProfileBackgroundProps) {
                 <div className="absolute inset-0 bg-black/60 transition-opacity duration-700" />
             )}
 
-            {/* Noise Texture - Static, strict opacity */}
-            <div
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                }}
-            />
 
-            {/* Floating Orbs - Hidden on mobile for performance (blur-3xl + animation is expensive) */}
-            {theme.backgroundType !== 'image' && (
-                <div className="hidden md:block">
-                    <div
-                        className="absolute top-20 -left-32 w-96 h-96 rounded-full blur-3xl opacity-20 bg-blend-screen animate-float-slow will-change-transform"
-                        style={{ background: theme.primaryColor }}
-                    />
-
-                    <div
-                        className="absolute bottom-40 -right-32 w-80 h-80 rounded-full blur-3xl opacity-20 bg-blend-screen animate-float-delayed will-change-transform"
-                        style={{ background: '#A855F7' }}
-                    />
-                </div>
-            )}
 
             {/* Critical CSS for animations */}
             <style jsx global>{`

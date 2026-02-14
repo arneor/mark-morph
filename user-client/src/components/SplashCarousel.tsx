@@ -89,7 +89,8 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
   return (
     <div className="relative w-full aspect-video overflow-hidden rounded-2xl group">
       {/* Glow effect behind carousel */}
-      <div className="absolute -inset-2 gradient-lime-cyan opacity-20 blur-2xl" />
+      {/* Glow effect - hidden on mobile for performance (blur-2xl causes paint storms) */}
+      <div className="absolute -inset-2 gradient-lime-cyan opacity-20 blur-2xl hidden md:block" />
 
       {/* Main carousel container */}
       <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/20 bg-black/20">
@@ -142,13 +143,13 @@ export function SplashCarousel({ campaigns }: SplashCarouselProps) {
           <>
             <button
               onClick={goToPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 border border-white/20 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/60 active:scale-95"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 border border-white/20 flex items-center justify-center text-white active:scale-95"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={goToNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 border border-white/20 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/60 active:scale-95"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 border border-white/20 flex items-center justify-center text-white active:scale-95"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
