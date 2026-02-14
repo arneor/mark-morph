@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+
 import { Check, Sparkles, X } from 'lucide-react';
 import { TEMPLATES } from '@/lib/treeProfileTypes';
 import { cn } from '@/lib/utils';
@@ -66,13 +66,12 @@ function ThemeCustomizerComponent() {
             {/* Templates Grid */}
             <div className="grid grid-cols-2 gap-4">
                 {Object.values(TEMPLATES).map((template) => (
-                    <motion.button
+                    <button
                         key={template.id}
                         onClick={() => handleApplyTemplate(template)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+
                         className={cn(
-                            "relative aspect-4/3 rounded-2xl overflow-hidden border-2 text-left p-4 flex flex-col justify-end transition-all group",
+                            "relative aspect-4/3 rounded-2xl overflow-hidden border-2 text-left p-4 flex flex-col justify-end transition-all group cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
                             theme.templateId === template.id
                                 ? "border-primary ring-2 ring-primary/20"
                                 : "border-white/10 hover:border-white/30"
@@ -108,15 +107,13 @@ function ThemeCustomizerComponent() {
 
                         {/* Active Indicator */}
                         {theme.templateId === template.id && (
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute top-3 right-3 z-20 bg-primary text-black p-1.5 rounded-full shadow-lg"
+                            <div
+                                className="absolute top-3 right-3 z-20 bg-primary text-black p-1.5 rounded-full shadow-lg animate-fade-in"
                             >
                                 <Check className="w-4 h-4" />
-                            </motion.div>
+                            </div>
                         )}
-                    </motion.button>
+                    </button>
                 ))}
             </div>
 

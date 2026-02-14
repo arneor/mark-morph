@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+
 import { Wifi, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useBusiness, useUpdateBusiness } from '@/hooks/use-businesses';
@@ -226,16 +226,14 @@ function BusinessProfileContent() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="absolute inset-0 animated-gradient opacity-95" />
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center relative z-10"
+                <div
+                    className="text-center relative z-10 animate-fade-in"
                 >
                     <div className="w-16 h-16 rounded-full gradient-lime-cyan flex items-center justify-center mx-auto mb-4 pulse-glow">
                         <Loader2 className="w-8 h-8 animate-spin text-[#222]" />
                     </div>
                     <div className="text-white font-medium">Loading profile...</div>
-                </motion.div>
+                </div>
             </div>
         );
     }
@@ -245,10 +243,8 @@ function BusinessProfileContent() {
         return (
             <div className="min-h-screen flex items-center justify-center px-6">
                 <div className="absolute inset-0 animated-gradient opacity-95" />
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 relative z-10"
+                <div
+                    className="text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 relative z-10 animate-fade-in"
                 >
                     <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
                         <Wifi className="w-8 h-8 text-red-400" />
@@ -259,7 +255,7 @@ function BusinessProfileContent() {
                     <div className="text-white/70">
                         {error?.message || 'Please check the URL and try again.'}
                     </div>
-                </motion.div>
+                </div>
             </div>
         );
     }
@@ -304,11 +300,7 @@ function BusinessProfileContent() {
                     {/* Main Content Area */}
                     <div className="px-4 space-y-6 mt-4">
                         {/* Featured & Posts Grid */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                        >
+                        <div className="animate-fade-in">
                             <EditablePostGrid
                                 posts={posts}
                                 onPostsChange={(newPosts) => {
@@ -317,14 +309,10 @@ function BusinessProfileContent() {
                                 maxPosts={10}
                                 businessId={businessId}
                             />
-                        </motion.div>
+                        </div>
 
                         {/* Special Offer Section */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                        >
+                        <div className="animate-fade-in">
                             <div className="mb-2 px-1">
                                 {/* Only show header in edit mode to avoid duplication since card has one */}
                                 {isEditMode && (
@@ -345,7 +333,7 @@ function BusinessProfileContent() {
                                     isEditMode={!!isEditMode}
                                 />
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Google Reviews Section - Just a link input */}
                         <EditableReviewSection

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import {
     ArrowRight,
     Mail,
@@ -229,268 +229,240 @@ export default function LoginPage() {
             <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-accent/10 rounded-full blur-3xl opacity-50" />
 
             <div className="w-full max-w-md z-10">
-                <AnimatePresence mode="wait">
-                    {/* Step 1: Credentials */}
-                    {step === 'credentials' && (
-                        <motion.div
-                            key="credentials"
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -16 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
-                                <CardHeader className="space-y-1">
-                                    <CardTitle className="text-2xl font-display flex items-center gap-2">
-                                        <Wifi className="w-5 h-5 text-primary" />
-                                        Welcome back
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Sign in to your MarkMorph dashboard
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Form {...loginForm}>
-                                        <form
-                                            onSubmit={loginForm.handleSubmit(onSubmitCredentials)}
-                                            className="space-y-4"
-                                        >
-                                            {/* Email */}
-                                            <FormField
-                                                control={loginForm.control}
-                                                name="email"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="flex items-center gap-2">
-                                                            <Mail className="w-4 h-4" />
-                                                            Email Address
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                className="h-12"
-                                                                placeholder="yourname@example.com"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            {/* Password */}
-                                            <FormField
-                                                control={loginForm.control}
-                                                name="password"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="flex items-center gap-2">
-                                                            <Lock className="w-4 h-4" />
-                                                            Password
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                className="h-12"
-                                                                type="password"
-                                                                placeholder="••••••••"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            <Button
-                                                type="submit"
-                                                className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-[#9EE53B] text-[#0a0a1a] hover:bg-[#8CD032]"
-                                                disabled={isLoading}
-                                            >
-                                                {isLoading ? (
-                                                    <>
-                                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                        Verifying...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Continue{' '}
-                                                        <ArrowRight className="w-5 h-5 ml-2" />
-                                                    </>
-                                                )}
-                                            </Button>
-
-                                            <div className="pt-2 text-center">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    className="h-auto px-0"
-                                                    asChild
-                                                >
-                                                    <Link href="/signup">
-                                                        Don&apos;t have an account? Sign up
-                                                    </Link>
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    </Form>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-
-                    {/* Step 2: OTP Verification */}
-                    {step === 'otp' && (
-                        <motion.div
-                            key="otp"
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -16 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
-                                <CardHeader className="space-y-1">
-                                    <CardTitle className="text-2xl font-display flex items-center gap-2">
-                                        <Mail className="w-5 h-5 text-primary" />
-                                        Verify your email
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Enter the 6-digit code sent to{' '}
-                                        <span className="font-medium text-foreground">
-                                            {email}
-                                        </span>
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Form {...otpForm}>
-                                        <form
-                                            onSubmit={otpForm.handleSubmit(onSubmitOtp)}
-                                            className="space-y-6"
-                                        >
-                                            {/* OTP Input */}
-                                            <FormField
-                                                control={otpForm.control}
-                                                name="otp"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex flex-col items-center">
-                                                        <FormControl>
-                                                            <InputOTP
-                                                                maxLength={6}
-                                                                value={field.value}
-                                                                onChange={field.onChange}
-                                                            >
-                                                                <InputOTPGroup>
-                                                                    <InputOTPSlot index={0} />
-                                                                    <InputOTPSlot index={1} />
-                                                                    <InputOTPSlot index={2} />
-                                                                    <InputOTPSlot index={3} />
-                                                                    <InputOTPSlot index={4} />
-                                                                    <InputOTPSlot index={5} />
-                                                                </InputOTPGroup>
-                                                            </InputOTP>
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            {/* OTP expiry timer */}
-                                            {otpExpiresIn > 0 && (
-                                                <p className="text-center text-sm text-muted-foreground">
-                                                    Code expires in{' '}
-                                                    <span className="font-medium text-primary">
-                                                        {formatTime(otpExpiresIn)}
-                                                    </span>
-                                                </p>
-                                            )}
-
-                                            <Button
-                                                type="submit"
-                                                className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-[#9EE53B] text-[#0a0a1a] hover:bg-[#8CD032]"
-                                                disabled={isLoading || otpForm.watch('otp').length !== 6}
-                                            >
-                                                {isLoading ? (
-                                                    <>
-                                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                        Signing in...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Sign In{' '}
-                                                        <ArrowRight className="w-5 h-5 ml-2" />
-                                                    </>
-                                                )}
-                                            </Button>
-
-                                            {/* Resend OTP */}
-                                            <div className="flex flex-col items-center gap-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    className="h-auto"
-                                                    onClick={handleResendOtp}
-                                                    disabled={countdown > 0 || isLoading}
-                                                >
-                                                    <RefreshCw
-                                                        className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''
-                                                            }`}
-                                                    />
-                                                    {countdown > 0
-                                                        ? `Resend in ${countdown}s`
-                                                        : 'Resend Code'}
-                                                </Button>
-
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    className="h-auto text-muted-foreground text-sm"
-                                                    onClick={handleBack}
-                                                >
-                                                    Use a different email
-                                                </Button>
-                                            </div>
-                                        </form>
-                                    </Form>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-
-                    {/* Step 3: Success */}
-                    {step === 'success' && (
-                        <motion.div
-                            key="success"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
-                                <CardContent className="pt-8 pb-8 flex flex-col items-center text-center">
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{
-                                            type: 'spring',
-                                            stiffness: 200,
-                                            damping: 15,
-                                            delay: 0.1,
-                                        }}
+                {/* Step 1: Credentials */}
+                {step === 'credentials' && (
+                    <div className="animate-fade-in">
+                        <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
+                            <CardHeader className="space-y-1">
+                                <CardTitle className="text-2xl font-display flex items-center gap-2">
+                                    <Wifi className="w-5 h-5 text-primary" />
+                                    Welcome back
+                                </CardTitle>
+                                <CardDescription>
+                                    Sign in to your MarkMorph dashboard
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Form {...loginForm}>
+                                    <form
+                                        onSubmit={loginForm.handleSubmit(onSubmitCredentials)}
+                                        className="space-y-4"
                                     >
-                                        <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
-                                    </motion.div>
-                                    <h2 className="text-2xl font-display font-semibold mb-2">
-                                        Welcome Back!
-                                    </h2>
-                                    <p className="text-muted-foreground mb-4">
-                                        You have been signed in successfully.
-                                    </p>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Redirecting to dashboard...
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                        {/* Email */}
+                                        <FormField
+                                            control={loginForm.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex items-center gap-2">
+                                                        <Mail className="w-4 h-4" />
+                                                        Email Address
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            className="h-12"
+                                                            placeholder="yourname@example.com"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Password */}
+                                        <FormField
+                                            control={loginForm.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex items-center gap-2">
+                                                        <Lock className="w-4 h-4" />
+                                                        Password
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            className="h-12"
+                                                            type="password"
+                                                            placeholder="••••••••"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <Button
+                                            type="submit"
+                                            className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-[#9EE53B] text-[#0a0a1a] hover:bg-[#8CD032]"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                    Verifying...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Continue{' '}
+                                                    <ArrowRight className="w-5 h-5 ml-2" />
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        <div className="pt-2 text-center">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="h-auto px-0"
+                                                asChild
+                                            >
+                                                <Link href="/signup">
+                                                    Don&apos;t have an account? Sign up
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </Form>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Step 2: OTP Verification */}
+                {step === 'otp' && (
+                    <div className="animate-fade-in">
+                        <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
+                            <CardHeader className="space-y-1">
+                                <CardTitle className="text-2xl font-display flex items-center gap-2">
+                                    <Mail className="w-5 h-5 text-primary" />
+                                    Verify your email
+                                </CardTitle>
+                                <CardDescription>
+                                    Enter the 6-digit code sent to{' '}
+                                    <span className="font-medium text-foreground">
+                                        {email}
+                                    </span>
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Form {...otpForm}>
+                                    <form
+                                        onSubmit={otpForm.handleSubmit(onSubmitOtp)}
+                                        className="space-y-6"
+                                    >
+                                        {/* OTP Input */}
+                                        <FormField
+                                            control={otpForm.control}
+                                            name="otp"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-col items-center">
+                                                    <FormControl>
+                                                        <InputOTP
+                                                            maxLength={6}
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        >
+                                                            <InputOTPGroup>
+                                                                <InputOTPSlot index={0} />
+                                                                <InputOTPSlot index={1} />
+                                                                <InputOTPSlot index={2} />
+                                                                <InputOTPSlot index={3} />
+                                                                <InputOTPSlot index={4} />
+                                                                <InputOTPSlot index={5} />
+                                                            </InputOTPGroup>
+                                                        </InputOTP>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* OTP expiry timer */}
+                                        {otpExpiresIn > 0 && (
+                                            <p className="text-center text-sm text-muted-foreground">
+                                                Code expires in{' '}
+                                                <span className="font-medium text-primary">
+                                                    {formatTime(otpExpiresIn)}
+                                                </span>
+                                            </p>
+                                        )}
+
+                                        <Button
+                                            type="submit"
+                                            className="w-full h-12 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all bg-[#9EE53B] text-[#0a0a1a] hover:bg-[#8CD032]"
+                                            disabled={isLoading || otpForm.watch('otp').length !== 6}
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                    Signing in...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Sign In{' '}
+                                                    <ArrowRight className="w-5 h-5 ml-2" />
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        {/* Resend OTP */}
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="h-auto"
+                                                onClick={handleResendOtp}
+                                                disabled={countdown > 0 || isLoading}
+                                            >
+                                                <RefreshCw
+                                                    className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''
+                                                        }`}
+                                                />
+                                                {countdown > 0
+                                                    ? `Resend in ${countdown}s`
+                                                    : 'Resend Code'}
+                                            </Button>
+
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                className="h-auto text-muted-foreground text-sm"
+                                                onClick={handleBack}
+                                            >
+                                                Use a different email
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </Form>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Step 3: Success */}
+                {step === 'success' && (
+                    <div className="animate-fade-in">
+                        <Card className="shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm bg-card/80">
+                            <CardContent className="pt-8 pb-8 flex flex-col items-center text-center">
+                                <div className="animate-fade-in">
+                                    <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
+                                </div>
+                                <h2 className="text-2xl font-display font-semibold mb-2">
+                                    Welcome Back!
+                                </h2>
+                                <p className="text-muted-foreground mb-4">
+                                    You have been signed in successfully.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Redirecting to dashboard...
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
             </div>
         </div>
     );

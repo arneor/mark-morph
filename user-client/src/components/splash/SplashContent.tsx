@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import Link from 'next/link';
 import {
     Wifi,
@@ -597,12 +597,7 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                             style={{ scrollBehavior: "smooth" }}
                         >
                             {/* Header / Brand Area */}
-                            <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className="px-6 pt-8 pb-4 text-center"
-                            >
+                            <div className="px-6 pt-8 pb-4 text-center animate-fade-in">
                                 {/* Logo with glowing ring */}
                                 <div className="relative w-24 h-24 mx-auto mb-4">
                                     <div className="absolute inset-0 rounded-full gradient-lime-cyan opacity-30 blur-xl animate-pulse" />
@@ -641,33 +636,22 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                         {allAds.length} offers
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
 
                             {/* Scroll Hint */}
-                            <AnimatePresence>
-                                {showScrollHint && (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="text-center mb-2"
-                                    >
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs">
-                                            <ArrowDown className="w-3 h-3 animate-bounce" />
-                                            <span>Scroll to explore exclusive offers</span>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {showScrollHint && (
+                                <div className="text-center mb-2 animate-fade-in">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs">
+                                        <ArrowDown className="w-3 h-3 animate-bounce" />
+                                        <span>Scroll to explore exclusive offers</span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Main Content Area - Ads Section */}
                             <div className="px-4 space-y-4">
                                 {/* Featured Carousel - PRIORITY AD SLOT */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                >
+                                <div className="animate-slide-up">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Sparkles className="w-4 h-4 text-[#FFD93D]" />
                                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
@@ -676,17 +660,12 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                     </div>
                                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                     <SplashCarousel campaigns={featuredCampaigns as any} />
-                                </motion.div>
+                                </div>
 
                                 {/* Premium Ad Banner - Shows by default, hidden only if showWelcomeBanner is explicitly false */}
                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {(business as any)?.showWelcomeBanner !== false && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="relative overflow-hidden rounded-2xl gradient-purple-pink p-5 group"
-                                    >
+                                    <div className="relative overflow-hidden rounded-2xl gradient-purple-pink p-5 group animate-slide-up">
                                         <div className="absolute top-2 right-2 opacity-20 group-hover:opacity-40 transition-opacity">
                                             <Sparkles className="w-20 h-20 text-white" />
                                         </div>
@@ -721,15 +700,11 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                                 {business?.ctaButtonText || "View Offers"}
                                             </div>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 )}
 
                                 {/* Offer Cards Grid - MORE AD SLOTS */}
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                >
+                                <div className="animate-fade-in">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Gift className="w-4 h-4 text-[#9EE53B]" />
                                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
@@ -743,15 +718,10 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                                 const likes = (c.likesCount || 0) + (isLiked ? 1 : 0);
 
                                                 return (
-                                                    <motion.div
+                                                    <div
                                                         key={c.id}
-                                                        initial={{ opacity: 0, y: 20 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: 0.4 + index * 0.1 }}
-                                                        whileHover={{ scale: 1.03 }}
-                                                        whileTap={{ scale: 0.98 }}
                                                         onClick={() => handleExpand(c)}
-                                                        className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl cursor-pointer group"
+                                                        className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl cursor-pointer group animate-fade-in transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
                                                     >
                                                         <div className="aspect-4/5">
                                                             <img
@@ -799,7 +769,7 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                                                 {likes}
                                                             </div>
                                                         )}
-                                                    </motion.div>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -809,15 +779,11 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                             No offers available today
                                         </div>
                                     )}
-                                </motion.div>
+                                </div>
 
                                 {/* Additional Ad Slots - Horizontal Scroll */}
                                 {galleryCampaigns.length > 4 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.6 }}
-                                    >
+                                    <div className="animate-slide-up">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Star className="w-4 h-4 text-[#FFD93D]" />
                                             <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
@@ -825,14 +791,11 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                             </span>
                                         </div>
                                         <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-                                            {galleryCampaigns.slice(4).map((c: SplashData['ads'][number], index: number) => (
-                                                <motion.div
+                                            {galleryCampaigns.slice(4).map((c: SplashData['ads'][number]) => (
+                                                <div
                                                     key={c.id}
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: 0.6 + index * 0.1 }}
                                                     onClick={() => handleAdClick()}
-                                                    className="shrink-0 w-40 overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 cursor-pointer group"
+                                                    className="shrink-0 w-40 overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 cursor-pointer group animate-fade-in"
                                                 >
                                                     <div className="aspect-3/4">
                                                         <img
@@ -847,19 +810,14 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                                             {c.title}
                                                         </div>
                                                     </div>
-                                                </motion.div>
+                                                </div>
                                             ))}
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 )}
 
                                 {/* Engagement CTA */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.7 }}
-                                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center"
-                                >
+                                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center animate-slide-up">
                                     <div className="flex items-center justify-center gap-2 mb-2">
                                         <Star className="w-5 h-5 text-[#FFD93D]" />
                                         <span className="text-white font-bold">
@@ -878,7 +836,7 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                         Leave a Google Review
                                         <ExternalLink className="w-3 h-3 ml-2 opacity-60" />
                                     </Button>
-                                </motion.div>
+                                </div>
 
                                 {/* Spacer for bottom bar - Increased to prevent overlap */}
                                 <div className="h-32" />
@@ -899,309 +857,264 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                                         <div className={`w-2 h-2 rounded-full transition-colors ${verificationStep === "verified" ? "bg-[#9EE53B]" : "bg-white/30"}`} />
                                     </div>
 
-                                    <AnimatePresence mode="wait">
-                                        {/* Countdown / wait message */}
-                                        {!canConnect && verificationStep === "email" && (
-                                            <motion.div
-                                                key="countdown"
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="flex items-center justify-center gap-2 text-white/80 text-sm"
-                                            >
-                                                <Clock className="w-4 h-4 text-[#9EE53B]" />
-                                                <span>
-                                                    WiFi ready in{" "}
-                                                    <span className="font-bold text-[#9EE53B]">{countdown}s</span>
-                                                </span>
-                                                <span className="text-white/50">• Explore offers!</span>
-                                            </motion.div>
-                                        )}
+                                    {/* Countdown / wait message */}
+                                    {!canConnect && verificationStep === "email" && (
+                                        <div className="flex items-center justify-center gap-2 text-white/80 text-sm animate-fade-in">
+                                            <Clock className="w-4 h-4 text-[#9EE53B]" />
+                                            <span>
+                                                WiFi ready in{" "}
+                                                <span className="font-bold text-[#9EE53B]">{countdown}s</span>
+                                            </span>
+                                            <span className="text-white/50">• Explore offers!</span>
+                                        </div>
+                                    )}
 
-                                        {/* === MAIN AUTH FLOW === */}
-                                        {verificationStep === "email" && canConnect && (
-                                            <motion.div
-                                                key="auth-flow"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -20 }}
-                                                className="space-y-4" // Increased spacing for cleaner look
-                                            >
-                                                {/* VIEW 1: GOOGLE PRIMARY (Default) */}
-                                                {authMethod !== 'email' && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0 }}
-                                                        animate={{ opacity: 1 }}
-                                                        exit={{ opacity: 0 }}
-                                                        transition={{ duration: 0.3 }}
-                                                        className="space-y-4"
+                                    {/* === MAIN AUTH FLOW === */}
+                                    {verificationStep === "email" && canConnect && (
+                                        <div className="space-y-4 animate-fade-in">
+                                            {/* VIEW 1: GOOGLE PRIMARY (Default) */}
+                                            {authMethod !== 'email' && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    {/* Header */}
+                                                    <div className="text-center space-y-1 mb-2">
+                                                        <h3 className="text-lg font-bold text-white">Connect to WiFi</h3>
+                                                        <p className="text-white/60 text-xs">Secure, one-tap access</p>
+                                                    </div>
+
+                                                    {/* === GOOGLE SIGN-IN (HERO BUTTON) === */}
+                                                    <Button
+                                                        onClick={handleGoogleSignIn}
+                                                        disabled={isSubmitting}
+                                                        className="w-full h-[56px] text-[17px] font-medium rounded-2xl bg-white hover:bg-gray-50 text-gray-700 shadow-xl hover:shadow-2xl hover:-translate-y-px active:scale-[0.98] transition-all duration-200 relative overflow-hidden group border-0 ring-0"
                                                     >
-                                                        {/* Header */}
-                                                        <div className="text-center space-y-1 mb-2">
-                                                            <h3 className="text-lg font-bold text-white">Connect to WiFi</h3>
-                                                            <p className="text-white/60 text-xs">Secure, one-tap access</p>
+                                                        <div className="absolute inset-0 bg-gray-100 opacity-0 group-hover:opacity-10 transition-opacity" />
+                                                        <span className="flex items-center justify-center gap-3 relative z-10">
+                                                            {isSubmitting ? (
+                                                                <>
+                                                                    <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
+                                                                    <span className="text-gray-500">Signing in...</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    {/* Google Logo SVG */}
+                                                                    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
+                                                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                                                    </svg>
+                                                                    <span>Sign in with Google</span>
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                    </Button>
+
+                                                    {/* Subtle Alternative Link (Progressive Disclosure) */}
+                                                    <div className="text-center pt-2 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                                                        <button
+                                                            onClick={() => setAuthMethod('email')}
+                                                            className="text-white/50 hover:text-white/90 text-sm font-medium transition-colors hover:underline decoration-white/30 underline-offset-4"
+                                                            aria-label="Use alternative sign-in method"
+                                                        >
+                                                            Trouble signing in? Try another method →
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* VIEW 2: EMAIL FALLBACK (Hidden by default) */}
+                                            {authMethod === 'email' && (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    {/* Back Button */}
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setAuthMethod(null); // Go back to Google view
+                                                                setVerificationError(null);
+                                                            }}
+                                                            className="text-white/60 hover:text-white flex items-center gap-1 text-sm font-medium transition-colors pl-1"
+                                                        >
+                                                            ← Back
+                                                        </button>
+                                                        <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Alternative Login</span>
+                                                    </div>
+
+                                                    <div className="rounded-2xl bg-white/5 p-4 border border-white/10 space-y-4">
+                                                        <div className="text-center">
+                                                            <div className="text-sm text-white/90 font-medium mb-1">
+                                                                Use Email Verification
+                                                            </div>
+                                                            <div className="text-xs text-white/50">
+                                                                We&apos;ll send a temporary code to your inbox
+                                                            </div>
                                                         </div>
 
-                                                        {/* === GOOGLE SIGN-IN (HERO BUTTON) === */}
-                                                        <Button
-                                                            onClick={handleGoogleSignIn}
-                                                            disabled={isSubmitting}
-                                                            className="w-full h-[56px] text-[17px] font-medium rounded-2xl bg-white hover:bg-gray-50 text-gray-700 shadow-xl hover:shadow-2xl hover:-translate-y-px active:scale-[0.98] transition-all duration-200 relative overflow-hidden group border-0 ring-0"
+                                                        <form
+                                                            onSubmit={handleEmailSubmit}
+                                                            className="space-y-3"
                                                         >
-                                                            <div className="absolute inset-0 bg-gray-100 opacity-0 group-hover:opacity-10 transition-opacity" />
-                                                            <span className="flex items-center justify-center gap-3 relative z-10">
-                                                                {isSubmitting ? (
-                                                                    <>
-                                                                        <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-                                                                        <span className="text-gray-500">Signing in...</span>
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        {/* Google Logo SVG */}
-                                                                        <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
-                                                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                                                        </svg>
-                                                                        <span>Sign in with Google</span>
-                                                                    </>
-                                                                )}
-                                                            </span>
-                                                        </Button>
-
-                                                        {/* Subtle Alternative Link (Progressive Disclosure) */}
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 1 }}
-                                                            transition={{ delay: 0.8, duration: 0.5 }} // Delayed reveal
-                                                            className="text-center pt-2"
-                                                        >
-                                                            <button
-                                                                onClick={() => setAuthMethod('email')}
-                                                                className="text-white/50 hover:text-white/90 text-sm font-medium transition-colors hover:underline decoration-white/30 underline-offset-4"
-                                                                aria-label="Use alternative sign-in method"
-                                                            >
-                                                                Trouble signing in? Try another method →
-                                                            </button>
-                                                        </motion.div>
-                                                    </motion.div>
-                                                )}
-
-                                                {/* VIEW 2: EMAIL FALLBACK (Hidden by default) */}
-                                                {authMethod === 'email' && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, x: 20 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        exit={{ opacity: 0, x: -20 }}
-                                                        transition={{ duration: 0.3 }}
-                                                        className="space-y-4"
-                                                    >
-                                                        {/* Back Button */}
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setAuthMethod(null); // Go back to Google view
-                                                                    setVerificationError(null);
-                                                                }}
-                                                                className="text-white/60 hover:text-white flex items-center gap-1 text-sm font-medium transition-colors pl-1"
-                                                            >
-                                                                ← Back
-                                                            </button>
-                                                            <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Alternative Login</span>
-                                                        </div>
-
-                                                        <div className="rounded-2xl bg-white/5 p-4 border border-white/10 space-y-4">
-                                                            <div className="text-center">
-                                                                <div className="text-sm text-white/90 font-medium mb-1">
-                                                                    Use Email Verification
+                                                            {verificationError && (
+                                                                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center animate-fade-in">
+                                                                    {verificationError}
                                                                 </div>
-                                                                <div className="text-xs text-white/50">
-                                                                    We&apos;ll send a temporary code to your inbox
-                                                                </div>
+                                                            )}
+
+                                                            <div className="relative group">
+                                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-[#9EE53B] transition-colors" />
+                                                                <Input
+                                                                    type="email"
+                                                                    placeholder="your@email.com"
+                                                                    value={userEmail}
+                                                                    onChange={(e) => {
+                                                                        setUserEmail(e.target.value);
+                                                                        setVerificationError(null);
+                                                                    }}
+                                                                    className="pl-12 h-14 bg-black/20 border-white/10 text-white placeholder:text-white/30 rounded-xl text-base focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-medium"
+                                                                    required
+                                                                    disabled={isSubmitting}
+                                                                    autoFocus // Auto-focus when this view activates
+                                                                    aria-label="Email Address"
+                                                                />
                                                             </div>
 
-                                                            <motion.form
-                                                                onSubmit={handleEmailSubmit}
-                                                                className="space-y-3"
+                                                            <Button
+                                                                type="submit"
+                                                                className="w-full h-14 text-base font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                                                                style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
+                                                                disabled={!userEmail || isSubmitting}
                                                             >
-                                                                {verificationError && (
-                                                                    <motion.div
-                                                                        initial={{ opacity: 0, height: 0 }}
-                                                                        animate={{ opacity: 1, height: 'auto' }}
-                                                                        className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center"
-                                                                    >
-                                                                        {verificationError}
-                                                                    </motion.div>
-                                                                )}
-
-                                                                <div className="relative group">
-                                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-[#9EE53B] transition-colors" />
-                                                                    <Input
-                                                                        type="email"
-                                                                        placeholder="your@email.com"
-                                                                        value={userEmail}
-                                                                        onChange={(e) => {
-                                                                            setUserEmail(e.target.value);
-                                                                            setVerificationError(null);
-                                                                        }}
-                                                                        className="pl-12 h-14 bg-black/20 border-white/10 text-white placeholder:text-white/30 rounded-xl text-base focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-medium"
-                                                                        required
-                                                                        disabled={isSubmitting}
-                                                                        autoFocus // Auto-focus when this view activates
-                                                                        aria-label="Email Address"
-                                                                    />
-                                                                </div>
-
-                                                                <Button
-                                                                    type="submit"
-                                                                    className="w-full h-14 text-base font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
-                                                                    style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
-                                                                    disabled={!userEmail || isSubmitting}
-                                                                >
-                                                                    <span className="flex items-center justify-center gap-2 text-[#0f2525]">
-                                                                        {isSubmitting ? (
-                                                                            <>
-                                                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                                                Sending...
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                Get Verification Code
-                                                                                <ArrowRight className="w-5 h-5" />
-                                                                            </>
-                                                                        )}
-                                                                    </span>
-                                                                </Button>
-                                                            </motion.form>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-
-                                                {/* Terms - Consistent Footer */}
-                                                <div className="text-center pt-1">
-                                                    <p className="text-white/30 text-[10px]">
-                                                        By connecting, you agree to our{" "}
-                                                        <Link href="/terms" className="underline hover:text-white/50 transition-colors">Terms</Link>
-                                                        {" "}and{" "}
-                                                        <Link href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy</Link>
-                                                    </p>
-                                                </div>
-                                            </motion.div>
-                                        )}
-
-                                        {/* Step 2: OTP Verification (Same as before but refined styling) */}
-                                        {verificationStep === "otp" && (
-                                            <motion.form
-                                                key="otp-form"
-                                                initial={{ opacity: 0, x: 20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -20 }}
-                                                onSubmit={handleOtpSubmit}
-                                                className="space-y-4"
-                                            >
-                                                <div className="text-center pb-2">
-                                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#9EE53B]/10 mb-3 text-[#9EE53B]">
-                                                        <KeyRound className="w-6 h-6" />
+                                                                <span className="flex items-center justify-center gap-2 text-[#0f2525]">
+                                                                    {isSubmitting ? (
+                                                                        <>
+                                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                                            Sending...
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            Get Verification Code
+                                                                            <ArrowRight className="w-5 h-5" />
+                                                                        </>
+                                                                    )}
+                                                                </span>
+                                                            </Button>
+                                                        </form>
                                                     </div>
-                                                    <div className="text-base font-semibold text-white">Verification Code</div>
-                                                    <div className="text-sm text-white/60">Sent to <span className="text-white font-medium">{userEmail}</span></div>
                                                 </div>
+                                            )}
 
-                                                {verificationError && (
-                                                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center">
-                                                        {verificationError}
-                                                    </div>
-                                                )}
+                                            {/* Terms - Consistent Footer */}
+                                            <div className="text-center pt-1">
+                                                <p className="text-white/30 text-[10px]">
+                                                    By connecting, you agree to our{" "}
+                                                    <Link href="/terms" className="underline hover:text-white/50 transition-colors">Terms</Link>
+                                                    {" "}and{" "}
+                                                    <Link href="/privacy" className="underline hover:text-white/50 transition-colors">Privacy</Link>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
 
-                                                <div className="relative">
-                                                    <Input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        maxLength={6}
-                                                        placeholder="000000"
-                                                        value={otpCode}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                                                            setOtpCode(value);
-                                                            setVerificationError(null);
-                                                        }}
-                                                        className="h-16 bg-black/20 border-white/20 text-white placeholder:text-white/10 rounded-2xl text-2xl text-center tracking-[0.7em] font-mono focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-bold"
-                                                        required
-                                                        disabled={isSubmitting}
-                                                        autoFocus
-                                                        aria-label="6-digit verification code"
-                                                    />
+                                    {/* Step 2: OTP Verification (Same as before but refined styling) */}
+                                    {verificationStep === "otp" && (
+                                        <form
+                                            onSubmit={handleOtpSubmit}
+                                            className="space-y-4 animate-fade-in"
+                                        >
+                                            <div className="text-center pb-2">
+                                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#9EE53B]/10 mb-3 text-[#9EE53B]">
+                                                    <KeyRound className="w-6 h-6" />
                                                 </div>
+                                                <div className="text-base font-semibold text-white">Verification Code</div>
+                                                <div className="text-sm text-white/60">Sent to <span className="text-white font-medium">{userEmail}</span></div>
+                                            </div>
 
-                                                <Button
-                                                    type="submit"
-                                                    className="w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
-                                                    style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
-                                                    disabled={otpCode.length !== 6 || isSubmitting}
-                                                >
-                                                    <span className="flex items-center justify-center gap-2 text-[#0f2525]">
-                                                        {isSubmitting ? (
-                                                            <>
-                                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                                Verifying...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                Verify & Connect
-                                                                <Wifi className="w-5 h-5" />
-                                                            </>
-                                                        )}
-                                                    </span>
-                                                </Button>
-
-                                                <div className="flex items-center justify-between text-xs px-2 pt-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleBackToEmail}
-                                                        className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
-                                                    >
-                                                        ← Change email
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleResendOtp}
-                                                        disabled={cooldown > 0}
-                                                        className={`flex items-center gap-1 transition-colors ${cooldown > 0 ? "text-white/40 cursor-not-allowed" : "text-[#9EE53B] hover:text-[#B5F84F]"}`}
-                                                    >
-                                                        <RotateCcw className="w-3 h-3" />
-                                                        {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-                                                    </button>
+                                            {verificationError && (
+                                                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-red-200 text-xs text-center">
+                                                    {verificationError}
                                                 </div>
-                                            </motion.form>
-                                        )}
+                                            )}
 
-                                        {/* Step 3: Success (Minor visual polish) */}
-                                        {verificationStep === "verified" && (
-                                            <motion.div
-                                                key="success"
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                className="text-center py-6"
+                                            <div className="relative">
+                                                <Input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    maxLength={6}
+                                                    placeholder="000000"
+                                                    value={otpCode}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                                        setOtpCode(value);
+                                                        setVerificationError(null);
+                                                    }}
+                                                    className="h-16 bg-black/20 border-white/20 text-white placeholder:text-white/10 rounded-2xl text-2xl text-center tracking-[0.7em] font-mono focus:border-[#9EE53B]/50 focus:ring-[#9EE53B]/20 transition-all font-bold"
+                                                    required
+                                                    disabled={isSubmitting}
+                                                    autoFocus
+                                                    aria-label="6-digit verification code"
+                                                />
+                                            </div>
+
+                                            <Button
+                                                type="submit"
+                                                className="w-full h-14 text-lg font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                                                style={{ background: "linear-gradient(135deg, #9EE53B, #4AE660)" }}
+                                                disabled={otpCode.length !== 6 || isSubmitting}
                                             >
-                                                <div className="w-20 h-20 rounded-full bg-[#9EE53B] flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_-10px_#9EE53B]">
-                                                    <CheckCircle2 className="w-10 h-10 text-[#0f2525]" />
-                                                </div>
-                                                <div className="text-2xl font-bold text-white mb-1">
-                                                    {googleUserName ? `Welcome, ${googleUserName.split(' ')[0]}!` : "You're Connected!"}
-                                                </div>
-                                                <div className="text-white/60 text-sm mb-6">Enjoy secure, high-speed WiFi at {business?.businessName}</div>
+                                                <span className="flex items-center justify-center gap-2 text-[#0f2525]">
+                                                    {isSubmitting ? (
+                                                        <>
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                            Verifying...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            Verify & Connect
+                                                            <Wifi className="w-5 h-5" />
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </Button>
 
-                                                <Button
-                                                    onClick={() => setIsSheetHidden(true)}
-                                                    className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg transition-transform active:scale-95 border border-white/20"
+                                            <div className="flex items-center justify-between text-xs px-2 pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBackToEmail}
+                                                    className="text-white/50 hover:text-white transition-colors flex items-center gap-1"
                                                 >
-                                                    Continue Browsing
-                                                </Button>
-                                            </motion.div>
-                                        )}
+                                                    ← Change email
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleResendOtp}
+                                                    disabled={cooldown > 0}
+                                                    className={`flex items-center gap-1 transition-colors ${cooldown > 0 ? "text-white/40 cursor-not-allowed" : "text-[#9EE53B] hover:text-[#B5F84F]"}`}
+                                                >
+                                                    <RotateCcw className="w-3 h-3" />
+                                                    {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
 
-                                    </AnimatePresence>
+                                    {/* Step 3: Success (Minor visual polish) */}
+                                    {verificationStep === "verified" && (
+                                        <div className="text-center py-6 animate-fade-in">
+                                            <div className="w-20 h-20 rounded-full bg-[#9EE53B] flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_-10px_#9EE53B]">
+                                                <CheckCircle2 className="w-10 h-10 text-[#0f2525]" />
+                                            </div>
+                                            <div className="text-2xl font-bold text-white mb-1">
+                                                {googleUserName ? `Welcome, ${googleUserName.split(' ')[0]}!` : "You're Connected!"}
+                                            </div>
+                                            <div className="text-white/60 text-sm mb-6">Enjoy secure, high-speed WiFi at {business?.businessName}</div>
+
+                                            <Button
+                                                onClick={() => setIsSheetHidden(true)}
+                                                className="w-full h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg transition-transform active:scale-95 border border-white/20"
+                                            >
+                                                Continue Browsing
+                                            </Button>
+                                        </div>
+                                    )}
 
                                     {/* Powered by */}
                                     <div className="text-center">
@@ -1217,71 +1130,62 @@ export function SplashContent({ businessId: id, initialData }: SplashContentProp
                 )}
             </div>
             {/* Lightbox Modal */}
-            <AnimatePresence>
-                {expandedAd && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-100 bg-black/95 backdrop-blur-xl flex flex-col"
+            {expandedAd && (
+                <div
+                    className="fixed inset-0 z-100 bg-black/95 backdrop-blur-xl flex flex-col animate-fade-in"
+                    onClick={closeExpand}
+                >
+                    {/* Close Button */}
+                    <button
                         onClick={closeExpand}
+                        className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
                     >
-                        {/* Close Button */}
-                        <button
-                            onClick={closeExpand}
-                            className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
+                        <X className="w-6 h-6" />
+                    </button>
 
-                        {/* Main Image Area */}
-                        <div className="flex-1 flex items-center justify-center p-4">
-                            <motion.img
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                src={expandedAd.mediaUrl}
-                                alt={expandedAd.title}
-                                className="max-w-full max-h-[70vh] rounded-lg shadow-2xl object-contain"
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                    {/* Main Image Area */}
+                    <div className="flex-1 flex items-center justify-center p-4">
+                        <img
+                            src={expandedAd.mediaUrl}
+                            alt={expandedAd.title}
+                            className="max-w-full max-h-[70vh] rounded-lg shadow-2xl object-contain animate-fade-in"
+                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        />
+                    </div>
+
+                    {/* Bottom Actions Panel */}
+                    <div
+                        className="bg-zinc-900/90 border-t border-white/10 p-6 pb-10 animate-slide-up"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-2">{expandedAd.title}</h2>
+                        {expandedAd.description && (
+                            <p className="text-white/70 mb-6">{expandedAd.description}</p>
+                        )}
+
+                        <div className="flex items-center gap-4">
+                            <Button
+                                onClick={(e) => toggleLike(e, expandedAd.id)}
+                                className={`flex-1 h-12 rounded-full font-bold text-lg gap-2 ${likedAds.has(expandedAd.id)
+                                    ? "bg-[#FF4D4D] text-white hover:bg-[#FF3333]"
+                                    : "bg-white/10 text-white hover:bg-white/20"
+                                    }`}
+                            >
+                                <Heart className={`w-5 h-5 ${likedAds.has(expandedAd.id) ? "fill-current" : ""}`} />
+                                {likedAds.has(expandedAd.id) ? "Liked" : "Like"}
+                            </Button>
+
+                            <Button
+                                onClick={(e) => shareAd(e, expandedAd)}
+                                className="flex-1 h-12 rounded-full bg-white text-black font-bold text-lg gap-2 hover:bg-white/90"
+                            >
+                                <Share2 className="w-5 h-5" />
+                                Share
+                            </Button>
                         </div>
-
-                        {/* Bottom Actions Panel */}
-                        <motion.div
-                            initial={{ y: 50 }}
-                            animate={{ y: 0 }}
-                            className="bg-zinc-900/90 border-t border-white/10 p-6 pb-10"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h2 className="text-2xl font-bold text-white mb-2">{expandedAd.title}</h2>
-                            {expandedAd.description && (
-                                <p className="text-white/70 mb-6">{expandedAd.description}</p>
-                            )}
-
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    onClick={(e) => toggleLike(e, expandedAd.id)}
-                                    className={`flex-1 h-12 rounded-full font-bold text-lg gap-2 ${likedAds.has(expandedAd.id)
-                                        ? "bg-[#FF4D4D] text-white hover:bg-[#FF3333]"
-                                        : "bg-white/10 text-white hover:bg-white/20"
-                                        }`}
-                                >
-                                    <Heart className={`w-5 h-5 ${likedAds.has(expandedAd.id) ? "fill-current" : ""}`} />
-                                    {likedAds.has(expandedAd.id) ? "Liked" : "Like"}
-                                </Button>
-
-                                <Button
-                                    onClick={(e) => shareAd(e, expandedAd)}
-                                    className="flex-1 h-12 rounded-full bg-white text-black font-bold text-lg gap-2 hover:bg-white/90"
-                                >
-                                    <Share2 className="w-5 h-5" />
-                                    Share
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

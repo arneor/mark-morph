@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+
 import {
   ArrowRight,
   CheckCircle2,
@@ -87,27 +87,6 @@ const stats = [
   { value: '24/7', label: 'Automated Marketing' },
 ];
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-    },
-  },
-};
 
 export default function LandingPage() {
   return (
@@ -148,22 +127,12 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 py-20 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Column: Hero Content */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8 text-center lg:text-left"
-            >
+            <div className="space-y-8 text-center lg:text-left animate-fade-in">
               {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white text-sm font-semibold border border-white/30"
-              >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white text-sm font-semibold border border-white/30 animate-fade-in">
                 <Sparkles className="w-4 h-4" />
                 <span>Smart WiFi Advertising Platform</span>
-              </motion.div>
+              </div>
 
               {/* Main Headline */}
               <h1 className="text-5xl lg:text-7xl font-display font-extrabold text-white leading-[1.1] tracking-tight">
@@ -192,26 +161,18 @@ export default function LandingPage() {
                   { icon: BarChart3, text: 'Real-time Analytics' },
                   { icon: Palette, text: 'Brand Customization' },
                 ].map((item, i) => (
-                  <motion.div
+                  <div
                     key={item.text}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + i * 0.1 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white border border-white/20"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white border border-white/20 animate-fade-in"
                   >
                     <item.icon className="w-4 h-4 text-[#222]" />
                     <span className="font-medium text-sm">{item.text}</span>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
               {/* CTA Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4"
-              >
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
                 <Button
                   size="lg"
                   asChild
@@ -230,16 +191,11 @@ export default function LandingPage() {
                 >
                   Learn More
                 </Button>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
 
             {/* Right Column: Login Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 50, rotateY: -10 }}
-              animate={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="perspective-1000"
-            >
+            <div className="perspective-1000 animate-slide-up">
               <Card className="w-full max-w-md mx-auto shadow-2xl border-0 backdrop-blur-xl bg-white/95 rounded-3xl overflow-hidden">
                 {/* Card gradient top border */}
                 <div className="h-2 gradient-hero" />
@@ -300,25 +256,16 @@ export default function LandingPage() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-8 h-12 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
-          >
-            <motion.div className="w-1.5 h-3 bg-white rounded-full" />
-          </motion.div>
-        </motion.div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-fade-in" style={{ animationDelay: '1.5s' }}>
+          <div className="w-8 h-12 rounded-full border-2 border-white/30 flex items-start justify-center p-2 animate-bounce">
+            <div className="w-1.5 h-3 bg-white rounded-full" />
+          </div>
+        </div>
       </section>
 
       {/* ============================================ */}
@@ -326,26 +273,19 @@ export default function LandingPage() {
       {/* ============================================ */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
-              <motion.div
+              <div
                 key={stat.label}
-                variants={itemVariants}
-                className="text-center"
+                className="text-center animate-fade-in"
               >
                 <div className="text-4xl md:text-5xl font-display font-extrabold gradient-text mb-2">
                   {stat.value}
                 </div>
                 <div className="text-gray-500 font-medium">{stat.label}</div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -365,12 +305,7 @@ export default function LandingPage() {
 
         <div className="container mx-auto px-6 relative z-10">
           {/* Section Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center max-w-3xl mx-auto mb-16"
-          >
+          <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#9EE53B]/10 text-[#6BBF00] text-sm font-semibold mb-6">
               <Zap className="w-4 h-4" />
               <span>Powerful Features</span>
@@ -383,21 +318,14 @@ export default function LandingPage() {
               A complete toolkit to transform your guest WiFi into a powerful
               marketing and engagement platform.
             </p>
-          </motion.div>
+          </div>
 
           {/* Features Grid */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature) => (
-              <motion.div
+              <div
                 key={feature.title}
-                variants={itemVariants}
-                className="feature-card group cursor-pointer"
+                className="feature-card group cursor-pointer animate-fade-in"
               >
                 {/* Icon */}
                 <div
@@ -422,9 +350,9 @@ export default function LandingPage() {
                   <span>Learn more</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -438,12 +366,7 @@ export default function LandingPage() {
 
         <div className="container mx-auto px-6 relative z-10">
           {/* Section Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center max-w-3xl mx-auto mb-16"
-          >
+          <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-[#9EE53B] text-sm font-semibold mb-6">
               <TrendingUp className="w-4 h-4" />
               <span>How It Works</span>
@@ -455,16 +378,10 @@ export default function LandingPage() {
             <p className="text-xl text-gray-400">
               Transform your WiFi into a marketing tool in minutes, not hours.
             </p>
-          </motion.div>
+          </div>
 
           {/* Steps */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="grid md:grid-cols-3 gap-8"
-          >
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: '01',
@@ -488,10 +405,9 @@ export default function LandingPage() {
                 color: '#E639D0',
               },
             ].map((item) => (
-              <motion.div
+              <div
                 key={item.step}
-                variants={itemVariants}
-                className="relative p-8 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                className="relative p-8 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 group animate-fade-in"
               >
                 {/* Step number */}
                 <div
@@ -518,9 +434,9 @@ export default function LandingPage() {
                     {item.description}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -536,12 +452,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 right-10 w-24 h-24 rounded-full bg-white/10 animate-float-delayed-2" />
 
         <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto text-center"
-          >
+          <div className="max-w-3xl mx-auto text-center animate-fade-in">
             <h2 className="text-4xl md:text-6xl font-display font-extrabold text-white mb-6">
               Ready to transform your WiFi?
             </h2>
@@ -577,7 +488,7 @@ export default function LandingPage() {
               No credit card required • Free forever plan available • Setup in 5
               minutes
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -622,6 +533,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }

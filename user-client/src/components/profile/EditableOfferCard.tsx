@@ -1,5 +1,5 @@
 
-import { motion } from "framer-motion";
+
 import { Zap, Sparkles, Eye, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,8 +54,7 @@ export function EditableOfferCard({ data, businessName, onUpdate, isEditMode }: 
                 )}
             </div>
 
-            <motion.div
-                layout
+            <div
                 className={`relative overflow-hidden rounded-2xl gradient-purple-pink p-5 group transition-all duration-300 ${!isActive && isEditMode ? 'opacity-50 grayscale' : ''}`}
             >
                 <div className="absolute top-2 right-2 opacity-20 group-hover:opacity-40 transition-opacity pointer-events-none">
@@ -146,7 +145,7 @@ export function EditableOfferCard({ data, businessName, onUpdate, isEditMode }: 
                         </span>
                     </div>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
 }

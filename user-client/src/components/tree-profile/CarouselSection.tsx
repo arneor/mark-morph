@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Reorder, useDragControls, DragControls } from 'framer-motion';
 import Image from 'next/image';
 import {
     Upload,
     Trash2,
     Star,
-    GripVertical,
+    ChevronLeft,
+    ChevronRight,
     Pencil,
     Check
 } from 'lucide-react';
@@ -80,7 +80,17 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
         onUpdate(banners.filter(b => b.id !== id));
     };
 
-    const handleReorder = (newBanners: ProfileBanner[]) => {
+    const handleMoveLeft = (index: number) => {
+        if (index <= 0) return;
+        const newBanners = [...banners];
+        [newBanners[index - 1], newBanners[index]] = [newBanners[index], newBanners[index - 1]];
+        onUpdate(newBanners);
+    };
+
+    const handleMoveRight = (index: number) => {
+        if (index >= banners.length - 1) return;
+        const newBanners = [...banners];
+        [newBanners[index], newBanners[index + 1]] = [newBanners[index + 1], newBanners[index]];
         onUpdate(newBanners);
     };
 
@@ -128,7 +138,7 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
                     {isEditMode ? (
                         <div className="space-y-2">
                             <p className="text-xs px-1" style={{ color: theme.textColor, opacity: 0.5 }}>
-                                Drag the handle <GripVertical className="inline w-3 h-3" /> to reorder.
+                                Use arrows to reorder banners.
                             </p>
 
                             <div className="flex gap-3 overflow-x-auto pb-4 pt-2 px-1 touch-auto scrollbar-hide">
@@ -151,23 +161,20 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
                                     </div>
                                 )}
 
-                                <Reorder.Group
-                                    axis="x"
-                                    values={banners}
-                                    onReorder={handleReorder}
-                                    className="flex gap-3"
-                                >
-                                    {banners.map((banner) => (
-                                        <SortableItem key={banner.id} banner={banner}>
-                                            <BannerCard
-                                                banner={banner}
-                                                isEditMode={isEditMode}
-                                                onDelete={(e) => handleDelete(banner.id, e)}
-                                                onEdit={(e) => handleEditBanner(banner, e)}
-                                            />
-                                        </SortableItem>
-                                    ))}
-                                </Reorder.Group>
+                                {banners.map((banner, index) => (
+                                    <div key={banner.id} className="relative">
+                                        <BannerCard
+                                            banner={banner}
+                                            isEditMode={isEditMode}
+                                            onDelete={(e) => handleDelete(banner.id, e)}
+                                            onEdit={(e) => handleEditBanner(banner, e)}
+                                            canMoveLeft={index > 0}
+                                            canMoveRight={index < banners.length - 1}
+                                            onMoveLeft={() => handleMoveLeft(index)}
+                                            onMoveRight={() => handleMoveRight(index)}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     ) : (
@@ -259,27 +266,7 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
     );
 }
 
-// Wrapper to handle drag controls
-interface SortableItemProps {
-    banner: ProfileBanner;
-    children: React.ReactElement<{ dragControls?: DragControls }>;
-}
 
-function SortableItem({ banner, children }: SortableItemProps) {
-    const dragControls = useDragControls();
-
-    return (
-        <Reorder.Item
-            value={banner}
-            dragListener={false}
-            dragControls={dragControls}
-            className="relative"
-        >
-            {/* Clone the child to inject dragControls */}
-            {React.cloneElement(children, { dragControls } as { dragControls: DragControls })}
-        </Reorder.Item>
-    );
-}
 
 // Individual Banner Card Component
 interface BannerCardProps {
@@ -287,7 +274,10 @@ interface BannerCardProps {
     isEditMode: boolean;
     onDelete?: (e: React.MouseEvent) => void;
     onEdit?: (e: React.MouseEvent) => void;
-    dragControls?: DragControls;
+    canMoveLeft?: boolean;
+    canMoveRight?: boolean;
+    onMoveLeft?: () => void;
+    onMoveRight?: () => void;
 }
 
 function BannerCard({
@@ -295,7 +285,10 @@ function BannerCard({
     isEditMode,
     onDelete,
     onEdit,
-    dragControls,
+    canMoveLeft,
+    canMoveRight,
+    onMoveLeft,
+    onMoveRight,
 }: BannerCardProps) {
     return (
         <div
@@ -328,15 +321,25 @@ function BannerCard({
             {/* Edit Mode Controls */}
             {isEditMode && (
                 <>
-                    {/* Drag handle */}
-                    {dragControls && (
-                        <div
-                            onPointerDown={(e) => dragControls.start(e)}
-                            className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none z-10 hover:bg-black/60 transition-colors"
-                        >
-                            <GripVertical className="w-4 h-4 text-white" />
-                        </div>
-                    )}
+                    {/* Move buttons */}
+                    <div className="absolute top-2 left-2 flex gap-1 z-10">
+                        {canMoveLeft && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onMoveLeft?.(); }}
+                                className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/60 transition-colors"
+                            >
+                                <ChevronLeft className="w-4 h-4 text-white" />
+                            </button>
+                        )}
+                        {canMoveRight && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onMoveRight?.(); }}
+                                className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/60 transition-colors"
+                            >
+                                <ChevronRight className="w-4 h-4 text-white" />
+                            </button>
+                        )}
+                    </div>
 
                     {/* Action buttons */}
                     <div className="absolute top-2 right-2 flex gap-1 z-10">

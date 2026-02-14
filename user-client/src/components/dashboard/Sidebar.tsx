@@ -17,7 +17,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState, useEffect } from 'react';
 import { useLogout } from '@/hooks/use-auth';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface SidebarProps {
     businessId: string;
@@ -129,57 +129,49 @@ export function Sidebar({ businessId }: SidebarProps) {
                                 )}
                             />
                             <span className="flex-1 text-left">Business Profile</span>
-                            <motion.div
-                                animate={{ rotate: profileOpen ? 180 : 0 }}
-                                transition={{ duration: 0.2 }}
+                            <div
+                                className="transition-transform duration-200"
+                                style={{ transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                             >
                                 <ChevronDown className="w-4 h-4" />
-                            </motion.div>
+                            </div>
                         </button>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                        <AnimatePresence>
-                            {profileOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="ml-4 mt-1 space-y-1 border-l-2 border-muted pl-4"
-                                >
-                                    {profileLinks.map((link) => {
-                                        const isActive = pathname === link.href;
+                        <div
+                            className="ml-4 mt-1 space-y-1 border-l-2 border-muted pl-4 animate-fade-in"
+                        >
+                            {profileLinks.map((link) => {
+                                const isActive = pathname === link.href;
 
-                                        return (
-                                            <Link
-                                                key={link.href}
-                                                href={link.href}
-                                                onClick={() => setOpen(false)}
-                                            >
-                                                <div
-                                                    className={cn(
-                                                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer group',
-                                                        isActive
-                                                            ? 'bg-primary/10 text-primary font-semibold'
-                                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                                    )}
-                                                >
-                                                    <link.icon
-                                                        className={cn(
-                                                            'w-4 h-4',
-                                                            isActive
-                                                                ? 'text-primary'
-                                                                : 'text-muted-foreground group-hover:text-foreground',
-                                                        )}
-                                                    />
-                                                    <span className="text-sm">{link.label}</span>
-                                                </div>
-                                            </Link>
-                                        );
-                                    })}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                return (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        <div
+                                            className={cn(
+                                                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer group',
+                                                isActive
+                                                    ? 'bg-primary/10 text-primary font-semibold'
+                                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                            )}
+                                        >
+                                            <link.icon
+                                                className={cn(
+                                                    'w-4 h-4',
+                                                    isActive
+                                                        ? 'text-primary'
+                                                        : 'text-muted-foreground group-hover:text-foreground',
+                                                )}
+                                            />
+                                            <span className="text-sm">{link.label}</span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
                     </CollapsibleContent>
                 </Collapsible>
             </nav>

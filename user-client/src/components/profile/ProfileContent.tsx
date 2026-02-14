@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+
 import { Wifi, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { Business } from '@/lib/api';
@@ -51,10 +51,8 @@ export function ProfileContent({ business }: ProfileContentProps) {
                 <div className="flex-1 overflow-y-auto pt-8 pb-8" style={{ scrollBehavior: 'smooth' }}>
 
                     {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="px-6 text-center space-y-4"
+                    <div
+                        className="px-6 text-center space-y-4 animate-fade-in"
                     >
                         {/* Logo */}
                         <div className="relative w-28 h-28 mx-auto">
@@ -114,18 +112,15 @@ export function ProfileContent({ business }: ProfileContentProps) {
                                 </a>
                             )}
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Posts Grid */}
                     <div className="px-4 mt-8 space-y-6">
 
                         {/* Featured Section */}
                         {featuredPosts.length > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="space-y-3"
+                            <div
+                                className="space-y-3 animate-fade-in"
                             >
                                 <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest px-1">Featured</h3>
                                 <div className="grid gap-4">
@@ -149,16 +144,13 @@ export function ProfileContent({ business }: ProfileContentProps) {
                                         </a>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Gallery Section */}
                         {galleryPosts.length > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="space-y-3"
+                            <div
+                                className="space-y-3 animate-fade-in"
                             >
                                 <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest px-1">Gallery</h3>
                                 <div className="grid grid-cols-2 gap-3">
@@ -176,7 +168,7 @@ export function ProfileContent({ business }: ProfileContentProps) {
                                         </div>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Contact / Links */}

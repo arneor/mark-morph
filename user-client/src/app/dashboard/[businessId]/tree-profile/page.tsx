@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+
 import { Loader2, TreePine } from 'lucide-react';
 import { useBusiness } from '@/hooks/use-businesses';
 import type { TreeProfileData, TreeProfileTheme } from '@/lib/treeProfileTypes';
@@ -103,16 +103,14 @@ export default function TreeProfilePage() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="absolute inset-0 animated-gradient opacity-95" />
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center relative z-10"
+                <div
+                    className="text-center relative z-10 animate-fade-in"
                 >
                     <div className="w-16 h-16 rounded-full gradient-lime-cyan flex items-center justify-center mx-auto mb-4 pulse-glow">
                         <Loader2 className="w-8 h-8 animate-spin text-[#222]" />
                     </div>
                     <div className="text-white font-medium">Loading profile...</div>
-                </motion.div>
+                </div>
             </div>
         );
     }
@@ -122,10 +120,8 @@ export default function TreeProfilePage() {
         return (
             <div className="min-h-screen flex items-center justify-center px-6">
                 <div className="absolute inset-0 animated-gradient opacity-95" />
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 relative z-10"
+                <div
+                    className="text-center bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 relative z-10 animate-fade-in"
                 >
                     <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
                         <TreePine className="w-8 h-8 text-red-400" />
@@ -136,7 +132,7 @@ export default function TreeProfilePage() {
                     <div className="text-white/70">
                         {error?.message || 'Please check the URL and try again.'}
                     </div>
-                </motion.div>
+                </div>
             </div>
         );
     }

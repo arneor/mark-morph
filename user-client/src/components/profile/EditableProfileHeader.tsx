@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+
 import {
     Wifi,
     MapPin,
@@ -69,11 +69,8 @@ export function EditableProfileHeader({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="px-6 pt-8 pb-4 text-center relative"
+        <div
+            className="px-6 pt-8 pb-4 text-center relative animate-fade-in"
         >
             {/* Logo with glowing ring */}
             <div className="relative w-24 h-24 mx-auto mb-4 group">
@@ -115,13 +112,11 @@ export function EditableProfileHeader({
 
                 {/* Edit badge */}
                 {isEditMode && (
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#9EE53B] flex items-center justify-center shadow-lg border-2 border-white"
+                    <div
+                        className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#9EE53B] flex items-center justify-center shadow-lg border-2 border-white animate-fade-in"
                     >
                         <Pencil className="w-4 h-4 text-[#222]" />
-                    </motion.div>
+                    </div>
                 )}
             </div>
 
@@ -141,10 +136,8 @@ export function EditableProfileHeader({
                         )}
                     </div>
                 ) : (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center gap-2 justify-center"
+                    <div
+                        className="flex items-center gap-2 justify-center animate-fade-in"
                     >
                         <Input
                             value={tempName}
@@ -168,7 +161,7 @@ export function EditableProfileHeader({
                         >
                             <X className="w-4 h-4" />
                         </Button>
-                    </motion.div>
+                    </div>
                 )}
             </div>
 
@@ -187,10 +180,8 @@ export function EditableProfileHeader({
                         )}
                     </div>
                 ) : (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center gap-2 justify-center"
+                    <div
+                        className="flex items-center gap-2 justify-center animate-fade-in"
                     >
                         <Input
                             value={tempAddress}
@@ -214,7 +205,7 @@ export function EditableProfileHeader({
                         >
                             <X className="w-4 h-4" />
                         </Button>
-                    </motion.div>
+                    </div>
                 )}
             </div>
 
@@ -225,6 +216,6 @@ export function EditableProfileHeader({
                     Free WiFi
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

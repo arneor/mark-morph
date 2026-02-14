@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
     Pencil,
     Eye,
@@ -42,10 +42,8 @@ export function ProfileEditControls({
     return (
         <>
             {/* Top Navigation Bar */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="fixed top-0 inset-x-0 max-w-md mx-auto z-50"
+            <div
+                className="fixed top-0 inset-x-0 max-w-md mx-auto z-50 animate-fade-in"
             >
                 <div className="flex items-center justify-between p-4">
                     {/* Back button */}
@@ -79,92 +77,82 @@ export function ProfileEditControls({
                         )}
                     </Button>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Edit Mode Banner */}
-            <AnimatePresence>
-                {isEditMode && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -50 }}
-                        className="fixed top-16 inset-x-0 max-w-md mx-auto z-40 px-4"
-                    >
-                        <div className="bg-[#9EE53B]/20 backdrop-blur-sm border border-[#9EE53B]/30 rounded-2xl p-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Pencil className="w-4 h-4 text-[#9EE53B]" />
-                                <span className="text-sm font-medium text-white">
-                                    Edit Mode
-                                    {hasUnsavedChanges && (
-                                        <span className="text-[#FFD93D] ml-2">• Unsaved changes</span>
-                                    )}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={toggleEditMode}
-                                    className="h-8 px-3 text-white/70 hover:text-white hover:bg-white/10"
-                                >
-                                    <X className="w-4 h-4 mr-1" />
-                                    Cancel
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={onSave}
-                                    disabled={!hasUnsavedChanges || isSaving}
-                                    className="h-8 px-4 bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 disabled:opacity-50"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-4 h-4 mr-1" />
-                                            Publish
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
+            {isEditMode && (
+                <div
+                    className="fixed top-16 inset-x-0 max-w-md mx-auto z-40 px-4 animate-slide-up"
+                >
+                    <div className="bg-[#9EE53B]/20 backdrop-blur-sm border border-[#9EE53B]/30 rounded-2xl p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Pencil className="w-4 h-4 text-[#9EE53B]" />
+                            <span className="text-sm font-medium text-white">
+                                Edit Mode
+                                {hasUnsavedChanges && (
+                                    <span className="text-[#FFD93D] ml-2">• Unsaved changes</span>
+                                )}
+                            </span>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Fixed Bottom Save Bar (when unsaved changes exist in edit mode) */}
-            <AnimatePresence>
-                {isEditMode && hasUnsavedChanges && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        className="fixed bottom-0 inset-x-0 max-w-md mx-auto z-50"
-                    >
-                        <div className="bg-black/60 backdrop-blur-2xl border-t border-white/10 p-4">
+                        <div className="flex items-center gap-2">
                             <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={toggleEditMode}
+                                className="h-8 px-3 text-white/70 hover:text-white hover:bg-white/10"
+                            >
+                                <X className="w-4 h-4 mr-1" />
+                                Cancel
+                            </Button>
+                            <Button
+                                size="sm"
                                 onClick={onSave}
-                                disabled={isSaving}
-                                className="w-full h-14 text-lg font-bold rounded-2xl bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 disabled:opacity-50"
+                                disabled={!hasUnsavedChanges || isSaving}
+                                className="h-8 px-4 bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 disabled:opacity-50"
                             >
                                 {isSaving ? (
                                     <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Publishing Changes...
+                                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                        Saving...
                                     </>
                                 ) : (
                                     <>
-                                        <Save className="w-5 h-5 mr-2" />
-                                        Publish Changes
+                                        <Save className="w-4 h-4 mr-1" />
+                                        Publish
                                     </>
                                 )}
                             </Button>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            )}
+
+            {/* Fixed Bottom Save Bar (when unsaved changes exist in edit mode) */}
+            {isEditMode && hasUnsavedChanges && (
+                <div
+                    className="fixed bottom-0 inset-x-0 max-w-md mx-auto z-50 animate-slide-up"
+                >
+                    <div className="bg-black/60 backdrop-blur-2xl border-t border-white/10 p-4">
+                        <Button
+                            onClick={onSave}
+                            disabled={isSaving}
+                            className="w-full h-14 text-lg font-bold rounded-2xl bg-[#9EE53B] text-[#222] hover:bg-[#9EE53B]/90 disabled:opacity-50"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Publishing Changes...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-5 h-5 mr-2" />
+                                    Publish Changes
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

@@ -412,3 +412,18 @@ img {
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
 }
+
+/* Performance: Slide-up animation for modals/sheets (replaces framer-motion spring) */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}

@@ -2,7 +2,6 @@
 
 import { memo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'framer-motion';
 import { TreeProfileData } from '@/lib/treeProfileTypes';
 import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
 import { TreeProfileView } from '@/components/tree-profile/TreeProfileView';
@@ -72,31 +71,20 @@ function TreeProfileEditor({ initialData }: TreeProfileEditorProps) {
             {/* Edit Controls - Lazy Loaded */}
             <TreeProfileEditControls />
 
-            {/* Theme Customizer Sheet - Lazy Loaded & AnimatePresence */}
-            <AnimatePresence>
-                {isEditMode && isThemeOpen && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsThemeOpen(false)}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-                            style={{ willChange: 'opacity' }}
-                        />
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto"
-                            style={{ willChange: 'transform' }}
-                        >
-                            <ThemeCustomizer />
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+            {/* Theme Customizer Sheet - CSS transition */}
+            {isEditMode && isThemeOpen && (
+                <>
+                    <div
+                        onClick={() => setIsThemeOpen(false)}
+                        className="fixed inset-0 bg-black/60 z-40 animate-fade-in"
+                    />
+                    <div
+                        className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto animate-slide-up"
+                    >
+                        <ThemeCustomizer />
+                    </div>
+                </>
+            )}
         </TreeProfileView>
     );
 }

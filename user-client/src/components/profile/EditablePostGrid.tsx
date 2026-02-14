@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import React from "react";
-import { motion, Reorder, useDragControls, DragControls } from "framer-motion";
+
 import {
     Upload,
     Plus,
     Trash2,
     Star,
-    GripVertical,
+    ChevronLeft,
+    ChevronRight,
     Image as ImageIcon,
     Pencil,
     Check
@@ -118,8 +119,21 @@ export function EditablePostGrid({
         setHasUnsavedChanges(true);
     };
 
-    const handleReorder = (newPosts: PostItem[]) => {
-        onPostsChange(newPosts);
+    const handleMoveLeft = (index: number, isFeatured: boolean) => {
+        const arr = isFeatured ? [...featuredPosts] : [...regularPosts];
+        if (index <= 0) return;
+        [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+        const other = isFeatured ? regularPosts : featuredPosts;
+        onPostsChange(isFeatured ? [...arr, ...other] : [...other, ...arr]);
+        setHasUnsavedChanges(true);
+    };
+
+    const handleMoveRight = (index: number, isFeatured: boolean) => {
+        const arr = isFeatured ? [...featuredPosts] : [...regularPosts];
+        if (index >= arr.length - 1) return;
+        [arr[index], arr[index + 1]] = [arr[index + 1], arr[index]];
+        const other = isFeatured ? regularPosts : featuredPosts;
+        onPostsChange(isFeatured ? [...arr, ...other] : [...other, ...arr]);
         setHasUnsavedChanges(true);
     };
 
@@ -153,16 +167,14 @@ export function EditablePostGrid({
                     {isEditMode ? (
                         <div className="space-y-2">
                             <p className="text-xs text-white/50 px-1">
-                                Drag the handle <GripVertical className="inline w-3 h-3" /> to reorder.
+                                Use arrows to reorder.
                             </p>
 
                             <div className="flex gap-3 overflow-x-auto pb-4 pt-2 px-1 touch-auto">
                                 {featuredPosts.length < 3 && (
-                                    <motion.div
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <div
                                         onClick={handleAddBanner}
-                                        className="w-72 flex-shrink-0 aspect-[16/9] rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
+                                        className="w-72 shrink-0 aspect-video rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
                                     >
                                         <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">
                                             <Upload className="w-5 h-5 text-white/50" />
@@ -170,30 +182,24 @@ export function EditablePostGrid({
                                         <span className="text-xs text-white/50 font-medium text-center px-2">
                                             Add Offer Banner
                                         </span>
-                                    </motion.div>
+                                    </div>
                                 )}
 
-                                <Reorder.Group
-                                    axis="x"
-                                    values={featuredPosts}
-                                    onReorder={(newFeatured) => {
-                                        handleReorder([...newFeatured, ...regularPosts]);
-                                    }}
-                                    className="flex gap-3"
-                                >
-                                    {featuredPosts.map((post) => (
-                                        <SortableItem key={post.id} post={post}>
-                                            <PostCard
-                                                post={post}
-                                                isEditMode={isEditMode}
-                                                onDelete={() => handleDelete(post.id)}
-                                                onEdit={() => handleEditPost(post)}
-                                                onToggleFeatured={() => handleToggleFeatured(post.id)}
-                                                isFeaturedSection
-                                            />
-                                        </SortableItem>
-                                    ))}
-                                </Reorder.Group>
+                                {featuredPosts.map((post, index) => (
+                                    <PostCard
+                                        key={post.id}
+                                        post={post}
+                                        isEditMode={isEditMode}
+                                        onDelete={() => handleDelete(post.id)}
+                                        onEdit={() => handleEditPost(post)}
+                                        onToggleFeatured={() => handleToggleFeatured(post.id)}
+                                        isFeaturedSection
+                                        canMoveLeft={index > 0}
+                                        canMoveRight={index < featuredPosts.length - 1}
+                                        onMoveLeft={() => handleMoveLeft(index, true)}
+                                        onMoveRight={() => handleMoveRight(index, true)}
+                                    />
+                                ))}
                             </div>
                         </div>
                     ) : (
@@ -272,7 +278,7 @@ export function EditablePostGrid({
                     {isEditMode && regularPosts.length < maxPosts && (
                         <div
                             onClick={handleAddPost}
-                            className="aspect-[4/5] rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
+                            className="aspect-4/5 rounded-2xl border-2 border-dashed border-white/30 bg-white/5 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 hover:border-white/50 transition-all"
                         >
                             <Upload className="w-8 h-8 text-white/50 mb-2" />
                             <span className="text-xs text-white/50 font-medium">
@@ -370,29 +376,6 @@ export function EditablePostGrid({
     );
 }
 
-// Wrapper to handle drag controls
-interface SortableItemProps {
-    post: PostItem;
-    children: React.ReactElement<{ dragControls?: DragControls }>;
-    className?: string;
-}
-
-function SortableItem({ post, children, className }: SortableItemProps) {
-    const dragControls = useDragControls();
-
-    return (
-        <Reorder.Item
-            value={post}
-            dragListener={false}
-            dragControls={dragControls}
-            className={`relative ${className || ''}`}
-        >
-            {/* Clone the child to inject dragControls */}
-            {React.cloneElement(children, { dragControls } as { dragControls: DragControls })}
-        </Reorder.Item>
-    );
-}
-
 // Individual Post Card Component
 interface PostCardProps {
     post: PostItem;
@@ -401,7 +384,10 @@ interface PostCardProps {
     onDelete?: () => void;
     onEdit?: () => void;
     onToggleFeatured?: () => void;
-    dragControls?: DragControls;
+    canMoveLeft?: boolean;
+    canMoveRight?: boolean;
+    onMoveLeft?: () => void;
+    onMoveRight?: () => void;
 }
 
 function PostCard({
@@ -411,18 +397,17 @@ function PostCard({
     onDelete,
     onEdit,
     onToggleFeatured,
-    dragControls,
+    canMoveLeft,
+    canMoveRight,
+    onMoveLeft,
+    onMoveRight,
 }: PostCardProps) {
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: isEditMode ? 1.02 : 1.03 }}
-            className={`relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl group ${isFeaturedSection ? "w-72 flex-shrink-0" : "w-full"
+        <div
+            className={`relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl group animate-fade-in hover:scale-[1.02] transition-transform ${isFeaturedSection ? "w-72 shrink-0" : "w-full"
                 }`}
         >
-            <div className={isFeaturedSection ? "aspect-[16/9]" : "aspect-[4/5]"}>
+            <div className={isFeaturedSection ? "aspect-video" : "aspect-4/5"}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={post.url}
@@ -432,7 +417,7 @@ function PostCard({
             </div>
 
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
             {/* Content */}
             <div className="absolute inset-x-0 bottom-0 p-3">
@@ -452,13 +437,25 @@ function PostCard({
             {/* Edit Mode Controls */}
             {isEditMode && (
                 <>
-                    {/* Drag handle - ONLY show if dragControls provided (banners) */}
-                    {dragControls && (
-                        <div
-                            onPointerDown={(e) => dragControls.start(e)}
-                            className="absolute top-2 left-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center cursor-grab active:cursor-grabbing touch-none z-10 hover:bg-black/60 transition-colors"
-                        >
-                            <GripVertical className="w-4 h-4 text-white" />
+                    {/* Move buttons */}
+                    {isFeaturedSection && (
+                        <div className="absolute top-2 left-2 flex gap-1 z-10">
+                            {canMoveLeft && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onMoveLeft?.(); }}
+                                    className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4 text-white" />
+                                </button>
+                            )}
+                            {canMoveRight && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onMoveRight?.(); }}
+                                    className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
+                                >
+                                    <ChevronRight className="w-4 h-4 text-white" />
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -491,6 +488,6 @@ function PostCard({
                     <div className="absolute inset-0 border-2 border-[#9EE53B]/50 rounded-2xl pointer-events-none" />
                 </>
             )}
-        </motion.div>
+        </div>
     );
 }
