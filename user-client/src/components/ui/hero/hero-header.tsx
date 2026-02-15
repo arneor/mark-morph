@@ -13,8 +13,6 @@ export function HeroHeader() {
     const [particles, setParticles] = useState<Array<{ left: string; top: string; targetX: number }>>([])
 
     useEffect(() => {
-        if (isMobile) return;
-
         const timer = setTimeout(() => {
             setParticles(
                 Array.from({ length: 6 }).map(() => ({
@@ -25,7 +23,7 @@ export function HeroHeader() {
             )
         }, 0)
         return () => clearTimeout(timer)
-    }, [isMobile])
+    }, [])
 
     return (
         <header className="relative z-50 flex items-center justify-between p-6">
