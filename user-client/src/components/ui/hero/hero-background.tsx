@@ -21,7 +21,7 @@ export function HeroBackground() {
     }, [])
 
     return (
-        <div className="absolute inset-0 w-full h-full bg-white will-change-transform">
+        <div className="absolute inset-0 w-full h-full bg-slate-950 will-change-transform">
             {/* 
                 Static CSS Gradient Fallback 
                 This renders immediately on the server/initial HTML, preventing the "black void"
@@ -31,11 +31,12 @@ export function HeroBackground() {
                 className="absolute inset-0 w-full h-full opacity-80"
                 style={{
                     background: `
-                        radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.4) 0%, transparent 50%),
-                        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
-                        radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.1) 0%, transparent 50%)
+                        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 1) 100%),
+                        radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.5) 0%, transparent 40%),
+                        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.4) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 80%, rgba(249, 115, 22, 0.3) 0%, transparent 40%)
                     `,
-                    filter: 'blur(40px)'
+                    filter: 'blur(60px)'
                 }}
             />
 
