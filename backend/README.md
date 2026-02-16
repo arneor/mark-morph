@@ -1,6 +1,6 @@
-# MARK MORPH MVP Backend
+# LINKBEET MVP Backend
 
-High-performance NestJS backend for the MARK MORPH Wi-Fi advertising platform.
+High-performance NestJS backend for the LINKBEET Wi-Fi advertising platform.
 
 ## 🚀 Tech Stack
 
@@ -49,7 +49,7 @@ cp .env.example .env
 
 # Start MongoDB (if not running)
 # Using Docker:
-docker run -d -p 27017:27017 --name markmorph-mongo mongo:7
+docker run -d -p 27017:27017 --name linkbeet-mongo mongo:7
 
 # Run development server
 npm run start:dev
@@ -146,7 +146,7 @@ In development mode (`NODE_ENV=development`):
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Server port | 3001 |
-| `MONGODB_URI` | MongoDB connection string | localhost:27017/markmorph_dev |
+| `MONGODB_URI` | MongoDB connection string | localhost:27017/linkbeet_dev |
 | `JWT_SECRET` | JWT signing secret | (required) |
 | `JWT_EXPIRES_IN` | Token expiry | 7d |
 | `MSG91_AUTH_KEY` | MSG91 API key | (optional for dev) |
@@ -175,7 +175,7 @@ export NODE_ENV=production
 export MONGODB_URI=mongodb+srv://...
 
 # Run with PM2
-pm2 start dist/main.js --name markmorph-api
+pm2 start dist/main.js --name linkbeet-api
 ```
 
 ## 📝 License

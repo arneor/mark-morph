@@ -30,7 +30,7 @@ import { MediaModule } from './modules/media/media.module';
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
-                uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/markmorph_dev',
+                uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/linkbeet_dev',
             }),
             inject: [ConfigService],
         }),

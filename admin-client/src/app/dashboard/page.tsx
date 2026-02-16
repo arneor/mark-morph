@@ -541,7 +541,7 @@ export default function AdminDashboardPage() {
                                                                     size="sm"
                                                                     onClick={() =>
                                                                         window.open(
-                                                                            `${process.env.NEXT_PUBLIC_CUSTOMER_APP_URL || 'https://www.markmorph.in'}/splash/${biz.id}`,
+                                                                            `${process.env.NEXT_PUBLIC_CUSTOMER_APP_URL || 'https://www.linkbeet.in'}/splash/${biz.id}`,
                                                                             '_blank',
                                                                             'noopener,noreferrer'
                                                                         )

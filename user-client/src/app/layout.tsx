@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.markmorph.in'),
+  metadataBase: new URL('https://www.linkbeet.in'),
   title: {
     default: 'LinkBeet - WiFi & Marketing Platform',
     template: '%s | LinkBeet',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://www.markmorph.in',
+    url: 'https://www.linkbeet.in',
     siteName: 'LinkBeet',
     title: 'LinkBeet - WiFi & Marketing Platform',
     description: 'Turn your WiFi into a marketing machine. Engage customers, collect leads, and boost sales.',
@@ -113,8 +113,8 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
       <head>
         {/* Performance: DNS prefetch + preconnect for API server (saves 200-500ms on mobile) */}
-        <link rel="dns-prefetch" href="https://mark-morph.onrender.com" />
-        <link rel="preconnect" href="https://mark-morph.onrender.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://link-beet.onrender.com" />
+        <link rel="preconnect" href="https://link-beet.onrender.com" crossOrigin="anonymous" />
       </head>
       <body className="font-sans antialiased">
         <Providers>

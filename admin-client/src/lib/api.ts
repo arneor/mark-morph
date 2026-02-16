@@ -1,11 +1,11 @@
 /**
- * Admin API Client for MarkMorph Admin Dashboard
+ * Admin API Client for Linkbeet Admin Dashboard
  * Separate from customer API for security isolation
  */
 
 // API Base URL
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-    (process.env.NODE_ENV === 'development' ? "http://localhost:3001/api" : "https://mark-morph.onrender.com/api");
+    (process.env.NODE_ENV === 'development' ? "http://localhost:3001/api" : "https://link-beet.onrender.com/api");
 
 // API error class
 export class ApiError extends Error {

@@ -1,7 +1,7 @@
 {
-    "name": "mark-morph-backend",
+    "name": "linkbeet-backend",
     "version": "1.0.0",
-    "description": "MARK MORPH MVP Backend - Wi-Fi Advertising Platform API",
+    "description": "LINKBEET MVP Backend - Wi-Fi Advertising Platform API",
     "main": "dist/main.js",
     "scripts": {
         "build": "nest build",

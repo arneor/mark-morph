@@ -23,7 +23,7 @@ User-agent: *
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://www.markmorph.in/sitemap.xml
+Sitemap: https://www.linkbeet.in/sitemap.xml
 
 # Host directive
-Host: https://www.markmorph.in
+Host: https://www.linkbeet.in

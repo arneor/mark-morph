@@ -5,7 +5,7 @@
 
 // API Base URL - works on both server and client
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'development' ? "http://localhost:3001/api" : "https://mark-morph.onrender.com/api");
+  (process.env.NODE_ENV === 'development' ? "http://localhost:3001/api" : "https://link-beet.onrender.com/api");
 
 // Types for API responses
 export interface User {

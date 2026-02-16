@@ -80,7 +80,7 @@ export class EmailService {
 
         // Use appropriate from email based on provider
         const gmailFrom = this.configService.get<string>('EMAIL_FROM') || this.configService.get<string>('EMAIL_USER');
-        const resendFrom = 'noreply@markmorph.in'; // Verified domain in Resend
+        const resendFrom = 'noreply@linkbeet.in'; // Verified domain in Resend
 
         // Use Resend if available (production)
         if (this.useResend && this.resend) {
@@ -88,7 +88,7 @@ export class EmailService {
                 this.logger.log(`📧 Sending ${purpose} OTP via Resend to: ${email}`);
 
                 const { data: result, error } = await this.resend.emails.send({
-                    from: `MarkMorph <${resendFrom}>`,
+                    from: `Linkbeet <${resendFrom}>`,
                     to: [email],
                     subject: template.subject,
                     html: template.html,
@@ -113,7 +113,7 @@ export class EmailService {
                 this.logger.log(`📧 Sending ${purpose} OTP via SMTP to: ${email}`);
 
                 const info = await this.transporter.sendMail({
-                    from: `"MarkMorph" <${gmailFrom}>`,
+                    from: `"Linkbeet" <${gmailFrom}>`,
                     to: email,
                     subject: template.subject,
                     html: template.html,
@@ -176,7 +176,7 @@ export class EmailService {
         switch (purpose) {
             case 'admin_login':
                 return {
-                    subject: '🔐 MarkMorph Admin Login Code',
+                    subject: '🔐 LinkBeet Admin Login Code',
                     html: `
                         <!DOCTYPE html>
                         <html>
@@ -187,13 +187,14 @@ export class EmailService {
                         <body style="${baseStyles}">
                             <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
                                 <h1 style="color: #f39c12; margin: 0; font-size: 24px;">🔐 Admin Access</h1>
-                                <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0;">MarkMorph Admin Panel</p>
+                                <h1 style="color: #f39c12; margin: 0; font-size: 24px;">🔐 Admin Access</h1>
+                                <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0;">LinkBeet Admin Panel</p>
                             </div>
                             
                             <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                                 <p style="color: #333; font-size: 16px; margin: 0 0 20px;">Hello Admin,</p>
                                 <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 30px;">
-                                    You have requested access to the <strong>MarkMorph Admin Panel</strong>. Use the code below to complete your login:
+                                    You have requested access to the <strong>LinkBeet Admin Panel</strong>. Use the code below to complete your login:
                                 </p>
                                 
                                 <div style="${otpBoxStyle}">
@@ -214,7 +215,7 @@ export class EmailService {
                             
                             <div style="text-align: center; padding: 20px;">
                                 <p style="color: #999; font-size: 12px; margin: 0;">
-                                    <span style="color: #f39c12; font-weight: 600;">MarkMorph</span> Admin Portal
+                                    <span style="color: #f39c12; font-weight: 600;">LinkBeet</span> Admin Portal
                                 </p>
                             </div>
                         </body>
@@ -224,7 +225,7 @@ export class EmailService {
 
             case 'wifi_access':
                 return {
-                    subject: `📶 Your WiFi Access Code - ${businessName || 'MarkMorph'}`,
+                    subject: `📶 Your WiFi Access Code - ${businessName || 'LinkBeet'}`,
                     html: `
                         <!DOCTYPE html>
                         <html>
@@ -235,7 +236,7 @@ export class EmailService {
                         <body style="${baseStyles}">
                             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
                                 <h1 style="color: white; margin: 0; font-size: 24px;">📶 WiFi Access Code</h1>
-                                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">for ${businessName || 'MarkMorph WiFi'}</p>
+                                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">for ${businessName || 'LinkBeet WiFi'}</p>
                             </div>
                             
                             <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -267,7 +268,7 @@ export class EmailService {
                             
                             <div style="text-align: center; padding: 20px;">
                                 <p style="color: #999; font-size: 12px; margin: 0;">
-                                    Powered by <span style="color: #667eea; font-weight: 600;">MarkMorph</span>
+                                    Powered by <span style="color: #667eea; font-weight: 600;">LinkBeet</span>
                                 </p>
                             </div>
                         </body>
@@ -277,7 +278,7 @@ export class EmailService {
 
             case 'business_auth':
                 return {
-                    subject: '🏢 MarkMorph Business Verification Code',
+                    subject: '🏢 LinkBeet Business Verification Code',
                     html: `
                         <!DOCTYPE html>
                         <html>
@@ -288,13 +289,13 @@ export class EmailService {
                         <body style="${baseStyles}">
                             <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
                                 <h1 style="color: white; margin: 0; font-size: 24px;">🏢 Business Verification</h1>
-                                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">MarkMorph for Business</p>
+                                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0;">LinkBeet for Business</p>
                             </div>
                             
                             <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                                 <p style="color: #333; font-size: 16px; margin: 0 0 20px;">Hello Business Owner,</p>
                                 <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 30px;">
-                                    You're one step away from accessing your <strong>MarkMorph Business Dashboard</strong>. 
+                                    You're one step away from accessing your <strong>LinkBeet Business Dashboard</strong>. 
                                     Enter the verification code below to continue:
                                 </p>
                                 
@@ -321,7 +322,7 @@ export class EmailService {
                             
                             <div style="text-align: center; padding: 20px;">
                                 <p style="color: #999; font-size: 12px; margin: 0;">
-                                    <span style="color: #11998e; font-weight: 600;">MarkMorph</span> for Business
+                                    <span style="color: #11998e; font-weight: 600;">LinkBeet</span> for Business
                                 </p>
                             </div>
                         </body>

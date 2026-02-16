@@ -27,7 +27,7 @@ export class HealthController {
             uptime: process.uptime(),
             environment: process.env.NODE_ENV || 'development',
             version: '1.0.0',
-            service: 'mark-morph-backend',
+            service: 'linkbeet-backend',
         };
     }
 

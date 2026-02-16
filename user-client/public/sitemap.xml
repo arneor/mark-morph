@@ -6,7 +6,7 @@
   
   <!-- Homepage - Highest Priority -->
   <url>
-    <loc>https://www.markmorph.in/</loc>
+    <loc>https://www.linkbeet.in/</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
   
   <!-- Cornerstone Content -->
   <url>
-    <loc>https://www.markmorph.in/how-it-works</loc>
+    <loc>https://www.linkbeet.in/how-it-works</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -22,14 +22,14 @@
   
   <!-- Authentication Pages -->
   <url>
-    <loc>https://www.markmorph.in/login</loc>
+    <loc>https://www.linkbeet.in/login</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/signup</loc>
+    <loc>https://www.linkbeet.in/signup</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -37,98 +37,98 @@
   
   <!-- ========== KERALA CITIES (MVP PRIORITY) ========== -->
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kochi</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kochi</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/thiruvananthapuram</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/thiruvananthapuram</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kozhikode</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kozhikode</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/thrissur</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/thrissur</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kollam</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kollam</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/alappuzha</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/alappuzha</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kannur</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kannur</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kottayam</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kottayam</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/palakkad</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/palakkad</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/malappuram</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/malappuram</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/idukki</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/idukki</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/wayanad</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/wayanad</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/pathanamthitta</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/pathanamthitta</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/kasaragod</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/kasaragod</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -136,42 +136,42 @@
   
   <!-- ========== OTHER MAJOR INDIAN CITIES ========== -->
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/bangalore</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/bangalore</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/mumbai</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/mumbai</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/delhi</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/delhi</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/hyderabad</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/hyderabad</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/chennai</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/chennai</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://www.markmorph.in/wifi-marketing/pune</loc>
+    <loc>https://www.linkbeet.in/wifi-marketing/pune</loc>
     <lastmod>2026-02-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

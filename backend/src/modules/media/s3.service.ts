@@ -70,7 +70,6 @@ export class S3Service {
                 Key: key,
                 Body: file.buffer,
                 ContentType: file.mimetype,
-                ACL: 'public-read',
             }));
 
             // 3. Construct URL (Direct S3 URL or CloudFront)

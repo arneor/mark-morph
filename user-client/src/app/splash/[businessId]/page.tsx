@@ -62,7 +62,7 @@ export async function generateMetadata(
             follow: true,
         },
         alternates: {
-            canonical: `https://www.markmorph.in/splash/${businessId}`,
+            canonical: `https://www.linkbeet.in/splash/${businessId}`,
         },
     };
 }

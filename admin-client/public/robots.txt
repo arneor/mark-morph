@@ -1,8 +1,8 @@
-# LinkBeet ADMIN - Robots.txt
+# LINKBEET Admin - Robots.txt
 # Private Admin Portal
 
 User-agent: *
 Disallow: /
 
 # Host directive
-Host: https://admin.markmorph.in
+Host: https://www.linkbeet.in

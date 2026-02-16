@@ -37,7 +37,7 @@ export class AdminService {
     // To add new admin: just add email to this array
     private readonly ADMIN_EMAILS = [
         'infonidhinlal@gmail.com',
-        'insidemarkmorph@gmail.com',
+        'linkbeet@gmail.com',
         // Add more admin emails here as needed
     ];
 

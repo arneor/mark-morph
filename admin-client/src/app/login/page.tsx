@@ -203,11 +203,11 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a1a] via-[#111827] to-[#0a0a1a] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#0a0a1a] via-[#111827] to-[#0a0a1a] p-4">
             {/* Animated background */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-[#9EE53B]/5 to-transparent rounded-full blur-3xl animate-pulse" />
-                <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-l from-[#43E660]/5 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-r from-[#9EE53B]/5 to-transparent rounded-full blur-3xl animate-pulse" />
+                <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-l from-[#43E660]/5 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
             <motion.div
@@ -220,7 +220,7 @@ export default function AdminLoginPage() {
                     <CardContent className="p-8">
                         {/* Logo & Title */}
                         <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#9EE53B] to-[#43E660] mb-4 shadow-lg shadow-[#9EE53B]/30">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-linear-to-br from-[#9EE53B] to-[#43E660] mb-4 shadow-lg shadow-[#9EE53B]/30">
                                 <Shield className="w-8 h-8 text-[#0a0a1a]" />
                             </div>
                             <h1 className="text-2xl font-bold text-white mb-2">Admin Portal</h1>
@@ -409,7 +409,7 @@ export default function AdminLoginPage() {
                 {/* Footer */}
                 <div className="mt-6 text-center">
                     <p className="text-white/30 text-xs">
-                        Secure Admin Access • MarkMorph Platform
+                        Secure Admin Access • Linkbeet Platform
                     </p>
                 </div>
             </motion.div>

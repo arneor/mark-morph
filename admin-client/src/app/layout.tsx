@@ -8,10 +8,10 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'MarkMorph Admin',
-    template: '%s | MarkMorph Admin',
+    default: 'Linkbeet Admin',
+    template: '%s | Linkbeet Admin',
   },
-  description: 'Comprehensive admin dashboard for managing the MarkMorph platform.',
+  description: 'Comprehensive admin dashboard for managing the Linkbeet platform.',
   icons: {
     icon: [
       { url: '/favicon.ico' },
@@ -48,15 +48,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'MarkMorph Admin',
-    title: 'MarkMorph Admin Dashboard',
-    description: 'Manage your MarkMorph business and settings.',
+    siteName: 'Linkbeet Admin',
+    title: 'Linkbeet Admin Dashboard',
+    description: 'Manage your Linkbeet business and settings.',
     images: [
       {
         url: '/ms-icon-310x310.png',
         width: 310,
         height: 310,
-        alt: 'MarkMorph Admin',
+        alt: 'Linkbeet Admin',
       },
     ],
   },

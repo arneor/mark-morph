@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Mail, Instagram, Facebook } from "lucide-react"
 import Image from "next/image"
+import { Icons } from "@/components/ui/icons"
 
 function StackedCircularFooter() {
     return (
@@ -37,6 +38,12 @@ function StackedCircularFooter() {
                             <Link href="https://www.facebook.com/Linkbeet/" target="_blank" rel="noopener noreferrer">
                                 <Facebook className="h-4 w-4" />
                                 <span className="sr-only">Facebook</span>
+                            </Link>
+                        </Button>
+                        <Button variant="outline" size="icon" className="rounded-full" asChild>
+                            <Link href="https://x.com/Linkbeet" target="_blank" rel="noopener noreferrer">
+                                <Icons.x className="h-4 w-4 fill-current" />
+                                <span className="sr-only">X (Twitter)</span>
                             </Link>
                         </Button>
                         <Button variant="outline" size="icon" className="rounded-full" asChild>

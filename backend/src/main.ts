@@ -17,7 +17,7 @@ async function bootstrap() {
     const origins = process.env.CORS_ORIGINS;
     const corsOrigins = origins
         ? origins.split(',').map(o => o.trim())
-        : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002', 'http://localhost:5173', 'http://127.0.0.1:3000', 'https://www.markmorph.in', 'https://markmorph.in', 'https://admin.markmorph.in'];
+        : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002', 'http://localhost:5173', 'http://127.0.0.1:3000', 'https://www.linkbeet.in', 'https://admin.linkbeet.in'];
 
     app.enableCors({
         origin: corsOrigins,
@@ -46,7 +46,7 @@ async function bootstrap() {
 
     // Swagger API Documentation
     const config = new DocumentBuilder()
-        .setTitle('MARK MORPH API')
+        .setTitle('LINKBEET API')
         .setDescription('Wi-Fi Advertising Platform MVP Backend API')
         .setVersion('1.0')
         .addBearerAuth(
@@ -74,7 +74,7 @@ async function bootstrap() {
     const port = process.env.PORT || 3001;
     await app.listen(port);
 
-    logger.log(`🚀 MARK MORPH Backend is running on: http://localhost:${port}`);
+    logger.log(`🚀 LINKBEET Backend is running on: http://localhost:${port}`);
     logger.log(`📚 API Documentation: http://localhost:${port}/docs`);
     logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 }
