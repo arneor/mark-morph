@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     default: 'Linkbeet Admin',
     template: '%s | Linkbeet Admin',
   },
+  metadataBase: new URL('https://admin.linkbeet.in'),
   description: 'Comprehensive admin dashboard for managing the Linkbeet platform.',
   icons: {
     icon: [

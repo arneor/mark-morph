@@ -6,7 +6,6 @@ import {
   HttpStatus,
   UseGuards,
   Get,
-  Request,
   Logger,
 } from "@nestjs/common";
 import {
@@ -32,12 +31,16 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post("signup")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register new account" })
-  @ApiResponse({ status: 201, description: "Account created, OTP sent to email", type: OtpResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: "Account created, OTP sent to email",
+    type: OtpResponseDto,
+  })
   @ApiResponse({ status: 400, description: "Email already exists" })
   async signup(@Body() dto: SignupDto): Promise<OtpResponseDto> {
     this.logger.log(`Signup request for ${dto.email}`);
@@ -48,7 +51,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: "Login with credentials" })
-  @ApiResponse({ status: 200, description: "Credentials valid, OTP sent to email", type: OtpResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: "Credentials valid, OTP sent to email",
+    type: OtpResponseDto,
+  })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
   async login(@Body() dto: LoginDto): Promise<OtpResponseDto> {
     this.logger.log(`Login request for ${dto.email}`);
@@ -58,7 +65,11 @@ export class AuthController {
   @Post("verify-otp")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verify OTP and get Token" })
-  @ApiResponse({ status: 200, description: "OTP verified, Token issued", type: AuthResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: "OTP verified, Token issued",
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 401, description: "Invalid OTP" })
   async verifyOtp(@Body() dto: VerifyEmailOtpDto): Promise<AuthResponseDto> {
     return this.authService.verifyEmailOtp(dto);

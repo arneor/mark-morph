@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { adminApi, AdminBusinessDetails as AdminBusinessDetailsType } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import {
     ArrowLeft,
     Building2,
@@ -151,9 +152,9 @@ export default function AdminBusinessDetailsPage() {
 
                 {/* Business Header Profile */}
                 <div className="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-xl border shadow-sm">
-                    <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border">
+                    <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border relative">
                         {business.logoUrl ? (
-                            <img src={business.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                            <Image src={business.logoUrl} alt="Logo" fill className="object-cover" />
                         ) : (
                             <Building2 className="w-10 h-10 opacity-50" />
                         )}
@@ -249,7 +250,7 @@ export default function AdminBusinessDetailsPage() {
 
                 {/* Top Performing Content */}
                 <Card className="border-0 shadow-lg bg-white overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+                    <CardHeader className="bg-linear-to-r from-gray-900 to-gray-800 text-white">
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="flex items-center gap-2">
@@ -270,9 +271,9 @@ export default function AdminBusinessDetailsPage() {
                                         <div className="flex items-center justify-center w-8 font-bold text-gray-400 mr-4">
                                             #{index + 1}
                                         </div>
-                                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0 border mr-4">
+                                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0 border mr-4 relative">
                                             {post.mediaUrl ? (
-                                                <img src={post.mediaUrl} className="w-full h-full object-cover" alt="" />
+                                                <Image src={post.mediaUrl} fill className="object-cover" alt="" />
                                             ) : (
                                                 <div className="w-full h-full bg-slate-200" />
                                             )}

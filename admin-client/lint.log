@@ -1,0 +1,12 @@
+
+> admin-client@0.1.0 lint
+> eslint
+
+
+/Users/nidhin/My/DEVELOPMENT/BUSSINESS/WEB/mark-morph/admin-client/src/app/business/[id]/page.tsx
+    6:44  warning  'AdminBusinessDetailsType' is defined but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  156:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  275:49  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 3 problems (0 errors, 3 warnings)
+
