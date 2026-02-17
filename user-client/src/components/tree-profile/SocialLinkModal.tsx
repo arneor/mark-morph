@@ -1,10 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 
 import { X, Trash2, Link as LinkIcon, Instagram, Facebook, Twitter, Youtube, Linkedin, Mail, Phone } from 'lucide-react';
-import { SocialLink } from '@/lib/treeProfileTypes';
-import { cn } from '@/lib/utils';
+import { SocialLink, TreeProfileTheme } from '@/lib/treeProfileTypes';
+import { cn, isColorExclusivelyDark } from '@/lib/utils';
+
+// Client-side mount detection without useEffect setState
+const emptySubscribe = () => () => { };
+function useIsMounted() {
+    return useSyncExternalStore(
+        emptySubscribe,
+        () => true,   // client: mounted
+        () => false    // server: not mounted
+    );
+}
 
 // Custom Icons
 const WhatsAppIcon = () => (
@@ -37,12 +48,32 @@ interface SocialLinkModalProps {
     onSave: (linkData: { platform: string; url: string; label?: string }) => void;
     onDelete?: () => void;
     initialData?: SocialLink | null;
+    theme: TreeProfileTheme;
 }
 
-export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData }: SocialLinkModalProps) {
+export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData, theme }: SocialLinkModalProps) {
     const [selectedPlatform, setSelectedPlatform] = useState<string>(initialData?.platform || 'instagram');
     const [url, setUrl] = useState(initialData?.url || '');
     const [label, setLabel] = useState(initialData?.label || '');
+    const mounted = useIsMounted();
+
+    const isLightTheme = isColorExclusivelyDark(theme.textColor);
+
+    // Dynamic Styles
+    const styles = {
+        modalBg: isLightTheme ? 'bg-white border-black/10' : 'bg-[#0f1016] border-white/10',
+        inputBg: isLightTheme ? 'bg-black/5 border-black/10 focus:border-black/30' : 'bg-black/40 border-white/10 focus:border-white/30',
+        text: isLightTheme ? 'text-black' : 'text-white',
+        textMuted: isLightTheme ? 'text-black/60' : 'text-white/60',
+        textDim: isLightTheme ? 'text-black/40' : 'text-white/40',
+        placeholder: isLightTheme ? 'placeholder-black/40' : 'placeholder-white/40',
+        closeBtn: isLightTheme ? 'bg-black/5 text-black/70 hover:text-black hover:bg-black/10' : 'bg-white/10 text-white/70 hover:text-white hover:bg-white/20',
+        primaryBtn: isLightTheme ? 'bg-black text-white hover:bg-black/90' : 'bg-white text-black hover:bg-white/90',
+        optionBtn: isLightTheme ? 'bg-transparent text-black/50 border-black/10 hover:bg-black/5 hover:text-black/80' : 'bg-transparent text-white/50 border-white/10 hover:bg-white/5 hover:text-white/80',
+        optionBtnActive: isLightTheme ? 'bg-black/10 text-black border-black/30' : 'bg-white/10 text-white border-white/30',
+        label: isLightTheme ? 'text-black/40' : 'text-white/40',
+        deleteBtn: 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20',
+    };
 
     const handleSave = () => {
         if (!url) return;
@@ -50,28 +81,33 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
         onClose();
     };
 
+    if (!mounted) return null;
+
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <>
             {/* Backdrop */}
             <div
                 onClick={onClose}
-                className="fixed inset-0 bg-black/60 z-60 animate-fade-in"
+                className="fixed inset-0 bg-black/60 z-50 animate-fade-in"
             />
 
             {/* Modal */}
-            <div className="fixed inset-0 flex items-center justify-center z-70 p-4 pointer-events-none">
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
                 <div
-                    className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl pointer-events-auto animate-fade-in"
+                    className={cn(
+                        "w-full max-w-sm border rounded-3xl p-6 shadow-2xl pointer-events-auto animate-fade-in",
+                        styles.modalBg
+                    )}
                 >
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-white font-bold text-lg">
+                        <h3 className={cn("font-bold text-lg", styles.text)}>
                             {initialData ? 'Edit Social Link' : 'Add Social Link'}
                         </h3>
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                            className={cn("p-2 rounded-full transition-colors", styles.closeBtn)}
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -84,8 +120,8 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                                 key={p.id}
                                 onClick={() => setSelectedPlatform(p.id)}
                                 className={cn(
-                                    "aspect-square rounded-xl flex items-center justify-center text-white/50 hover:bg-white/5 hover:text-white transition-all border border-transparent",
-                                    selectedPlatform === p.id && "bg-white/10 text-white border-white/20 shadow-lg shadow-white/5"
+                                    "aspect-square rounded-xl flex items-center justify-center transition-all border",
+                                    selectedPlatform === p.id ? styles.optionBtnActive : styles.optionBtn
                                 )}
                                 title={p.label}
                             >
@@ -97,11 +133,11 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                     {/* Inputs */}
                     <div className="space-y-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider pl-1">
+                            <label className={cn("text-xs font-semibold uppercase tracking-wider pl-1", styles.label)}>
                                 Link URL / Number
                             </label>
                             <div className="relative">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">
+                                <div className={cn("absolute left-3 top-1/2 -translate-y-1/2", styles.textDim)}>
                                     <LinkIcon className="w-4 h-4" />
                                 </div>
                                 <input
@@ -109,21 +145,33 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                                     value={url}
                                     onChange={(e) => setUrl(e.target.value)}
                                     placeholder={selectedPlatform === 'email' ? 'hello@example.com' : 'https://...'}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-white/20 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all font-medium"
+                                    className={cn(
+                                        "w-full border rounded-xl py-3 pl-10 pr-4 transition-all font-medium focus:outline-none focus:ring-1",
+                                        styles.inputBg,
+                                        styles.text,
+                                        styles.placeholder,
+                                        isLightTheme ? "focus:ring-black/30" : "focus:ring-white/30"
+                                    )}
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider pl-1">
-                                Display Label <span className="text-white/20 font-normal">(Optional)</span>
+                            <label className={cn("text-xs font-semibold uppercase tracking-wider pl-1", styles.label)}>
+                                Display Label <span className={cn("font-normal opacity-50")}>variable</span>
                             </label>
                             <input
                                 type="text"
                                 value={label}
                                 onChange={(e) => setLabel(e.target.value)}
                                 placeholder="@username"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-white/20 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all text-sm"
+                                className={cn(
+                                    "w-full border rounded-xl py-3 px-4 transition-all text-sm focus:outline-none focus:ring-1",
+                                    styles.inputBg,
+                                    styles.text,
+                                    styles.placeholder,
+                                    isLightTheme ? "focus:ring-black/30" : "focus:ring-white/30"
+                                )}
                             />
                         </div>
                     </div>
@@ -136,7 +184,7 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                                     onDelete();
                                     onClose();
                                 }}
-                                className="p-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                className={cn("p-3 rounded-xl transition-colors", styles.deleteBtn)}
                             >
                                 <Trash2 className="w-5 h-5" />
                             </button>
@@ -144,13 +192,17 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                         <button
                             onClick={handleSave}
                             disabled={!url}
-                            className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={cn(
+                                "flex-1 font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(255,255,255,0.2)]",
+                                styles.primaryBtn
+                            )}
                         >
                             {initialData ? 'Save Changes' : 'Add Link'}
                         </button>
                     </div>
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 }

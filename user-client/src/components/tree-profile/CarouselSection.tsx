@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SplashCarousel } from "@/components/SplashCarousel";
+import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 
 import { businessApi } from '@/lib/api';
 
@@ -37,6 +38,10 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingBanner, setEditingBanner] = useState<ProfileBanner | null>(null);
 
+    // Image Cropper State
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<File | null>(null);
+
     const handleAddBanner = () => {
         fileInputRef.current?.click();
     };
@@ -51,6 +56,15 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
             return;
         }
 
+        // If single file, trigger cropper
+        if (files.length === 1) {
+            setImageToCrop(files[0]);
+            setIsCropperOpen(true);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        // Bulk upload (skip cropper)
         try {
             const newBannersPromises = files.map(async (file) => {
                 // Upload to S3 via backend
@@ -73,6 +87,28 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
         }
 
         if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        // Convert Blob to File for API compatibility
+        const file = new File([croppedBlob], "cropped-banner.jpg", { type: "image/jpeg" });
+
+        try {
+            const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners');
+
+            const newBanner: ProfileBanner = {
+                id: crypto.randomUUID(),
+                imageUrl: url,
+                title: 'New Offer', // Default title
+                isActive: true,
+                linkUrl: '#'
+            };
+
+            onUpdate([...banners, newBanner]);
+        } catch (error) {
+            console.error("Failed to upload crop banner:", error);
+            alert("Failed to upload banner. Please try again.");
+        }
     };
 
     const handleDelete = (id: string, e?: React.MouseEvent) => {
@@ -262,7 +298,18 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={imageToCrop}
+                aspectRatio={16 / 9}
+                circularCrop={false}
+                onCropComplete={handleCropComplete}
+            />
+        </div >
     );
 }
 

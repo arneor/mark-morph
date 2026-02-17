@@ -545,6 +545,11 @@ export const businessApi = {
     return apiRequest(`/business/u/${username}`);
   },
 
+  // Check username availability
+  async checkUsername(username: string): Promise<{ available: boolean }> {
+    return apiRequest(`/business/check-username/${username}`);
+  },
+
   // Upload media
   async uploadMedia(
     businessId: string,

@@ -41,7 +41,7 @@ export class AuthService {
     private jwtService: JwtService,
     private verifyService: VerifyService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   /**
    * Signup with Email and Password
@@ -50,9 +50,40 @@ export class AuthService {
     const { email, password, macAddress } = dto;
 
     // Check if user exists
+    // Check if user exists
     const existingUser = await this.userModel.findOne({ email });
+
     if (existingUser) {
-      throw new BadRequestException("Email account already exists");
+      if (existingUser.isVerified) {
+        throw new BadRequestException("Email account already exists");
+      }
+
+      // User exists but is not verified - we will overwrite/update this user
+      // Update password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      existingUser.password = hashedPassword;
+
+      // Generate new OTP
+      const otp = this.verifyService.generateOtp();
+      existingUser.otp = otp;
+      existingUser.otpExpiresAt = new Date(
+        Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000,
+      );
+      existingUser.otpRequestCount = 1;
+      existingUser.lastOtpRequestAt = new Date();
+
+      if (macAddress) existingUser.macAddress = macAddress;
+
+      await existingUser.save();
+
+      // Send OTP via Email
+      await this.emailService.sendOtp(email, otp);
+
+      return {
+        success: true,
+        message: "OTP sent to your email address",
+        expiresIn: this.OTP_EXPIRY_MINUTES * 60,
+      };
     }
 
     // Hash password

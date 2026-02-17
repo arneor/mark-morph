@@ -20,6 +20,7 @@ import {
 import { TreeProfileData, SocialLink } from '@/lib/treeProfileTypes';
 import { cn, isColorExclusivelyDark } from '@/lib/utils';
 import { SocialLinkModal } from './SocialLinkModal';
+import { ImageCropperModal } from '@/components/ui/ImageCropperModal';
 
 // WhatsApp and TikTok custom icons
 const WhatsAppIcon = () => (
@@ -63,34 +64,58 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
 
+    // Image Cropper State
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<File | null>(null);
+    const [cropConfig, setCropConfig] = useState<{ aspect: number; circular: boolean; field: 'banner' | 'profile' }>({
+        aspect: 1,
+        circular: false,
+        field: 'banner'
+    });
+
     // Check if theme is likely light mode based on text color brightness
     const isLightTheme = isColorExclusivelyDark(data.theme.textColor);
 
-    const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onUpdate) {
-            try {
-                // Upload to S3
-                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners'); // Re-using existing placement or 'tree-profile-header'
-                onUpdate({ bannerImage: url });
-            } catch (error) {
-                console.error("Failed to upload banner:", error);
-                alert("Failed to upload banner. Please try again.");
-            }
+            setImageToCrop(file);
+            setCropConfig({ aspect: 16 / 9, circular: false, field: 'banner' });
+            setIsCropperOpen(true);
+            // Reset input
+            if (bannerInputRef.current) bannerInputRef.current.value = '';
         }
     };
 
-    const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && onUpdate) {
-            try {
-                // Upload to S3
-                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-profile');
+            setImageToCrop(file);
+            setCropConfig({ aspect: 1, circular: true, field: 'profile' });
+            setIsCropperOpen(true);
+            // Reset input
+            if (profileInputRef.current) profileInputRef.current.value = '';
+        }
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        if (!onUpdate) return;
+
+        // Convert Blob to File for API compatibility
+        const file = new File([croppedBlob], "cropped-image.jpg", { type: "image/jpeg" });
+
+        try {
+            const folder = cropConfig.field === 'banner' ? 'tree-profile-banners' : 'tree-profile-profile';
+            const { url } = await businessApi.uploadMedia(businessId, file, folder);
+
+            if (cropConfig.field === 'banner') {
+                onUpdate({ bannerImage: url });
+            } else {
                 onUpdate({ profileImage: url });
-            } catch (error) {
-                console.error("Failed to upload profile image:", error);
-                alert("Failed to upload profile image. Please try again.");
             }
+        } catch (error) {
+            console.error(`Failed to upload ${cropConfig.field} image:`, error);
+            alert(`Failed to upload ${cropConfig.field} image. Please try again.`);
         }
     };
 
@@ -221,7 +246,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
 
                     {/* Profile Edit Overlay */}
                     {isEditMode && (
-                        <label className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                        <label className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                             <Camera className="w-8 h-8 text-white/90" />
                             <input
                                 ref={profileInputRef}
@@ -424,6 +449,17 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                 onDelete={handleDeleteSocialLink}
                 initialData={editingLink}
                 key={editingLink ? editingLink.id : 'new'}
+                theme={data.theme}
+            />
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={imageToCrop}
+                aspectRatio={cropConfig.aspect}
+                circularCrop={cropConfig.circular}
+                onCropComplete={handleCropComplete}
             />
         </div>
     );

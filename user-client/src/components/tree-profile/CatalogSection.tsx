@@ -128,7 +128,7 @@ const CatalogItemCardComponent = ({ item, index, theme, isEditMode, onEdit, onDe
 
             {/* Edit mode overlay */}
             {isEditMode && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-100 md:opacity-0 md:hover:opacity-100 transition-opacity">
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
                         className="px-3 py-1.5 rounded-lg bg-white/20 text-white text-xs font-medium hover:bg-white/30 transition-colors flex items-center gap-1"
@@ -332,7 +332,7 @@ function CatalogSectionComponent({
                         {category.name}
 
                         {isEditMode && (
-                            <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute -top-1 -right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={(e) => handleEditCategoryClick(category, e)}
                                     className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center hover:bg-white/50 transition-colors"

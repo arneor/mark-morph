@@ -113,10 +113,57 @@ export default function SignupPage() {
         }
     }, [otpExpiresIn]);
 
+    // Username check state
+    const [usernameToCheck, setUsernameToCheck] = useState('');
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+    // Debounced check
+    useEffect(() => {
+        const checkUsername = async () => {
+            if (!usernameToCheck || usernameToCheck.length < 3) {
+                setUsernameStatus('idle');
+                return;
+            }
+
+            setUsernameStatus('checking');
+            try {
+                const response = await businessApi.checkUsername(usernameToCheck);
+                setUsernameStatus(response.available ? 'available' : 'taken');
+
+                if (!response.available) {
+                    signupForm.setError('username', {
+                        type: 'manual',
+                        message: 'Username is already taken'
+                    });
+                } else {
+                    signupForm.clearErrors('username');
+                }
+            } catch (error) {
+                console.error('Failed to check username:', error);
+                setUsernameStatus('idle');
+            }
+        };
+
+        const timer = setTimeout(checkUsername, 500);
+        return () => clearTimeout(timer);
+    }, [usernameToCheck, signupForm]);
+
     // Handle initial signup (send OTP)
     const onSubmitDetails = async (data: SignupValues) => {
         setIsLoading(true);
+
         try {
+            // Final check on username before submitting
+            const check = await businessApi.checkUsername(data.username);
+            if (!check.available) {
+                signupForm.setError('username', {
+                    type: 'manual',
+                    message: 'Username is already taken'
+                });
+                setIsLoading(false);
+                return;
+            }
+
             const response = await authApi.signup({
                 email: data.email,
                 password: data.password,
@@ -297,10 +344,25 @@ export default function SignupPage() {
                                                         <input
                                                             type="text"
                                                             placeholder="linkbeet"
-                                                            className="w-full bg-transparent text-sm p-4 pl-10 rounded-2xl focus:outline-none"
+                                                            className={`w-full bg-transparent text-sm p-4 pl-10 rounded-2xl focus:outline-none ${usernameStatus === 'checking' ? 'text-muted-foreground' :
+                                                                usernameStatus === 'available' ? 'text-green-500' :
+                                                                    usernameStatus === 'taken' ? 'text-red-500' : ''
+                                                                }`}
                                                             {...field}
-                                                            onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                                                                field.onChange(val);
+                                                                // Debounced check or direct call would go here, 
+                                                                // but integrating into useEffect is cleaner with a separate state
+                                                                setUsernameToCheck(val);
+                                                            }}
                                                         />
+                                                        {usernameStatus === 'checking' && (
+                                                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                                                        )}
+                                                        {usernameStatus === 'available' && (
+                                                            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                                                        )}
                                                     </div>
                                                 </GlassInputWrapper>
                                             </FormControl>

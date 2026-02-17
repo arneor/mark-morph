@@ -19,9 +19,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 import { businessApi } from '@/lib/api';
 
 interface GallerySectionProps {
@@ -35,6 +37,11 @@ interface GallerySectionProps {
 export function GallerySection({ businessId, images = [], isEditMode, onUpdate, theme }: GallerySectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingImage, setEditingImage] = useState<ProfileGalleryImage | null>(null);
+
+    // Image Cropper State
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<File | null>(null);
+
     const MAX_IMAGES = 10;
 
     const handleAddImage = () => {
@@ -51,6 +58,15 @@ export function GallerySection({ businessId, images = [], isEditMode, onUpdate, 
             return;
         }
 
+        // Single file -> Crop
+        if (files.length === 1) {
+            setImageToCrop(files[0]);
+            setIsCropperOpen(true);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        // Multiple files -> Bulk upload (skip crop)
         try {
             const newImagesPromises = files.map(async (file) => {
                 // Upload to S3 via backend
@@ -71,6 +87,26 @@ export function GallerySection({ businessId, images = [], isEditMode, onUpdate, 
         }
 
         if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        // Convert Blob to File for API compatibility
+        const file = new File([croppedBlob], "cropped-gallery.jpg", { type: "image/jpeg" });
+
+        try {
+            const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-gallery');
+
+            const newImage: ProfileGalleryImage = {
+                id: crypto.randomUUID(),
+                imageUrl: url,
+                caption: 'New Image'
+            };
+
+            onUpdate([...images, newImage]);
+        } catch (error) {
+            console.error("Failed to upload cropped gallery image:", error);
+            alert("Failed to upload image. Please try again.");
+        }
     };
 
     const handleDelete = (id: string, e?: React.MouseEvent) => {
@@ -296,7 +332,18 @@ export function GallerySection({ businessId, images = [], isEditMode, onUpdate, 
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={imageToCrop}
+                aspectRatio={4 / 5} // Instagram portrait ratio
+                circularCrop={false}
+                onCropComplete={handleCropComplete}
+            />
+        </div >
     );
 }
 

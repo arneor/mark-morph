@@ -33,7 +33,7 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 @ApiTags("Business")
 @Controller("business")
 export class BusinessController {
-  constructor(private readonly businessService: BusinessService) {}
+  constructor(private readonly businessService: BusinessService) { }
 
   @Post("register")
   @UseGuards(JwtAuthGuard)
@@ -66,6 +66,18 @@ export class BusinessController {
       username: business.username,
       message: "Business registered successfully. Pending admin approval.",
     };
+  }
+
+  @Get("check-username/:username")
+  @SkipThrottle()
+  @ApiOperation({ summary: "Check if username is available" })
+  @ApiParam({ name: "username", description: "Username to check" })
+  @ApiResponse({ status: 200, description: "Returns availability status" })
+  async checkUsername(@Param("username") username: string) {
+    const isAvailable = await this.businessService.checkUsernameAvailability(
+      username,
+    );
+    return { available: isAvailable };
   }
 
   @Get("u/:username")

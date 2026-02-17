@@ -15,6 +15,7 @@ function useIsMounted() {
     );
 }
 import Image from 'next/image';
+import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 import { businessApi } from '@/lib/api';
 
 interface AddItemModalProps {
@@ -63,31 +64,39 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
     const [isUploading, setIsUploading] = useState(false);
     const [s3Key, setS3Key] = useState(initialData?.s3Key || '');
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Image Cropper State
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<File | null>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Preview
-            const previewUrl = URL.createObjectURL(file);
-            setImage(previewUrl);
+            setImageToCrop(file);
+            setIsCropperOpen(true);
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
-            // Upload
-            try {
-                setIsUploading(true);
-                // Use a generic placement since there isn't one specifically for catalog items yet, 
-                // or use 'tree-profile-catalog' if the backend supports it (based on api.ts it might not, but let's check api.ts again or just use 'gallery'/generic for now, 
-                // actually api.ts has 'tree-profile-catalog' in the union type in my learnings? let me check my learnings)
-                // Re-checking api.ts learning: "placement: 'branding' | 'banner' | 'gallery' | 'tree-profile-banners' | 'tree-profile-gallery' | 'tree-profile-catalog' | 'tree-profile-profile'"
-                // So 'tree-profile-catalog' IS supported in the type definition in api.ts!
-                const { url, key } = await businessApi.uploadMedia(businessId, file, 'tree-profile-catalog');
-                setImage(url); // Replace preview with real S3 URL
-                setS3Key(key);
-            } catch (error) {
-                console.error("Upload failed", error);
-                alert("Failed to upload image");
-                setImage(initialData?.imageUrl || ''); // Revert
-            } finally {
-                setIsUploading(false);
-            }
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        // Convert Blob to File
+        const file = new File([croppedBlob], "cropped-item.jpg", { type: "image/jpeg" });
+
+        // Preview
+        const previewUrl = URL.createObjectURL(file);
+        setImage(previewUrl);
+
+        try {
+            setIsUploading(true);
+            const { url, key } = await businessApi.uploadMedia(businessId, file, 'tree-profile-catalog');
+            setImage(url);
+            setS3Key(key);
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Failed to upload image");
+            setImage(initialData?.imageUrl || '');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -326,6 +335,15 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
                     </div>
                 </div>
             </div>
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={imageToCrop}
+                aspectRatio={1} // Square crop for items
+                circularCrop={false}
+                onCropComplete={handleCropComplete}
+            />
         </>,
         document.body
     );

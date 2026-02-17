@@ -49,7 +49,7 @@ export class BusinessService {
     @InjectModel(ComplianceLog.name)
     private complianceModel: Model<ComplianceLogDocument>,
     private readonly s3Service: S3Service,
-  ) {}
+  ) { }
 
   // ---- Media Upload ----
 
@@ -193,6 +193,11 @@ export class BusinessService {
     return this.businessModel
       .find({ status: "active" })
       .sort({ createdAt: -1 });
+  }
+
+  async checkUsernameAvailability(username: string): Promise<boolean> {
+    const count = await this.businessModel.countDocuments({ username });
+    return count === 0;
   }
 
   // ---- Profile Finders ----
