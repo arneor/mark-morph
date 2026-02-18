@@ -101,7 +101,7 @@ export interface Business {
     categoryId: string;
     title: string;
     description?: string;
-    price: number;
+    price?: number;
     currency: string;
     imageUrl?: string;
     tags?: string[];
