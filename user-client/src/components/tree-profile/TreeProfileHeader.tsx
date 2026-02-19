@@ -292,169 +292,177 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                 </div>
 
                 {/* Tagline */}
-                <div className="mb-3">
-                    {isEditMode ? (
-                        <input
-                            type="text"
-                            value={data.tagline}
-                            onChange={(e) => onUpdate?.({ tagline: e.target.value })}
-                            className="text-lg font-medium text-center bg-transparent border-b outline-none w-full max-w-sm transition-colors py-1"
-                            style={{
-                                color: 'var(--text-color)',
-                                opacity: 0.8,
-                                borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
-                            }}
-                            placeholder="Add a tagline..."
-                        />
-                    ) : (
-                        <p
-                            className="text-lg font-medium"
-                            style={{ color: 'var(--text-color)', opacity: 0.8 }}
-                        >
-                            {data.tagline}
-                        </p>
-                    )}
-                </div>
+                {(isEditMode || (data.tagline && data.tagline.trim().length > 0)) && (
+                    <div className="mb-3">
+                        {isEditMode ? (
+                            <input
+                                type="text"
+                                value={data.tagline || ''}
+                                onChange={(e) => onUpdate?.({ tagline: e.target.value })}
+                                className="text-lg font-medium text-center bg-transparent border-b outline-none w-full max-w-sm transition-colors py-1"
+                                style={{
+                                    color: 'var(--text-color)',
+                                    opacity: 0.8,
+                                    borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
+                                }}
+                                placeholder="Add a tagline..."
+                            />
+                        ) : (
+                            <p
+                                className="text-lg font-medium"
+                                style={{ color: 'var(--text-color)', opacity: 0.8 }}
+                            >
+                                {data.tagline}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Location */}
-                <div
-                    className="flex items-center justify-center gap-1.5 mb-6"
-                    style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                >
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    {isEditMode ? (
-                        <input
-                            type="text"
-                            value={data.location || ''}
-                            onChange={(e) => onUpdate?.({ location: e.target.value })}
-                            className="text-sm bg-transparent border-b outline-none min-w-[150px] text-center transition-colors"
-                            style={{
-                                color: 'inherit',
-                                borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
-                            }}
-                            placeholder="Add location"
-                        />
-                    ) : (
-                        <span className="text-sm">{data.location}</span>
-                    )}
-                </div>
+                {(isEditMode || (data.location && data.location.trim().length > 0)) && (
+                    <div
+                        className="flex items-center justify-center gap-1.5 mb-6"
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                    >
+                        <MapPin className="w-4 h-4 shrink-0" />
+                        {isEditMode ? (
+                            <input
+                                type="text"
+                                value={data.location || ''}
+                                onChange={(e) => onUpdate?.({ location: e.target.value })}
+                                className="text-sm bg-transparent border-b outline-none min-w-[150px] text-center transition-colors"
+                                style={{
+                                    color: 'inherit',
+                                    borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
+                                }}
+                                placeholder="Add location"
+                            />
+                        ) : (
+                            <span className="text-sm">{data.location}</span>
+                        )}
+                    </div>
+                )}
 
                 {/* Opening Hours */}
-                <div
-                    className="flex items-center justify-center gap-1.5 mb-6"
-                    style={{ color: 'var(--text-color)', opacity: 0.7 }}
-                >
-                    <Clock className="w-4 h-4 shrink-0" />
-                    {isEditMode ? (
-                        <div className="flex items-center gap-1">
-                            <input
-                                type="text"
-                                value={data.openingHours?.start || ''}
-                                onChange={(e) => onUpdate?.({
-                                    openingHours: {
-                                        start: e.target.value,
-                                        end: data.openingHours?.end || ''
-                                    }
-                                })}
-                                className="text-sm bg-transparent border-b outline-none w-20 text-center transition-colors"
-                                style={{
-                                    color: 'inherit',
-                                    borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
-                                }}
-                                placeholder="Start Time"
-                            />
-                            <span>-</span>
-                            <input
-                                type="text"
-                                value={data.openingHours?.end || ''}
-                                onChange={(e) => onUpdate?.({
-                                    openingHours: {
-                                        start: data.openingHours?.start || '',
-                                        end: e.target.value
-                                    }
-                                })}
-                                className="text-sm bg-transparent border-b outline-none w-20 text-center transition-colors"
-                                style={{
-                                    color: 'inherit',
-                                    borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
-                                }}
-                                placeholder="End Time"
-                            />
-                        </div>
-                    ) : (data.openingHours?.start && data.openingHours?.end) && (
-                        <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <span className="text-green-500 font-bold uppercase text-[10px] tracking-wider border border-green-500/30 bg-green-500/10 px-1.5 py-0.5 rounded-full">Open</span>
-                            <span>{data.openingHours.start} - {data.openingHours.end}</span>
-                        </div>
-                    )}
-                </div>
+                {(isEditMode || (data.openingHours?.start && data.openingHours?.end)) && (
+                    <div
+                        className="flex items-center justify-center gap-1.5 mb-6"
+                        style={{ color: 'var(--text-color)', opacity: 0.7 }}
+                    >
+                        <Clock className="w-4 h-4 shrink-0" />
+                        {isEditMode ? (
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="text"
+                                    value={data.openingHours?.start || ''}
+                                    onChange={(e) => onUpdate?.({
+                                        openingHours: {
+                                            start: e.target.value,
+                                            end: data.openingHours?.end || ''
+                                        }
+                                    })}
+                                    className="text-sm bg-transparent border-b outline-none w-20 text-center transition-colors"
+                                    style={{
+                                        color: 'inherit',
+                                        borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
+                                    }}
+                                    placeholder="Start Time"
+                                />
+                                <span>-</span>
+                                <input
+                                    type="text"
+                                    value={data.openingHours?.end || ''}
+                                    onChange={(e) => onUpdate?.({
+                                        openingHours: {
+                                            start: data.openingHours?.start || '',
+                                            end: e.target.value
+                                        }
+                                    })}
+                                    className="text-sm bg-transparent border-b outline-none w-20 text-center transition-colors"
+                                    style={{
+                                        color: 'inherit',
+                                        borderColor: 'color-mix(in srgb, var(--text-color) 30%, transparent)'
+                                    }}
+                                    placeholder="End Time"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5 text-sm font-medium">
+                                <span className="text-green-500 font-bold uppercase text-[10px] tracking-wider border border-green-500/30 bg-green-500/10 px-1.5 py-0.5 rounded-full">Open</span>
+                                <span>{data.openingHours?.start} - {data.openingHours?.end}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Social Links */}
-                <div
-                    className="flex justify-center gap-3 flex-wrap"
-                >
-                    {data.socialLinks.map((social) => {
-                        // Resolve URL: handle tel:, mailto:, and standard URLs
-                        const resolvedUrl = (() => {
-                            if (isEditMode) return undefined;
-                            const url = social.url.trim();
-                            // Already has a protocol (tel:, mailto:, http:, https:)
-                            if (/^(?:tel:|mailto:|https?:\/\/)/i.test(url)) return url;
-                            // Bare URL — prepend https://
-                            return `https://${url}`;
-                        })();
+                {(isEditMode || (data.socialLinks && data.socialLinks.length > 0)) && (
+                    <div
+                        className="flex justify-center gap-3 flex-wrap"
+                    >
+                        {(data.socialLinks || []).map((social) => {
+                            // Resolve URL: handle tel:, mailto:, and standard URLs
+                            const resolvedUrl = (() => {
+                                if (isEditMode) return undefined;
+                                const url = social.url.trim();
+                                // Already has a protocol (tel:, mailto:, http:, https:)
+                                if (/^(?:tel:|mailto:|https?:\/\/)/i.test(url)) return url;
+                                // Bare URL — prepend https://
+                                return `https://${url}`;
+                            })();
 
-                        // tel: and mailto: should NOT open in a new tab
-                        const isSpecialProtocol = resolvedUrl ? /^(?:tel:|mailto:)/i.test(resolvedUrl) : false;
+                            // tel: and mailto: should NOT open in a new tab
+                            const isSpecialProtocol = resolvedUrl ? /^(?:tel:|mailto:)/i.test(resolvedUrl) : false;
 
-                        return (
-                            <a
-                                key={social.id}
-                                href={resolvedUrl}
-                                target={isEditMode || isSpecialProtocol ? undefined : "_blank"}
-                                rel={isEditMode || isSpecialProtocol ? undefined : "noopener noreferrer"}
-                                onClick={(e) => {
-                                    if (isEditMode) {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        openSocialModal(social);
-                                    }
-                                }}
+                            return (
+                                <a
+                                    key={social.id}
+                                    href={resolvedUrl}
+                                    target={isEditMode || isSpecialProtocol ? undefined : "_blank"}
+                                    rel={isEditMode || isSpecialProtocol ? undefined : "noopener noreferrer"}
+                                    onClick={(e) => {
+                                        if (isEditMode) {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            openSocialModal(social);
+                                        }
+                                    }}
+                                    className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer border hover:scale-110 hover:-translate-y-0.5 active:scale-95 duration-200",
+                                        isLightTheme
+                                            ? "bg-black/5 border-black/10 text-black/70 hover:bg-black/10 hover:text-black" // Light Theme
+                                            : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white" // Dark Theme
+                                    )}
+                                    style={{
+                                        boxShadow: `0 0 15px color-mix(in srgb, var(--primary) 15%, transparent)`,
+                                    }}
+                                >
+                                    {socialIconMap[social.platform] || <Mail className="w-4 h-4" />}
+                                    {isEditMode && (
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                            <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                                        </div>
+                                    )}
+                                </a>
+                            );
+                        })}
+
+                        {/* Add Button */}
+                        {isEditMode && (
+                            <button
                                 className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer border hover:scale-110 hover:-translate-y-0.5 active:scale-95 duration-200",
+                                    "w-10 h-10 rounded-full border border-dashed flex items-center justify-center transition-all hover:scale-110 active:scale-90 duration-200",
                                     isLightTheme
-                                        ? "bg-black/5 border-black/10 text-black/70 hover:bg-black/10 hover:text-black" // Light Theme
-                                        : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white" // Dark Theme
+                                        ? "bg-black/5 border-black/20 text-black/50 hover:text-black hover:bg-black/10"
+                                        : "bg-white/5 border-white/30 text-white/50 hover:text-white hover:bg-white/10"
                                 )}
-                                style={{
-                                    boxShadow: `0 0 15px color-mix(in srgb, var(--primary) 15%, transparent)`,
-                                }}
+                                onClick={() => openSocialModal()}
                             >
-                                {socialIconMap[social.platform] || <Mail className="w-4 h-4" />}
-                                {isEditMode && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                        <div className="w-1.5 h-1.5 bg-black rounded-full" />
-                                    </div>
-                                )}
-                            </a>
-                        );
-                    })}
-
-                    {/* Add Button */}
-                    {isEditMode && (
-                        <button
-                            className={cn(
-                                "w-10 h-10 rounded-full border border-dashed flex items-center justify-center transition-all hover:scale-110 active:scale-90 duration-200",
-                                isLightTheme
-                                    ? "bg-black/5 border-black/20 text-black/50 hover:text-black hover:bg-black/10"
-                                    : "bg-white/5 border-white/30 text-white/50 hover:text-white hover:bg-white/10"
-                            )}
-                            onClick={() => openSocialModal()}
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
+                                <Plus className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Social Link Modal */}

@@ -28,7 +28,10 @@ const CarouselSection = dynamic(
 
 const GallerySection = dynamic(
     () => import('@/components/tree-profile/GallerySection').then(mod => ({ default: mod.GallerySection })),
-    { loading: () => <div className="mb-8 grid grid-cols-3 gap-3">{[1, 2, 3].map(i => <div key={i} className="aspect-square rounded-3xl bg-white/5 animate-pulse" />)}</div> }
+    {
+        loading: () => <div className="mb-8 grid grid-cols-3 gap-3">{[1, 2, 3].map(i => <div key={i} className="aspect-square rounded-3xl bg-white/5 animate-pulse" />)}</div>,
+        ssr: false
+    }
 );
 
 const CatalogSection = dynamic(
@@ -242,14 +245,13 @@ export function TreeProfileView({
                                     />
                                     <div className="mt-8 space-y-8">
                                         <CarouselSection
-                                            businessId={businessId}
                                             banners={data.banners || []}
                                             theme={data.theme}
                                             isEditMode={isEditMode}
                                             onUpdate={onUpdateBanners || (() => { })}
                                         />
                                         <GallerySection
-                                            businessId={businessId}
+                                            key={businessId}
                                             images={data.gallery || []}
                                             theme={data.theme}
                                             isEditMode={isEditMode}

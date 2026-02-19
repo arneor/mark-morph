@@ -9,6 +9,7 @@ import {
   ForbiddenException,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Express } from "express";
@@ -112,8 +113,8 @@ export class BusinessController {
       theme: merged.theme,
       customLinks: merged.customLinks,
       socialLinks: merged.socialLinks,
-      banners: merged.banners,
-      gallery: merged.gallery,
+      gallery: (merged.gallery || []).slice(0, 12),
+      totalGalleryImages: (merged.gallery || []).length,
       categories: merged.categories,
       catalogItems: merged.catalogItems,
       reviews: merged.reviews,
@@ -121,6 +122,22 @@ export class BusinessController {
       ads: (merged.ads || []).filter((ad: any) => ad.status === "active"),
       createdAt: merged.createdAt,
     };
+  }
+
+  @Get("u/:username/gallery")
+  @SkipThrottle()
+  @ApiOperation({ summary: "Get paginated gallery images by username" })
+  @ApiParam({ name: "username", description: "Business username" })
+  @ApiResponse({ status: 200, description: "Gallery images with pagination metadata" })
+  async getGallery(
+    @Param("username") username: string,
+    @Query("page") pageString?: string,
+    @Query("limit") limitString?: string,
+  ) {
+    const page = parseInt(pageString || "1", 10) || 1;
+    const limit = parseInt(limitString || "20", 10) || 20;
+
+    return this.businessService.getGalleryByUsername(username, page, limit);
   }
 
   @Get("me")

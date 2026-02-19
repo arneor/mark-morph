@@ -269,6 +269,30 @@ export class BusinessService {
     return this.mergeBusinessData(business, treeProfile, wifiProfile);
   }
 
+  async getGalleryByUsername(username: string, page: number, limit: number) {
+    const business = await this.findByUsername(username);
+    const treeProfile = await this.findTreeProfile(business._id.toString());
+
+    const gallery = treeProfile?.gallery || [];
+    const total = gallery.length;
+    const totalPages = Math.ceil(total / limit);
+    const skip = (page - 1) * limit;
+
+    // In-memory pagination (efficient enough for N < 1000)
+    const items = gallery.slice(skip, skip + limit);
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages
+      }
+    };
+  }
+
   async getFullBusinessByOwnerId(ownerId: string) {
     const business = await this.findByOwnerId(ownerId);
     if (!business) return null;

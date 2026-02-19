@@ -219,6 +219,8 @@ function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSect
         setIsModalOpen(true);
     };
 
+    if (!isEditMode && activeLinks.length === 0) return null;
+
     return (
         <div
             className="space-y-3"

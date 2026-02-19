@@ -161,7 +161,7 @@ export function EditablePostGrid({
                     <div className="flex items-center gap-2 mb-3">
                         <Star className="w-4 h-4 text-[#FFD93D]" />
                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
-                            Featured Offers ({featuredPosts.length}/3)
+                            {isEditMode ? `Featured (${featuredPosts.length}/3)` : "Featured"}
                         </span>
                     </div>
                     {isEditMode ? (
@@ -228,7 +228,7 @@ export function EditablePostGrid({
                     <div className="flex items-center gap-2">
                         <ImageIcon className="w-4 h-4 text-[#9EE53B]" />
                         <span className="text-xs font-bold text-white/80 uppercase tracking-wide">
-                            Gallery ({regularPosts.length}/{maxPosts})
+                            {isEditMode ? `Gallery (${regularPosts.length}/${maxPosts})` : "Gallery"}
                         </span>
                     </div>
                     {isEditMode && regularPosts.length < maxPosts && (

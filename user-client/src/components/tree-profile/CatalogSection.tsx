@@ -338,6 +338,7 @@ function CatalogSectionComponent({
         }
     }, [pathname, router, searchParams]);
 
+    if (!isEditMode && items.length === 0) return null;
 
     return (
         <div
@@ -437,23 +438,8 @@ function CatalogSectionComponent({
             </div>
 
             {/* Empty state */}
-            {filteredItems.length === 0 && !isEditMode && (
-                <div
-                    className="p-8 rounded-2xl border-2 border-dashed text-center animate-fade-in"
-                    style={{ borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
-                >
-                    <p className="text-white/50 mb-3" style={{ color: 'var(--text-color)', opacity: 0.5 }}>No items in {categories.find(c => c.id === activeCategory)?.name}</p>
-                    {isEditMode && (
-                        <button
-                            onClick={openForAdd}
-                            className="px-4 py-2 rounded-xl bg-white/10 font-medium hover:bg-white/20 transition-colors"
-                            style={{ color: 'var(--text-color)', background: 'color-mix(in srgb, var(--text-color) 10%, transparent)' }}
-                        >
-                            Add Item
-                        </button>
-                    )}
-                </div>
-            )}
+            {/* Empty state - Removed for View Mode */}
+            {filteredItems.length === 0 && !isEditMode && null}
 
             {/* Modals */}
             <AddItemModal

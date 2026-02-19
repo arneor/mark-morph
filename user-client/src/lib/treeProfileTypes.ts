@@ -43,12 +43,14 @@ export interface ProfileBanner {
     title?: string;
     linkUrl?: string;
     isActive: boolean;
+    file?: File; // Pending upload file
 }
 
 export interface ProfileGalleryImage {
     id: string;
     imageUrl: string;
     caption?: string;
+    file?: File; // Pending upload file
 }
 
 export interface ProfileReview {
@@ -96,6 +98,7 @@ export interface TreeProfileData {
     catalogItems: CatalogItem[];
     banners?: ProfileBanner[];
     gallery?: ProfileGalleryImage[];
+    totalGalleryImages?: number;
     reviews?: ProfileReview[];
 }
 

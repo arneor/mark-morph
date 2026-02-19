@@ -91,6 +91,7 @@ export interface Business {
     caption?: string;
     s3Key?: string;
   }>;
+  totalGalleryImages?: number;
   categories?: Array<{
     id: string;
     name: string;
@@ -544,6 +545,15 @@ export const businessApi = {
   // Get public profile by username
   async getPublicProfile(username: string): Promise<Business> {
     return apiRequest(`/business/u/${username}`);
+  },
+
+  // Get gallery with pagination
+  async getBusinessGallery(
+    username: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ items: Business['gallery']; meta: unknown }> {
+    return apiRequest(`/business/u/${username}/gallery?page=${page}&limit=${limit}`);
   },
 
   // Check username availability

@@ -1,6 +1,7 @@
 'use client';
 
-import { Eye, Pencil, Save, X, Palette, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Eye, Pencil, Save, X, Palette, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -14,17 +15,66 @@ export function TreeProfileEditControls() {
         hasChanges,
         setHasChanges,
         setIsThemeOpen,
-        profileData
+        profileData,
+        updateGallery,
+        updateBanners
     } = useTreeProfileStore();
 
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
     const params = useParams();
     const businessId = params.businessId as string;
 
     const handleSave = async () => {
+        if (isLoading) return;
+        setIsLoading(true);
+
         try {
-            // Prepare Business Update Payload
+            // 1. Process Gallery Uploads (Batch Upload)
+            const currentGallery = profileData.gallery || [];
+            const processedGallery = await Promise.all(currentGallery.map(async (img) => {
+                if (img.file) {
+                    try {
+                        const { url } = await businessApi.uploadMedia(businessId, img.file, 'tree-profile-gallery');
+                        // Revoke blob URL to prevent memory leaks
+                        if (img.imageUrl.startsWith('blob:')) {
+                            URL.revokeObjectURL(img.imageUrl);
+                        }
+                        return { ...img, imageUrl: url, file: undefined };
+                    } catch (err) {
+                        console.error(`Failed to upload gallery image ${img.id}:`, err);
+                        throw new Error(`Failed to upload image: ${img.caption || 'Gallery Image'}`);
+                    }
+                }
+                return img;
+            }));
+
+            // 2. Process Banner Uploads (Batch Upload)
+            const currentBanners = profileData.banners || [];
+            const processedBanners = await Promise.all(currentBanners.map(async (banner) => {
+                if (banner.file) {
+                    try {
+                        const { url } = await businessApi.uploadMedia(businessId, banner.file, 'tree-profile-banners');
+                        if (banner.imageUrl.startsWith('blob:')) {
+                            URL.revokeObjectURL(banner.imageUrl);
+                        }
+                        return { ...banner, imageUrl: url, file: undefined };
+                    } catch (err) {
+                        console.error(`Failed to upload banner ${banner.id}:`, err);
+                        throw new Error(`Failed to upload banner: ${banner.title || 'Banner'}`);
+                    }
+                }
+                return banner;
+            }));
+
+            // 3. Update Store with resolved URLs immediately
+            // This ensures that if the API update fails, or if user continues editing,
+            // they are working with the uploaded URLs, not pending files.
+            updateGallery(processedGallery);
+            updateBanners(processedBanners);
+
+            // 4. Prepare Business Update Payload
             const updatePayload = {
                 businessName: profileData.businessName,
                 location: profileData.location,
@@ -69,18 +119,18 @@ export function TreeProfileEditControls() {
                     label: link.label
                 })),
 
-                // Tree Profile Data
-                banners: (profileData.banners || []).map(b => ({
+                // Tree Profile Data - Use PROCESSED lists
+                banners: processedBanners.map(b => ({
                     id: b.id,
-                    imageUrl: b.imageUrl,
+                    imageUrl: b.imageUrl, // Real URL
                     title: b.title,
                     linkUrl: b.linkUrl,
                     isActive: b.isActive,
                 })),
 
-                gallery: (profileData.gallery || []).map(g => ({
+                gallery: processedGallery.map(g => ({
                     id: g.id,
-                    imageUrl: g.imageUrl,
+                    imageUrl: g.imageUrl, // Real URL
                     caption: g.caption,
                 })),
 
@@ -123,11 +173,14 @@ export function TreeProfileEditControls() {
             });
         } catch (error) {
             console.error('Failed to save profile:', error);
+            const message = error instanceof Error ? error.message : 'Could not update profile. Please try again.';
             toast({
                 title: 'Save Failed',
-                description: 'Could not update profile. Please try again.',
+                description: message,
                 variant: 'destructive'
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -136,7 +189,7 @@ export function TreeProfileEditControls() {
     };
 
     const handleBack = () => {
-        if (hasChanges) {
+        if (hasChanges && !isLoading) {
             const confirmExit = window.confirm(
                 "You have unsaved changes. Are you sure you want to leave?"
             );
@@ -157,7 +210,8 @@ export function TreeProfileEditControls() {
                         size="icon"
                         variant="ghost"
                         onClick={handleBack}
-                        className="w-10 h-10 rounded-full bg-black/30 text-white hover:bg-black/50"
+                        disabled={isLoading}
+                        className="w-10 h-10 rounded-full bg-black/30 text-white hover:bg-black/50 disabled:opacity-50"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
@@ -165,6 +219,7 @@ export function TreeProfileEditControls() {
                     {/* Right side controls - Edit Mode Toggle */}
                     <Button
                         onClick={() => setIsEditMode(!isEditMode)}
+                        disabled={isLoading}
                         className={`h-10 px-4 rounded-full font-semibold transition-all shadow-lg ${isEditMode
                             ? "bg-white text-black hover:bg-gray-200"
                             : "bg-black/80 text-white hover:bg-black"
@@ -201,6 +256,7 @@ export function TreeProfileEditControls() {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setIsThemeOpen(true)}
+                                disabled={isLoading}
                                 className="h-8 w-8 p-0 text-white hover:text-white hover:bg-white/20 rounded-full"
                                 title="Customize Theme"
                             >
@@ -210,6 +266,7 @@ export function TreeProfileEditControls() {
                                 size="sm"
                                 variant="ghost"
                                 onClick={handleDiscard}
+                                disabled={isLoading}
                                 className="h-8 px-3 text-white hover:text-white hover:bg-white/20 rounded-lg"
                             >
                                 <X className="w-4 h-4 mr-1" />
@@ -218,11 +275,15 @@ export function TreeProfileEditControls() {
                             <Button
                                 size="sm"
                                 onClick={handleSave}
-                                disabled={!hasChanges}
+                                disabled={!hasChanges || isLoading}
                                 className="h-8 px-4 bg-white text-black hover:bg-gray-200 disabled:opacity-50 font-bold rounded-lg shadow-sm"
                             >
-                                <Save className="w-4 h-4 mr-1" />
-                                Save
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                ) : (
+                                    <Save className="w-4 h-4 mr-1" />
+                                )}
+                                {isLoading ? 'Saving...' : 'Save'}
                             </Button>
                         </div>
                     </div>
@@ -237,11 +298,27 @@ export function TreeProfileEditControls() {
                     <div className="bg-black/80 border-t border-white/10 p-4">
                         <Button
                             onClick={handleSave}
+                            disabled={isLoading}
                             className="w-full h-14 text-lg font-bold rounded-2xl bg-white text-black hover:bg-gray-200 shadow-xl"
                         >
-                            <Save className="w-5 h-5 mr-2" />
-                            Publish Changes
+                            {isLoading ? (
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="w-5 h-5 mr-2" />
+                            )}
+                            {isLoading ? 'Publishing Changes...' : 'Publish Changes'}
                         </Button>
+                    </div>
+                </div>
+            )}
+            {isLoading && (
+                <div className="fixed inset-0 z-100 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center animate-fade-in">
+                    <div className="bg-white/10 p-6 rounded-2xl border border-white/20 shadow-2xl flex flex-col items-center gap-4">
+                        <Loader2 className="w-10 h-10 text-white animate-spin" />
+                        <div className="text-center">
+                            <h3 className="text-white font-bold text-lg">Saving Changes...</h3>
+                            <p className="text-white/60 text-sm">Please wait while we update your profile.</p>
+                        </div>
                     </div>
                 </div>
             )}

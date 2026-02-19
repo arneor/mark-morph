@@ -24,17 +24,14 @@ import { Label } from "@/components/ui/label";
 import { SplashCarousel } from "@/components/SplashCarousel";
 import { ImageCropperModal } from "@/components/ui/ImageCropperModal";
 
-import { businessApi } from '@/lib/api';
-
 interface CarouselSectionProps {
-    businessId: string;
     banners: ProfileBanner[];
     isEditMode: boolean;
     onUpdate: (banners: ProfileBanner[]) => void;
     theme: TreeProfileTheme;
 }
 
-export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate, theme }: CarouselSectionProps) {
+export function CarouselSection({ banners = [], isEditMode, onUpdate, theme }: CarouselSectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingBanner, setEditingBanner] = useState<ProfileBanner | null>(null);
 
@@ -46,7 +43,7 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
 
         const files = Array.from(e.target.files);
@@ -64,55 +61,46 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
             return;
         }
 
-        // Bulk upload (skip cropper)
-        try {
-            const newBannersPromises = files.map(async (file) => {
-                // Upload to S3 via backend
-                const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners');
+        // Bulk upload (skip cropper) -> Local State Buffer
+        const newBanners = files.map((file) => ({
+            id: crypto.randomUUID(),
+            imageUrl: URL.createObjectURL(file),
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            isActive: true,
+            linkUrl: '#',
+            file: file // Store for batch upload
+        }));
 
-                return {
-                    id: crypto.randomUUID(),
-                    imageUrl: url,
-                    title: file.name.replace(/\.[^/.]+$/, ""),
-                    isActive: true,
-                    linkUrl: '#'
-                };
-            });
-
-            const newBanners = await Promise.all(newBannersPromises);
-            onUpdate([...banners, ...newBanners]);
-        } catch (error) {
-            console.error("Failed to upload banner:", error);
-            alert("Failed to upload image. Please try again.");
-        }
+        onUpdate([...banners, ...newBanners]);
 
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleCropComplete = async (croppedBlob: Blob) => {
-        // Convert Blob to File for API compatibility
+        // Convert Blob to File for consistency
         const file = new File([croppedBlob], "cropped-banner.jpg", { type: "image/jpeg" });
 
-        try {
-            const { url } = await businessApi.uploadMedia(businessId, file, 'tree-profile-banners');
+        const newBanner: ProfileBanner = {
+            id: crypto.randomUUID(),
+            imageUrl: URL.createObjectURL(file), // Preview
+            title: 'New Offer', // Default title
+            isActive: true,
+            linkUrl: '#',
+            file: file // Store for batch upload
+        };
 
-            const newBanner: ProfileBanner = {
-                id: crypto.randomUUID(),
-                imageUrl: url,
-                title: 'New Offer', // Default title
-                isActive: true,
-                linkUrl: '#'
-            };
-
-            onUpdate([...banners, newBanner]);
-        } catch (error) {
-            console.error("Failed to upload crop banner:", error);
-            alert("Failed to upload banner. Please try again.");
-        }
+        onUpdate([...banners, newBanner]);
     };
 
     const handleDelete = (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
+
+        // Revoke Object URL cleanup
+        const deletedBanner = banners.find(b => b.id === id);
+        if (deletedBanner?.file && deletedBanner.imageUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(deletedBanner.imageUrl);
+        }
+
         onUpdate(banners.filter(b => b.id !== id));
     };
 
@@ -167,7 +155,7 @@ export function CarouselSection({ businessId, banners = [], isEditMode, onUpdate
                             className="text-xs font-bold uppercase tracking-wide"
                             style={{ color: theme.textColor, opacity: 0.8 }}
                         >
-                            Featured Offers ({banners.length}/3)
+                            {isEditMode ? `Featured Offers (${banners.length}/3)` : "Featured"}
                         </span>
                     </div>
 
