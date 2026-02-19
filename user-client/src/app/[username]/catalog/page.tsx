@@ -45,7 +45,6 @@ export async function generateMetadata({ params }: CatalogPageProps): Promise<Me
                 images: business.profileImage || business.logoUrl
                     ? [business.profileImage || business.logoUrl || '']
                     : undefined,
-                type: 'profile',
             },
         };
     } catch {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 
 import { X, Trash2, Link as LinkIcon, Instagram, Facebook, Twitter, Youtube, Linkedin, Mail, Phone } from 'lucide-react';
@@ -59,10 +59,6 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
     const [error, setError] = useState<string | null>(null);
     const mounted = useIsMounted();
 
-    useEffect(() => {
-        // Reset error when inputs change
-        setError(null);
-    }, [url, selectedPlatform]);
 
     const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
@@ -134,7 +130,10 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                         {PLATFORMS.map((p) => (
                             <button
                                 key={p.id}
-                                onClick={() => setSelectedPlatform(p.id)}
+                                onClick={() => {
+                                    setSelectedPlatform(p.id);
+                                    setError(null);
+                                }}
                                 className={cn(
                                     "aspect-square rounded-xl flex items-center justify-center transition-all border",
                                     selectedPlatform === p.id ? styles.optionBtnActive : styles.optionBtn
@@ -159,7 +158,10 @@ export function SocialLinkModal({ isOpen, onClose, onSave, onDelete, initialData
                                 <input
                                     type="text"
                                     value={url}
-                                    onChange={(e) => setUrl(e.target.value)}
+                                    onChange={(e) => {
+                                        setUrl(e.target.value);
+                                        setError(null);
+                                    }}
                                     placeholder={selectedPlatform === 'email' ? 'hello@example.com' : 'https://...'}
                                     className={cn(
                                         "w-full border rounded-xl py-3 pl-10 pr-4 transition-all font-medium focus:outline-none focus:ring-1",

@@ -43,7 +43,6 @@ export async function generateMetadata({ params }: PublicProfilePageProps): Prom
                 images: business.profileImage || business.logoUrl
                     ? [business.profileImage || business.logoUrl || '']
                     : undefined,
-                type: 'profile',
             },
         };
     } catch {

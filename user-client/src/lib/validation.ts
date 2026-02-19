@@ -129,7 +129,7 @@ export function validateSocialLink(platform: string, urlOrHandle: string): Valid
     if (!input.includes(domain) && !input.startsWith('http')) {
         // Treat as handle
         // Strip @ if present for some platforms (e.g. tiktok, youtube, twitter)
-        let handle = input;
+        const handle = input;
         // Re-construct URL
         let formattedUrl = `https://${config.baseUrl}${handle}`;
 
@@ -141,10 +141,7 @@ export function validateSocialLink(platform: string, urlOrHandle: string): Valid
         } else if (platform === 'tiktok' && !handle.startsWith('@')) {
             // Tiktok handles often have @, but url is tiktok.com/@handle
             formattedUrl = `https://${config.baseUrl}@${handle}`;
-        } else if (platform === 'tiktok' && handle.startsWith('@')) {
-            formattedUrl = `https://${config.baseUrl}${handle}`;
-        }
-        else {
+        } else {
             formattedUrl = `https://${config.baseUrl}${handle}`;
         }
 
