@@ -63,6 +63,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
     // Social Modal State
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
+    const [modalKey, setModalKey] = useState(0);
 
     // Image Cropper State
     const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -155,6 +156,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
 
     const openSocialModal = (link?: SocialLink) => {
         setEditingLink(link || null);
+        setModalKey(k => k + 1); // Force remount with fresh state
         setIsSocialModalOpen(true);
     };
 
@@ -391,36 +393,52 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                 <div
                     className="flex justify-center gap-3 flex-wrap"
                 >
-                    {data.socialLinks.map((social) => (
-                        <a
-                            key={social.id}
-                            href={isEditMode ? undefined : (social.url.match(/^https?:\/\//) ? social.url : `https://${social.url}`)}
-                            target={isEditMode ? undefined : "_blank"}
-                            rel={isEditMode ? undefined : "noopener noreferrer"}
-                            onClick={(e) => {
-                                if (isEditMode) {
-                                    e.preventDefault();
-                                    openSocialModal(social);
-                                }
-                            }}
-                            className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer border hover:scale-110 hover:-translate-y-0.5 active:scale-95 duration-200",
-                                isLightTheme
-                                    ? "bg-black/5 border-black/10 text-black/70 hover:bg-black/10 hover:text-black" // Light Theme
-                                    : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white" // Dark Theme
-                            )}
-                            style={{
-                                boxShadow: `0 0 15px color-mix(in srgb, var(--primary) 15%, transparent)`,
-                            }}
-                        >
-                            {socialIconMap[social.platform] || <Mail className="w-4 h-4" />}
-                            {isEditMode && (
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                    <div className="w-1.5 h-1.5 bg-black rounded-full" />
-                                </div>
-                            )}
-                        </a>
-                    ))}
+                    {data.socialLinks.map((social) => {
+                        // Resolve URL: handle tel:, mailto:, and standard URLs
+                        const resolvedUrl = (() => {
+                            if (isEditMode) return undefined;
+                            const url = social.url.trim();
+                            // Already has a protocol (tel:, mailto:, http:, https:)
+                            if (/^(?:tel:|mailto:|https?:\/\/)/i.test(url)) return url;
+                            // Bare URL — prepend https://
+                            return `https://${url}`;
+                        })();
+
+                        // tel: and mailto: should NOT open in a new tab
+                        const isSpecialProtocol = resolvedUrl ? /^(?:tel:|mailto:)/i.test(resolvedUrl) : false;
+
+                        return (
+                            <a
+                                key={social.id}
+                                href={resolvedUrl}
+                                target={isEditMode || isSpecialProtocol ? undefined : "_blank"}
+                                rel={isEditMode || isSpecialProtocol ? undefined : "noopener noreferrer"}
+                                onClick={(e) => {
+                                    if (isEditMode) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openSocialModal(social);
+                                    }
+                                }}
+                                className={cn(
+                                    "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer border hover:scale-110 hover:-translate-y-0.5 active:scale-95 duration-200",
+                                    isLightTheme
+                                        ? "bg-black/5 border-black/10 text-black/70 hover:bg-black/10 hover:text-black" // Light Theme
+                                        : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20 hover:text-white" // Dark Theme
+                                )}
+                                style={{
+                                    boxShadow: `0 0 15px color-mix(in srgb, var(--primary) 15%, transparent)`,
+                                }}
+                            >
+                                {socialIconMap[social.platform] || <Mail className="w-4 h-4" />}
+                                {isEditMode && (
+                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                        <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                                    </div>
+                                )}
+                            </a>
+                        );
+                    })}
 
                     {/* Add Button */}
                     {isEditMode && (
@@ -448,7 +466,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                 onSave={handleSaveSocialLink}
                 onDelete={handleDeleteSocialLink}
                 initialData={editingLink}
-                key={editingLink ? editingLink.id : 'new'}
+                key={modalKey}
                 theme={data.theme}
             />
 

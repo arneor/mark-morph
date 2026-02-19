@@ -128,14 +128,14 @@ export function TreeProfileView({
         if (controlledActiveTab) return controlledActiveTab;
 
         // 2. Public View: Derive from URL
-        if (!isEditMode && pathname) {
+        if (!isEditMode && username && pathname) {
             // Check if URL ends with /catalog (robustness for query params handled by usePathname)
             return pathname.endsWith('/catalog') ? 'menu' : 'links';
         }
 
         // 3. Edit Mode Fallback to internal state
         return internalActiveTab;
-    }, [controlledActiveTab, isEditMode, pathname, internalActiveTab]);
+    }, [controlledActiveTab, isEditMode, pathname, internalActiveTab, username]);
 
     // CSS Variables for HIGH PERFORMANCE (No JS re-renders for styles)
     const cssVariables = useMemo(() => ({

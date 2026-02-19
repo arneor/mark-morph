@@ -134,10 +134,10 @@ export function AddLinkModal({ isOpen, onClose, onSave, onDelete, initialData, t
                             </div>
                         </div>
 
-                        {/* URL */}
+                        {/* URL / Smart Link */}
                         <div className="space-y-1.5">
                             <label className={cn("text-xs font-semibold uppercase tracking-wider pl-1", styles.label)}>
-                                URL
+                                URL / Phone / Email
                             </label>
                             <div className="relative">
                                 <div className={cn("absolute left-3 top-1/2 -translate-y-1/2", styles.textDim)}>
@@ -147,7 +147,7 @@ export function AddLinkModal({ isOpen, onClose, onSave, onDelete, initialData, t
                                     type="text"
                                     value={url}
                                     onChange={(e) => setUrl(e.target.value)}
-                                    placeholder="https://..."
+                                    placeholder="https://... or phone number"
                                     className={cn(
                                         "w-full rounded-xl py-3 pl-10 pr-4 transition-all text-sm border focus:outline-none focus:ring-1",
                                         styles.inputBg,

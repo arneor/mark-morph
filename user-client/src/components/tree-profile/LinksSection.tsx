@@ -18,6 +18,19 @@ const LinkBlockComponent = ({ link, theme, isEditMode, onEdit }: LinkBlockProps)
     // Check if theme is likely light mode
     const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
+    // Resolve the link URL — handle tel:, mailto:, and standard URLs
+    const resolvedUrl = (() => {
+        if (isEditMode) return undefined;
+        const url = link.url.trim();
+        // Already has a protocol (tel:, mailto:, http:, https:)
+        if (/^(?:tel:|mailto:|https?:\/\/)/i.test(url)) return url;
+        // Bare URL — prepend https://
+        return `https://${url}`;
+    })();
+
+    // tel: and mailto: should NOT open in a new tab
+    const isSpecialProtocol = resolvedUrl ? /^(?:tel:|mailto:)/i.test(resolvedUrl) : false;
+
     // Base styles based on theme.cardStyle
     const cardBaseStyles = {
         glass: isLightTheme ? 'bg-black/5 border-black/10' : 'bg-white/10 border-white/20',
@@ -55,9 +68,9 @@ const LinkBlockComponent = ({ link, theme, isEditMode, onEdit }: LinkBlockProps)
 
     return (
         <a
-            href={isEditMode ? undefined : (link.url.match(/^https?:\/\//) ? link.url : `https://${link.url}`)}
-            target={isEditMode ? undefined : "_blank"}
-            rel={isEditMode ? undefined : "noopener noreferrer"}
+            href={resolvedUrl}
+            target={isEditMode || isSpecialProtocol ? undefined : "_blank"}
+            rel={isEditMode || isSpecialProtocol ? undefined : "noopener noreferrer"}
             className={cn(
                 'group relative block w-full p-4 border transition-all duration-300',
                 buttonShapeStyles[theme.buttonStyle || 'rounded'],
@@ -69,12 +82,11 @@ const LinkBlockComponent = ({ link, theme, isEditMode, onEdit }: LinkBlockProps)
             style={{
                 ...gradientStyle,
                 ...featuredStyle,
-                ...gradientStyle,
-                ...featuredStyle,
             }}
             onClick={(e) => {
                 if (isEditMode) {
                     e.preventDefault();
+                    e.stopPropagation();
                     onEdit?.();
                 }
             }}
@@ -155,6 +167,7 @@ function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSect
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLink, setEditingLink] = useState<CustomLink | null>(null);
+    const [modalKey, setModalKey] = useState(0);
 
     // Check if theme is likely light mode
     const isLightTheme = theme.textColor === '#000000' || theme.textColor === '#0f172a' || theme.textColor === '#831843';
@@ -196,11 +209,13 @@ function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSect
 
     const openForAdd = () => {
         setEditingLink(null);
+        setModalKey(k => k + 1); // Force remount with fresh state
         setIsModalOpen(true);
     };
 
     const openForEdit = (link: CustomLink) => {
         setEditingLink(link);
+        setModalKey(k => k + 1); // Force remount with fresh state
         setIsModalOpen(true);
     };
 
@@ -269,7 +284,7 @@ function LinksSectionComponent({ links, theme, isEditMode, onUpdate }: LinksSect
                 onSave={handleSave}
                 onDelete={editingLink ? handleDelete : undefined}
                 initialData={editingLink}
-                key={editingLink ? editingLink.id : 'new'}
+                key={modalKey}
                 theme={theme}
             />
         </div>

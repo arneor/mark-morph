@@ -1,66 +1,71 @@
 
+/**
+ * Social Platform validation config.
+ * All URL regexes allow optional trailing paths and query parameters
+ * (e.g. ?igsh=..., ?utm_source=...) to support mobile share links.
+ */
 export const SOCIAL_PLATFORMS = {
     instagram: {
         id: 'instagram',
         label: 'Instagram',
         baseUrl: 'instagram.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9_.]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9_.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://instagram.com/username',
     },
     facebook: {
         id: 'facebook',
         label: 'Facebook',
         baseUrl: 'facebook.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9.]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?(?:facebook\.com|fb\.com)\/([a-zA-Z0-9.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://facebook.com/username',
     },
     twitter: {
         id: 'twitter',
         label: 'Twitter',
         baseUrl: 'twitter.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://twitter.com/username',
     },
     youtube: {
         id: 'youtube',
         label: 'YouTube',
         baseUrl: 'youtube.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:channel\/|c\/|user\/|@)|youtu\.be\/)([a-zA-Z0-9_-]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:channel\/|c\/|user\/|@|shorts\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://youtube.com/@channel',
     },
     linkedin: {
         id: 'linkedin',
         label: 'LinkedIn',
         baseUrl: 'linkedin.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|company)\/([a-zA-Z0-9_-]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:[a-z]{2}\.)?(?:www\.)?linkedin\.com\/(?:in|company)\/([a-zA-Z0-9_-]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://linkedin.com/in/username',
     },
     tiktok: {
         id: 'tiktok',
         label: 'TikTok',
         baseUrl: 'tiktok.com/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9_.]+)\/?$/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?(?:tiktok\.com|vm\.tiktok\.com)\/@?([a-zA-Z0-9_.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
         placeholder: 'https://tiktok.com/@username',
     },
     whatsapp: {
         id: 'whatsapp',
         label: 'WhatsApp',
         baseUrl: 'wa.me/',
-        regex: /^(?:https?:\/\/)?(?:www\.)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/,
+        regex: /^(?:https?:\/\/)?(?:www\.)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\+?\d+)(\?[^\s]*)?/,
         placeholder: 'https://wa.me/1234567890',
     },
     email: {
         id: 'email',
         label: 'Email',
         baseUrl: 'mailto:',
-        regex: /^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
+        regex: /^(?:mailto:)?([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
         placeholder: 'hello@example.com',
     },
     phone: {
         id: 'phone',
         label: 'Phone',
         baseUrl: 'tel:',
-        regex: /^\+?([0-9\s-]{7,})$/,
+        regex: /^(?:tel:)?\+?([0-9\s()-]{7,})$/,
         placeholder: '+1234567890',
     },
 };
@@ -99,10 +104,11 @@ export function validateSocialLink(platform: string, urlOrHandle: string): Valid
 
     // Phone special case
     if (platform === 'phone') {
-        // Remove spaces and dashes for cleaner validation if desired, but regex handles them
-        const clean = urlOrHandle.replace(/^tel:/, '');
+        const clean = urlOrHandle.replace(/^tel:/, '').trim();
         if (config.regex.test(clean)) {
-            return { isValid: true, formattedUrl: `tel:${clean}` };
+            // Strip spaces/dashes/parens for the tel: URI, keep + prefix
+            const normalized = clean.replace(/[\s()-]/g, '');
+            return { isValid: true, formattedUrl: `tel:${normalized}` };
         }
         return { isValid: false, formattedUrl: urlOrHandle, error: 'Invalid phone number' };
     }
@@ -154,14 +160,65 @@ export function validateSocialLink(platform: string, urlOrHandle: string): Valid
     return { isValid: false, formattedUrl: input, error: `Invalid ${config.label} URL or handle` };
 }
 
+/**
+ * Detects if a string looks like a phone number.
+ * Matches: +1234567890, 1234567890, (123) 456-7890, +91 98765 43210
+ */
+export function isPhoneNumber(input: string): boolean {
+    const cleaned = input.trim();
+    // Must start with + or digit, contain mostly digits, min 7 digit chars
+    if (!/^[+\d]/.test(cleaned)) return false;
+    const digitsOnly = cleaned.replace(/[^\d]/g, '');
+    // 7-15 digits is the valid international phone number range (ITU-T E.164)
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15 && /^[+\d\s()-]+$/.test(cleaned);
+}
+
+/**
+ * Validates a generic URL or "Smart Link" (auto-detects phone numbers, mailto, tel).
+ * - Pure numeric / phone pattern → auto-prefix with tel:
+ * - Email pattern → auto-prefix with mailto:
+ * - Standard URLs → ensure https:// protocol
+ * - XSS prevention: blocks javascript: protocol
+ */
 export function validateGenericUrl(url: string): ValidationResult {
+    const trimmed = url.trim();
+
+    if (!trimmed) {
+        return { isValid: false, formattedUrl: url, error: 'URL is required' };
+    }
+
+    // XSS Prevention: Block dangerous protocols
+    if (/^\s*javascript:/i.test(trimmed)) {
+        return { isValid: false, formattedUrl: url, error: 'Invalid URL format' };
+    }
+
+    // Smart Link: Phone number detection
+    if (isPhoneNumber(trimmed)) {
+        const normalized = trimmed.replace(/[\s()-]/g, '');
+        return { isValid: true, formattedUrl: `tel:${normalized}` };
+    }
+
+    // Smart Link: Already a tel: link
+    if (/^tel:/i.test(trimmed)) {
+        return { isValid: true, formattedUrl: trimmed };
+    }
+
+    // Smart Link: Already a mailto: link
+    if (/^mailto:/i.test(trimmed)) {
+        return { isValid: true, formattedUrl: trimmed };
+    }
+
+    // Smart Link: Bare email address
+    if (/^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmed)) {
+        return { isValid: true, formattedUrl: `mailto:${trimmed}` };
+    }
+
     try {
         // Ensure protocol
-        const urlWithProtocol = url.startsWith('http') ? url : `https://${url}`;
+        const urlWithProtocol = trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
         const parsed = new URL(urlWithProtocol);
         return { isValid: true, formattedUrl: parsed.toString() };
     } catch {
         return { isValid: false, formattedUrl: url, error: 'Invalid URL format' };
     }
 }
-

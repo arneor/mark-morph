@@ -373,7 +373,44 @@ export class BusinessService {
     const treeProfile = await this.findOrCreateTreeProfile(businessId);
 
     if (dto.socialLinks) {
+      dto.socialLinks = this.sanitizeAndFormatLinks(dto.socialLinks);
       this.validateSocialLinks(dto.socialLinks);
+    }
+
+    // Also sanitize customLinks for XSS prevention and Smart Link formatting
+    if (dto.customLinks) {
+      dto.customLinks = (dto.customLinks as any[]).map((link: any) => {
+        if (!link.url) return link;
+        const url = link.url.trim();
+
+        // XSS prevention
+        if (/^\s*javascript:/i.test(url)) {
+          throw new ForbiddenException('Invalid URL format: dangerous protocol detected');
+        }
+
+        // Smart Link: auto-detect phone numbers
+        if (this.isPhoneNumber(url)) {
+          const normalized = url.replace(/[\s()-]/g, '');
+          return { ...link, url: `tel:${normalized}` };
+        }
+
+        // Smart Link: already tel: or mailto:
+        if (/^(?:tel:|mailto:)/i.test(url)) {
+          return { ...link, url };
+        }
+
+        // Smart Link: bare email address
+        if (/^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(url)) {
+          return { ...link, url: `mailto:${url}` };
+        }
+
+        // Standard URL: ensure protocol
+        if (!url.startsWith('http')) {
+          return { ...link, url: `https://${url}` };
+        }
+
+        return { ...link, url };
+      });
     }
 
     Object.assign(treeProfile, dto);
@@ -594,17 +631,82 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Detects if a string looks like a phone number (E.164-compatible).
+   * Matches: +1234567890, 1234567890, (123) 456-7890, +91 98765 43210
+   */
+  private isPhoneNumber(input: string): boolean {
+    const cleaned = input.trim();
+    if (!/^[+\d]/.test(cleaned)) return false;
+    const digitsOnly = cleaned.replace(/[^\d]/g, '');
+    // 7-15 digits per ITU-T E.164
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15 && /^[+\d\s()-]+$/.test(cleaned);
+  }
+
+  /**
+   * Sanitizes and formats social links before storage.
+   * - Auto-prefixes phone numbers with tel:
+   * - Auto-prefixes emails with mailto:
+   * - Blocks javascript: URLs (XSS prevention)
+   * - Normalizes phone numbers for E.164 compatibility
+   */
+  private sanitizeAndFormatLinks(socialLinks: any[]): any[] {
+    return socialLinks.map(link => {
+      if (!link.url) return link;
+      const url = link.url.trim();
+
+      // XSS prevention: block dangerous protocols
+      if (/^\s*javascript:/i.test(url)) {
+        throw new ForbiddenException('Invalid URL format: dangerous protocol detected');
+      }
+
+      // Auto-format phone platform
+      if (link.platform === 'phone') {
+        const clean = url.replace(/^tel:/, '').trim();
+        if (this.isPhoneNumber(clean)) {
+          const normalized = clean.replace(/[\s()-]/g, '');
+          return { ...link, url: `tel:${normalized}` };
+        }
+      }
+
+      // Auto-format email platform
+      if (link.platform === 'email') {
+        const clean = url.replace(/^mailto:/, '').trim();
+        if (/^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(clean)) {
+          return { ...link, url: `mailto:${clean}` };
+        }
+      }
+
+      return { ...link, url };
+    });
+  }
+
+  /**
+   * Validates social links against platform-specific regex patterns.
+   *
+   * All URL regexes allow optional trailing paths and query parameters
+   * (e.g. ?igsh=..., ?utm_source=..., ?ref=...) to support:
+   * - Mobile share links (Instagram ?igsh, TikTok, etc.)
+   * - UTM tracking parameters
+   * - Deep-linking parameters for mobile app redirection
+   *
+   * Patterns are anchored with ^ and $ to prevent partial match bypasses.
+   * Regexes are kept in sync with frontend validation.ts patterns.
+   */
   private validateSocialLinks(socialLinks: any[]) {
+    // ── Platform regex map ──
+    // All patterns allow optional trailing path segments and query strings
+    // Pattern structure: ^<domain-match>/<path-match>(?:/[^?]*)?(\?[^\s]*)?/?$
     const REGEX_MAP = {
-      instagram: /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9_.]+)\/?$/,
-      facebook: /^(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9.]+)\/?$/,
-      twitter: /^(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)\/?$/,
-      youtube: /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:channel\/|c\/|user\/|@)|youtu\.be\/)([a-zA-Z0-9_-]+)\/?$/,
-      linkedin: /^(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|company)\/([a-zA-Z0-9_-]+)\/?$/,
-      tiktok: /^(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?([a-zA-Z0-9_.]+)\/?$/,
-      whatsapp: /^(?:https?:\/\/)?(?:www\.)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/,
+      instagram: /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9_.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      facebook: /^(?:https?:\/\/)?(?:www\.)?(?:facebook\.com|fb\.com)\/([a-zA-Z0-9.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      twitter: /^(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/([a-zA-Z0-9_]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      youtube: /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:channel\/|c\/|user\/|@|shorts\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      linkedin: /^(?:https?:\/\/)?(?:[a-z]{2}\.)?(?:www\.)?linkedin\.com\/(?:in|company)\/([a-zA-Z0-9_-]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      tiktok: /^(?:https?:\/\/)?(?:www\.)?(?:tiktok\.com|vm\.tiktok\.com)\/@?([a-zA-Z0-9_.]+)(?:\/[^?]*)?(\?[^\s]*)?\/?$/,
+      whatsapp: /^(?:https?:\/\/)?(?:www\.)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\+?\d+)(\?[^\s]*)?/,
       email: /^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
-      phone: /^\+?([0-9\s-]{7,})$/,
+      phone: /^\+?([0-9\s()-]{7,})$/,
     };
 
     for (const link of socialLinks) {
@@ -612,21 +714,30 @@ export class BusinessService {
       if (!link.platform || !link.url) continue;
 
       const regex = REGEX_MAP[link.platform as keyof typeof REGEX_MAP];
-      if (regex) {
-        if (link.platform === 'email') {
-          const clean = link.url.replace(/^mailto:/, '');
-          if (!regex.test(clean)) {
-            throw new ForbiddenException(`Invalid Email: ${link.url}`);
-          }
-        } else if (link.platform === 'phone') {
-          const clean = link.url.replace(/^tel:/, '');
-          if (!regex.test(clean)) {
-            throw new ForbiddenException(`Invalid Phone number: ${link.url}`);
-          }
-        } else {
-          if (!regex.test(link.url)) {
-            throw new ForbiddenException(`Invalid URL for ${link.platform}: ${link.url}`);
-          }
+      if (!regex) continue; // Unknown platform — allow through
+
+      if (link.platform === 'email') {
+        const clean = link.url.replace(/^mailto:/, '').trim();
+        if (!regex.test(clean)) {
+          throw new ForbiddenException(
+            `Invalid email address. Please provide a valid email like user@example.com`,
+          );
+        }
+      } else if (link.platform === 'phone') {
+        const clean = link.url.replace(/^tel:/, '').trim();
+        if (!regex.test(clean)) {
+          throw new ForbiddenException(
+            `Invalid phone number. Please provide a valid number with 7-15 digits (e.g. +919876543210)`,
+          );
+        }
+      } else {
+        // Standard URL platform — strip protocol-related issues before testing
+        const testUrl = link.url.trim();
+        if (!regex.test(testUrl)) {
+          const platformLabel = link.platform.charAt(0).toUpperCase() + link.platform.slice(1);
+          throw new ForbiddenException(
+            `Invalid ${platformLabel} URL. Please provide a valid ${platformLabel} link.`,
+          );
         }
       }
     }
