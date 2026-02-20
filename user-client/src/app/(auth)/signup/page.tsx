@@ -38,6 +38,27 @@ import { authApi, businessApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { SignInPage, GlassInputWrapper } from '@/components/ui/sign-in';
 
+const INDUSTRY_OPTIONS = [
+    '☕ Café / Coffee Shop',
+    '🍽️ Restaurant',
+    '🏨 Hotel / Hospitality',
+    '💇 Salon / Spa',
+    '🏋️ Gym / Fitness',
+    '🛒 Retail Store',
+    '🏥 Healthcare / Clinic',
+    '📚 Education',
+    '💼 Coworking Space',
+    '🏢 Real Estate',
+    '🚗 Automotive',
+    '🎨 Creative Agency',
+    '💻 Tech / SaaS',
+    '🎵 Entertainment',
+    '🏖️ Travel / Tourism',
+    '🛠️ Home Services',
+    '📦 E-commerce',
+    '🔧 Other',
+];
+
 // Validation schema for business details
 const signupSchema = z.object({
     businessName: z.string().min(2, 'Business name must be at least 2 characters'),
@@ -46,6 +67,7 @@ const signupSchema = z.object({
         .max(20, 'Username must be at most 20 characters')
         .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
     location: z.string().min(2, 'Location is required'),
+    industryType: z.string().min(1, 'Please select your industry'),
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
 });
@@ -84,6 +106,7 @@ export default function SignupPage() {
             businessName: '',
             username: '',
             location: '',
+            industryType: '',
             email: '',
             password: '',
         },
@@ -117,7 +140,7 @@ export default function SignupPage() {
     const [usernameToCheck, setUsernameToCheck] = useState('');
     const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
-    // Debounced check
+    // Debounced username check (500ms)
     useEffect(() => {
         const checkUsername = async () => {
             if (!usernameToCheck || usernameToCheck.length < 3) {
@@ -205,6 +228,7 @@ export default function SignupPage() {
                 username: businessData.username,
                 location: businessData.location,
                 contactEmail: businessData.email,
+                industryType: businessData.industryType,
             });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -273,6 +297,8 @@ export default function SignupPage() {
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
+
+    const selectedIndustry = signupForm.watch('industryType');
 
     return (
         <SignInPage
@@ -352,8 +378,6 @@ export default function SignupPage() {
                                                             onChange={(e) => {
                                                                 const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                                                                 field.onChange(val);
-                                                                // Debounced check or direct call would go here, 
-                                                                // but integrating into useEffect is cleaner with a separate state
                                                                 setUsernameToCheck(val);
                                                             }}
                                                         />
@@ -396,6 +420,40 @@ export default function SignupPage() {
                                     )}
                                 />
                             </div>
+
+                            {/* Industry Type - Pill Selector */}
+                            <FormField
+                                control={signupForm.control}
+                                name="industryType"
+                                render={({ field }) => (
+                                    <FormItem className="animate-element animate-delay-250">
+                                        <FormLabel className="text-sm font-medium text-muted-foreground">Industry</FormLabel>
+                                        <FormControl>
+                                            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1 pb-1 scrollbar-thin">
+                                                {INDUSTRY_OPTIONS.map((industry) => (
+                                                    <button
+                                                        key={industry}
+                                                        type="button"
+                                                        onClick={() => field.onChange(industry)}
+                                                        className={`
+                                                            px-3 py-1.5 rounded-full text-xs font-medium
+                                                            border transition-all duration-200 cursor-pointer
+                                                            focus:outline-none focus:ring-2 focus:ring-primary/40
+                                                            ${selectedIndustry === industry
+                                                                ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-105'
+                                                                : 'bg-muted/40 text-muted-foreground border-border/60 hover:bg-muted/80 hover:border-primary/40 hover:text-foreground'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {industry}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
                             {/* Email */}
                             <FormField

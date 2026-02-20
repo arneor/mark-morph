@@ -300,12 +300,18 @@ export default function LoginPage() {
                             )}
                         />
 
-                        <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" className="custom-checkbox accent-primary" />
-                                <span className="text-foreground/90">Keep me signed in</span>
+                        <div className="animate-element animate-delay-400 flex items-center justify-between text-sm">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" className="custom-checkbox accent-primary h-4 w-4 rounded border-border" />
+                                <span className="text-foreground/80 group-hover:text-foreground transition-colors">Keep me signed in</span>
                             </label>
-                            {/* Reset password link could go here */}
+                            <button
+                                type="button"
+                                onClick={() => router.push('/forgot-password')}
+                                className="text-primary hover:text-primary/80 hover:underline transition-all font-semibold"
+                            >
+                                Forgot password?
+                            </button>
                         </div>
 
                         <Button

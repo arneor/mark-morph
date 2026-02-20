@@ -264,6 +264,11 @@ export class CreateBusinessDto {
   @IsEnum(["private", "public"])
   @IsOptional()
   profileType?: string;
+
+  @ApiProperty({ description: "Industry type", example: "Restaurant" })
+  @IsString()
+  @IsOptional()
+  industryType?: string;
 }
 
 export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {

@@ -33,6 +33,10 @@ export class Business {
   @Prop()
   description?: string;
 
+  @ApiProperty({ description: "Industry type / category" })
+  @Prop()
+  industryType?: string;
+
   @ApiProperty({ description: "Contact email" })
   @Prop()
   contactEmail?: string;
@@ -125,3 +129,4 @@ BusinessSchema.index({ businessName: "text" });
 BusinessSchema.index({ category: 1 });
 BusinessSchema.index({ isActive: 1 });
 BusinessSchema.index({ status: 1 });
+BusinessSchema.index({ industryType: 1 });

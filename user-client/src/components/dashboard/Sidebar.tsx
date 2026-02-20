@@ -11,6 +11,8 @@ import {
     Wifi,
     TreePine,
     ChevronDown,
+    Settings,
+    QrCode,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -51,6 +53,16 @@ export function Sidebar({ businessId }: SidebarProps) {
             href: `/dashboard/${businessId}/onboarding`,
             label: 'Setup Wizard',
             icon: Wand2,
+        },
+        {
+            href: `/dashboard/${businessId}/marketing`,
+            label: 'Share & Promote',
+            icon: QrCode,
+        },
+        {
+            href: `/dashboard/${businessId}/settings`,
+            label: 'Settings',
+            icon: Settings,
         },
     ];
 

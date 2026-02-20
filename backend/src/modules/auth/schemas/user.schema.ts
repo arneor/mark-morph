@@ -63,6 +63,18 @@ export class User {
   @ApiProperty({ description: "Last OTP request timestamp" })
   @Prop()
   lastOtpRequestAt?: Date;
+
+  @ApiProperty({ description: "Pending email address (for email change OTP flow)" })
+  @Prop()
+  pendingEmail?: string;
+
+  @ApiProperty({ description: "OTP for pending email verification" })
+  @Prop()
+  pendingEmailOtp?: string;
+
+  @ApiProperty({ description: "Pending email OTP expiration" })
+  @Prop()
+  pendingEmailOtpExpiresAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

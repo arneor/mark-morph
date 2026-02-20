@@ -113,6 +113,57 @@ export function useSignup() {
 }
 
 /**
+ * Hook for initiating password recovery
+ */
+export function useForgotPassword() {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (email: string) => {
+      return authApi.forgotPassword(email);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Reset Code Sent',
+        description: 'Check your email for the password recovery code.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Request Failed',
+        description: error.message || 'Failed to send recovery code',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Hook for resetting password verify OTP
+ */
+export function useResetPassword() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: { email: string; otp: string; newPassword: string }) => {
+      return authApi.resetPassword(data);
+    },
+    onSuccess: (data) => {
+      tokenStorage.setToken(data.accessToken);
+      queryClient.setQueryData(['user'], data);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Reset Failed',
+        description: error.message || 'Invalid or expired code',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
  * Hook to log out
  */
 export function useLogout() {
@@ -150,5 +201,7 @@ export function useAuth() {
     verifyOtp,
     signup,
     logout,
+    forgotPassword: useForgotPassword(),
+    resetPassword: useResetPassword(),
   };
 }

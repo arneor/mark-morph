@@ -176,9 +176,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Verify OTP (Email) and return JWT
-   */
   async verifyEmailOtp(dto: VerifyEmailOtpDto): Promise<AuthResponseDto> {
     const { email, otp, macAddress } = dto;
 
@@ -200,14 +197,28 @@ export class AuthService {
       throw new UnauthorizedException("Invalid OTP.");
     }
 
-    // Mark as verified
-    user.isVerified = true;
+    return this.createSession(user, macAddress);
+  }
+
+  /**
+   * Private helper to create an authenticated session
+   */
+  private async createSession(
+    user: UserDocument,
+    macAddress?: string,
+  ): Promise<AuthResponseDto> {
+    // Mark as verified if not already
+    if (!user.isVerified) {
+      user.isVerified = true;
+      user.lastLogin = new Date();
+    } else {
+      user.lastLogin = new Date();
+    }
+
     user.otp = undefined;
     user.otpExpiresAt = undefined;
-    user.lastLogin = new Date();
 
     if (macAddress) user.macAddress = macAddress;
-
     await user.save();
 
     // Compliance Log
@@ -215,10 +226,6 @@ export class AuthService {
 
     // Get business info for the JWT payload (don't block login based on status)
     const business = await this.businessModel.findOne({ ownerId: user._id });
-
-    // NOTE: Business status restrictions (pending, rejected, suspended) are no longer
-    // enforced at login. Users can always login and see their dashboard.
-    // Status restrictions only apply to operational features like splash pages.
 
     // Generate Token
     const payload = {
@@ -274,5 +281,192 @@ export class AuthService {
       .findOne({ ownerId: new Types.ObjectId(userId) })
       .select("_id");
     return business ? business._id.toString() : null;
+  }
+
+  /**
+   * Forgot Password - Send OTP to email for password reset
+   */
+  async forgotPassword(email: string): Promise<OtpResponseDto> {
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      // Don't reveal whether the email exists
+      return {
+        success: true,
+        message: "If this email is registered, a reset code has been sent.",
+        expiresIn: this.OTP_EXPIRY_MINUTES * 60,
+      };
+    }
+
+    const otp = this.verifyService.generateOtp();
+    user.otp = otp;
+    user.otpExpiresAt = new Date(
+      Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
+    user.otpRequestCount = (user.otpRequestCount || 0) + 1;
+    user.lastOtpRequestAt = new Date();
+
+    await user.save();
+    await this.emailService.sendOtp(email, otp);
+
+    return {
+      success: true,
+      message: "If this email is registered, a reset code has been sent.",
+      expiresIn: this.OTP_EXPIRY_MINUTES * 60,
+    };
+  }
+
+  /**
+   * Reset Password - Verify OTP and set new password
+   */
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<AuthResponseDto> {
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      throw new UnauthorizedException("Invalid email or OTP.");
+    }
+
+    if (!user.otp || !user.otpExpiresAt) {
+      throw new UnauthorizedException(
+        "No reset code found. Please request a new one.",
+      );
+    }
+
+    if (new Date() > user.otpExpiresAt) {
+      throw new UnauthorizedException(
+        "Reset code has expired. Please request a new one.",
+      );
+    }
+
+    if (user.otp !== otp) {
+      throw new UnauthorizedException("Invalid reset code.");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otp = undefined;
+    user.otpExpiresAt = undefined;
+
+    // After reset, we want to log them in immediately
+    return this.createSession(user);
+  }
+
+  /**
+   * Change Password - Authenticated user changes their password
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.userModel.findById(userId).select("+password");
+
+    if (!user) {
+      throw new UnauthorizedException("User not found.");
+    }
+
+    if (!user.password) {
+      throw new BadRequestException(
+        "No password set. Please use forgot password to set one.",
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Current password is incorrect.");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return { success: true, message: "Password changed successfully." };
+  }
+
+  /**
+   * Request Email Change - Send OTP to the NEW email for verification
+   */
+  async requestEmailChange(
+    userId: string,
+    newEmail: string,
+  ): Promise<OtpResponseDto> {
+    // Check if new email is already taken
+    const existingUser = await this.userModel.findOne({ email: newEmail });
+    if (existingUser) {
+      throw new BadRequestException("This email is already in use.");
+    }
+
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException("User not found.");
+    }
+
+    const otp = this.verifyService.generateOtp();
+    user.pendingEmail = newEmail;
+    user.pendingEmailOtp = otp;
+    user.pendingEmailOtpExpiresAt = new Date(
+      Date.now() + this.OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
+
+    await user.save();
+    await this.emailService.sendOtp(newEmail, otp);
+
+    return {
+      success: true,
+      message: `Verification code sent to ${newEmail}`,
+      expiresIn: this.OTP_EXPIRY_MINUTES * 60,
+    };
+  }
+
+  /**
+   * Verify Email Change - Confirm OTP and apply the email change
+   */
+  async verifyEmailChange(
+    userId: string,
+    newEmail: string,
+    otp: string,
+  ): Promise<{ success: boolean; message: string; email: string }> {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException("User not found.");
+    }
+
+    if (!user.pendingEmail || !user.pendingEmailOtp || !user.pendingEmailOtpExpiresAt) {
+      throw new BadRequestException(
+        "No pending email change found. Please request a new one.",
+      );
+    }
+
+    if (user.pendingEmail !== newEmail) {
+      throw new BadRequestException("Email mismatch. Please request a new change.");
+    }
+
+    if (new Date() > user.pendingEmailOtpExpiresAt) {
+      throw new UnauthorizedException("Verification code has expired.");
+    }
+
+    if (user.pendingEmailOtp !== otp) {
+      throw new UnauthorizedException("Invalid verification code.");
+    }
+
+    // Apply the email change
+    user.email = newEmail;
+    user.pendingEmail = undefined;
+    user.pendingEmailOtp = undefined;
+    user.pendingEmailOtpExpiresAt = undefined;
+
+    await user.save();
+
+    return {
+      success: true,
+      message: "Email updated successfully.",
+      email: newEmail,
+    };
   }
 }

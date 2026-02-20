@@ -28,6 +28,8 @@ export interface Business {
   contactEmail?: string;
   contactPhone?: string;
   logoUrl?: string;
+  username?: string;
+  industryType?: string;
   primaryColor: string;
   wifiSsid?: string;
   googleReviewUrl?: string;
@@ -535,6 +537,7 @@ export const businessApi = {
     category?: string;
     contactEmail?: string;
     contactPhone?: string;
+    industryType?: string;
   }): Promise<Business> {
     return apiRequest('/business/register', {
       method: 'POST',
@@ -706,6 +709,51 @@ export const authApi = {
 
   logout(): void {
     tokenStorage.removeToken();
+  },
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    return apiRequest("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Promise<AuthResponse> {
+    return apiRequest("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; message: string }> {
+    return apiRequest("/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async requestEmailChange(newEmail: string): Promise<{ success: boolean; message: string }> {
+    return apiRequest("/auth/request-email-change", {
+      method: "POST",
+      body: JSON.stringify({ newEmail }),
+    });
+  },
+
+  async verifyEmailChange(data: {
+    newEmail: string;
+    otp: string;
+  }): Promise<{ success: boolean; message: string; email: string }> {
+    return apiRequest("/auth/verify-email-change", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 };
 

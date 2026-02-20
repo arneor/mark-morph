@@ -6,6 +6,7 @@ import {
   HttpStatus,
   UseGuards,
   Get,
+  Put,
   Logger,
 } from "@nestjs/common";
 import {
@@ -22,6 +23,11 @@ import {
   VerifyEmailOtpDto,
   AuthResponseDto,
   OtpResponseDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
+  RequestEmailChangeDto,
+  VerifyEmailChangeDto,
 } from "./dto/auth.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -31,7 +37,7 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post("signup")
   @HttpCode(HttpStatus.CREATED)
@@ -92,5 +98,91 @@ export class AuthController {
       name: fullUser?.name,
       isVerified: fullUser?.isVerified,
     };
+  }
+
+  // ---- Password Management ----
+
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @ApiOperation({ summary: "Request password reset OTP" })
+  @ApiResponse({
+    status: 200,
+    description: "Reset code sent if email exists",
+    type: OtpResponseDto,
+  })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<OtpResponseDto> {
+    this.logger.log(`Forgot password request for ${dto.email}`);
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post("reset-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reset password with OTP" })
+  @ApiResponse({
+    status: 200,
+    description: "Password reset successfully",
+  })
+  @ApiResponse({ status: 401, description: "Invalid OTP" })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<AuthResponseDto> {
+    return this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
+  }
+
+  @Put("change-password")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({ summary: "Change password (authenticated)" })
+  @ApiResponse({ status: 200, description: "Password changed" })
+  @ApiResponse({ status: 401, description: "Invalid current password" })
+  async changePassword(
+    @CurrentUser() user: any,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.authService.changePassword(
+      user.userId,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+  }
+
+  // ---- Email Change (OTP-secured) ----
+
+  @Post("request-email-change")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({ summary: "Request email change (sends OTP to new email)" })
+  @ApiResponse({
+    status: 200,
+    description: "OTP sent to new email",
+    type: OtpResponseDto,
+  })
+  async requestEmailChange(
+    @CurrentUser() user: any,
+    @Body() dto: RequestEmailChangeDto,
+  ): Promise<OtpResponseDto> {
+    return this.authService.requestEmailChange(user.userId, dto.newEmail);
+  }
+
+  @Post("verify-email-change")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({ summary: "Verify OTP and apply email change" })
+  @ApiResponse({
+    status: 200,
+    description: "Email changed successfully",
+  })
+  async verifyEmailChange(
+    @CurrentUser() user: any,
+    @Body() dto: VerifyEmailChangeDto,
+  ): Promise<{ success: boolean; message: string; email: string }> {
+    return this.authService.verifyEmailChange(
+      user.userId,
+      dto.newEmail,
+      dto.otp,
+    );
   }
 }

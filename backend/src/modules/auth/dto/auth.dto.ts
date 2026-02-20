@@ -89,4 +89,69 @@ export class OtpResponseDto {
   @ApiProperty({ description: "OTP expiry" })
   expiresIn?: number;
 }
-// Removed Legacy DTOs
+// ---- Password Management DTOs ----
+
+export class ForgotPasswordDto {
+  @ApiProperty({ description: "Email address", example: "user@example.com" })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ description: "Email address", example: "user@example.com" })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({ description: "6-digit OTP code", example: "123456" })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: "OTP must be a 6-digit number" })
+  otp: string;
+
+  @ApiProperty({ description: "New password", example: "NewStrongPass123!" })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6, { message: "Password must be at least 6 characters long" })
+  newPassword: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty({ description: "Current password" })
+  @IsString()
+  @IsNotEmpty()
+  currentPassword: string;
+
+  @ApiProperty({ description: "New password", example: "NewStrongPass123!" })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6, { message: "Password must be at least 6 characters long" })
+  newPassword: string;
+}
+
+export class RequestEmailChangeDto {
+  @ApiProperty({
+    description: "New email address",
+    example: "newemail@example.com",
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  newEmail: string;
+}
+
+export class VerifyEmailChangeDto {
+  @ApiProperty({
+    description: "New email address",
+    example: "newemail@example.com",
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  newEmail: string;
+
+  @ApiProperty({ description: "6-digit OTP code", example: "123456" })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: "OTP must be a 6-digit number" })
+  otp: string;
+}

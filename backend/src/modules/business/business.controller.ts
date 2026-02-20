@@ -61,6 +61,7 @@ export class BusinessController {
       location: business.location,
       contactEmail: business.contactEmail,
       description: business.description,
+      industryType: business.industryType,
       status: business.status,
       isActive: business.isActive,
       onboardingCompleted: business.onboardingCompleted,
@@ -167,6 +168,8 @@ export class BusinessController {
       logoUrl: merged.logoUrl,
       primaryColor: merged.primaryColor,
       description: merged.description,
+      industryType: merged.industryType,
+      username: merged.username,
       profileType: merged.profileType,
       status: merged.status,
       isActive: merged.isActive,
@@ -265,9 +268,12 @@ export class BusinessController {
       logoUrl: merged.logoUrl,
       primaryColor: merged.primaryColor,
       description: merged.description,
+      industryType: merged.industryType,
+      username: merged.username,
       profileType: merged.profileType,
       status: merged.status,
       isActive: merged.isActive,
+      onboardingCompleted: merged.onboardingCompleted,
       // WiFi profile
       wifiSsid: merged.wifiSsid,
       googleReviewUrl: merged.googleReviewUrl,
@@ -329,6 +335,7 @@ export class BusinessController {
       "profileType",
       "isActive",
       "onboardingCompleted",
+      "industryType",
     ];
 
     // Tree profile fields
@@ -421,6 +428,8 @@ export class BusinessController {
       contactEmail: merged.contactEmail,
       status: merged.status,
       isActive: merged.isActive,
+      industryType: merged.industryType,
+      username: merged.username,
       onboardingCompleted: merged.onboardingCompleted,
       // Include wifi/tree fields so frontend sees updated values
       googleReviewUrl: merged.googleReviewUrl,
