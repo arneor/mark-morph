@@ -74,7 +74,7 @@ export function Sidebar({ businessId }: SidebarProps) {
         },
         {
             href: `/dashboard/${businessId}/tree-profile`,
-            label: 'Tree Profile',
+            label: 'Beet Link',
             icon: TreePine,
         },
     ];
