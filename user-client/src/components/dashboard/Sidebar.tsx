@@ -13,6 +13,9 @@ import {
     ChevronDown,
     Settings,
     QrCode,
+    PhoneCall,
+    MessageCircle,
+    HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -68,20 +71,20 @@ export function Sidebar({ businessId }: SidebarProps) {
 
     const profileLinks = [
         {
-            href: `/dashboard/${businessId}/profile`,
-            label: 'WiFi Profile',
-            icon: Wifi,
-        },
-        {
             href: `/dashboard/${businessId}/tree-profile`,
             label: 'Beet Link',
             icon: TreePine,
         },
+        {
+            href: `/dashboard/${businessId}/profile`,
+            label: 'WiFi Profile',
+            icon: Wifi,
+        },
     ];
 
     const renderNavContent = () => (
-        <div className="flex flex-col h-full py-6">
-            <div className="px-6 mb-8">
+        <div className="flex flex-col h-full max-h-screen overflow-hidden py-6">
+            <div className="px-6 mb-8 shrink-0">
                 <h1 className="text-2xl font-display font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                     LinkBeet
                 </h1>
@@ -90,7 +93,7 @@ export function Sidebar({ businessId }: SidebarProps) {
                 </p>
             </div>
 
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto min-h-0">
                 {/* Main Navigation Links */}
                 {mainLinks.map((link) => {
                     const isActive = link.exact
@@ -188,7 +191,33 @@ export function Sidebar({ businessId }: SidebarProps) {
                 </Collapsible>
             </nav>
 
-            <div className="px-4 mt-auto">
+            <div className="px-4 mt-auto space-y-4 pt-4 border-t border-muted shrink-0">
+                {/* Help & Support Section - More compact version */}
+                <div className="p-3 bg-muted/30 rounded-2xl mx-1">
+                    <div className="flex items-center gap-2 mb-2.5 px-1">
+                        <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Support</span>
+                    </div>
+                    <div className="flex flex-row gap-2">
+                        <a
+                            href="https://wa.me/919744880311?text=Hi%20Support%2C%20I%20need%20some%20help%20with%20my%20Linkbeet%20dashboard."
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center gap-2 py-2 px-1 rounded-xl bg-white border border-slate-100 hover:bg-[#25D366]/5 hover:border-[#25D366]/20 transition-all text-slate-600 hover:text-[#25D366]"
+                        >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">WhatsApp</span>
+                        </a>
+                        <a
+                            href="tel:9744880311"
+                            className="flex-1 flex items-center justify-center gap-2 py-2 px-1 rounded-xl bg-white border border-slate-100 hover:bg-primary/5 hover:border-primary/20 transition-all text-slate-600 hover:text-primary"
+                        >
+                            <PhoneCall className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">Call</span>
+                        </a>
+                    </div>
+                </div>
+
                 <button
                     onClick={() => logout()}
                     className="w-full flex items-center gap-3 px-4 py-3 text-destructive hover:bg-destructive/5 rounded-xl transition-colors cursor-pointer"
