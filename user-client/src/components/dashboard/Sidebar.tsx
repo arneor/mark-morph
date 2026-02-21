@@ -22,6 +22,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState, useEffect } from 'react';
 import { useLogout } from '@/hooks/use-auth';
+import { useBusiness } from '@/hooks/use-businesses';
 
 
 interface SidebarProps {
@@ -32,6 +33,17 @@ export function Sidebar({ businessId }: SidebarProps) {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
     const logout = useLogout();
+    const { data: business } = useBusiness(businessId);
+
+    // Support WhatsApp link generation with business data
+    const getWhatsAppUrl = () => {
+        const baseMsg = "Hi Support, I need some help with my Linkbeet dashboard.";
+        if (!business) return `https://wa.me/919744880311?text=${encodeURIComponent(baseMsg)}`;
+
+        const businessInfo = `\n\n--- Business Details ---\nName: ${business.businessName}\nID: ${business.id}\nEmail: ${business.contactEmail || 'N/A'}\nLocation: ${business.location || 'N/A'}\nUsername: ${business.username || 'N/A'}`;
+
+        return `https://wa.me/919744880311?text=${encodeURIComponent(baseMsg + businessInfo)}`;
+    };
 
     // Check if we're on any profile page
     const isOnProfilePage = pathname.includes('/profile') || pathname.includes('/tree-profile');
@@ -200,7 +212,7 @@ export function Sidebar({ businessId }: SidebarProps) {
                     </div>
                     <div className="flex flex-row gap-2">
                         <a
-                            href="https://wa.me/919744880311?text=Hi%20Support%2C%20I%20need%20some%20help%20with%20my%20Linkbeet%20dashboard."
+                            href={getWhatsAppUrl()}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1 flex items-center justify-center gap-2 py-2 px-1 rounded-xl bg-white border border-slate-100 hover:bg-[#25D366]/5 hover:border-[#25D366]/20 transition-all text-slate-600 hover:text-[#25D366]"
