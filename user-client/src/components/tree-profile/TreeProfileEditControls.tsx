@@ -34,7 +34,7 @@ export function TreeProfileEditControls() {
             // 1. Process Gallery Uploads (Batch Upload)
             const currentGallery = profileData.gallery || [];
             const processedGallery = await Promise.all(currentGallery.map(async (img) => {
-                if (img.file) {
+                if (img.file && img.file.name) { // Ensure it's not just an empty object {} from state hydration
                     try {
                         const { url } = await businessApi.uploadMedia(businessId, img.file, 'tree-profile-gallery');
                         // Revoke blob URL to prevent memory leaks
@@ -47,13 +47,14 @@ export function TreeProfileEditControls() {
                         throw new Error(`Failed to upload image: ${img.caption || 'Gallery Image'}`);
                     }
                 }
+                // If it's a blob and hasn't been replaced by a real URL (i.e., file was lost), we will filter it out subsequently.
                 return img;
             }));
 
             // 2. Process Banner Uploads (Batch Upload)
             const currentBanners = profileData.banners || [];
             const processedBanners = await Promise.all(currentBanners.map(async (banner) => {
-                if (banner.file) {
+                if (banner.file && banner.file.name) { // Ensure it's not just an empty object {} from state hydration
                     try {
                         const { url } = await businessApi.uploadMedia(businessId, banner.file, 'tree-profile-banners');
                         if (banner.imageUrl.startsWith('blob:')) {
@@ -65,6 +66,7 @@ export function TreeProfileEditControls() {
                         throw new Error(`Failed to upload banner: ${banner.title || 'Banner'}`);
                     }
                 }
+                // If it's a blob and hasn't been replaced by a real URL (i.e., file was lost), we will filter it out subsequently.
                 return banner;
             }));
 
@@ -84,8 +86,9 @@ export function TreeProfileEditControls() {
                 sectionTitle: profileData.sectionTitle,
                 linksTitle: profileData.linksTitle,
                 openingHours: profileData.openingHours,
-                profileImage: profileData.profileImage,
-                bannerImage: profileData.bannerImage,
+                // Direct Image URLs - Sanitize to prevent blob leakage
+                profileImage: profileData.profileImage?.startsWith('blob:') ? undefined : profileData.profileImage,
+                bannerImage: profileData.bannerImage?.startsWith('blob:') ? undefined : profileData.bannerImage,
 
                 // Theme Settings
                 theme: {
@@ -119,20 +122,24 @@ export function TreeProfileEditControls() {
                     label: link.label
                 })),
 
-                // Tree Profile Data - Use PROCESSED lists
-                banners: processedBanners.map(b => ({
-                    id: b.id,
-                    imageUrl: b.imageUrl, // Real URL
-                    title: b.title,
-                    linkUrl: b.linkUrl,
-                    isActive: b.isActive,
-                })),
+                // Tree Profile Data - Use PROCESSED lists and block legacy/ghost blob URLs from hitting the database
+                banners: processedBanners
+                    .filter(b => !b.imageUrl.startsWith('blob:'))
+                    .map(b => ({
+                        id: b.id,
+                        imageUrl: b.imageUrl, // Guaranteed Real URL
+                        title: b.title,
+                        linkUrl: b.linkUrl,
+                        isActive: b.isActive,
+                    })),
 
-                gallery: processedGallery.map(g => ({
-                    id: g.id,
-                    imageUrl: g.imageUrl, // Real URL
-                    caption: g.caption,
-                })),
+                gallery: processedGallery
+                    .filter(g => !g.imageUrl.startsWith('blob:'))
+                    .map(g => ({
+                        id: g.id,
+                        imageUrl: g.imageUrl, // Guaranteed Real URL
+                        caption: g.caption,
+                    })),
 
                 categories: profileData.categories.map(c => ({
                     id: c.id,
@@ -140,17 +147,19 @@ export function TreeProfileEditControls() {
                     emoji: c.emoji,
                 })),
 
-                catalogItems: profileData.catalogItems.map(item => ({
-                    id: item.id,
-                    categoryId: item.categoryId,
-                    title: item.title,
-                    description: item.description,
-                    price: item.price,
-                    currency: item.currency,
-                    imageUrl: item.imageUrl,
-                    tags: item.tags,
-                    isAvailable: item.isAvailable,
-                })),
+                catalogItems: profileData.catalogItems
+                    .filter(item => !item.imageUrl?.startsWith('blob:'))
+                    .map(item => ({
+                        id: item.id,
+                        categoryId: item.categoryId,
+                        title: item.title,
+                        description: item.description,
+                        price: item.price,
+                        currency: item.currency,
+                        imageUrl: item.imageUrl,
+                        tags: item.tags,
+                        isAvailable: item.isAvailable,
+                    })),
 
                 reviews: (profileData.reviews || []).map(r => ({
                     id: r.id,

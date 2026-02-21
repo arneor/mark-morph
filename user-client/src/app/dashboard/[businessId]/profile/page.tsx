@@ -188,15 +188,17 @@ function BusinessProfileContent() {
                 showWelcomeBanner: profileData.showWelcomeBanner,
 
                 // Map photos/banners to unified 'ads' structure
-                // Using partial structure - backend handles missing required fields
-                ads: finalPosts.map((p) => ({
-                    title: p.title || 'Untitled Ad',
-                    mediaUrl: p.url,
-                    mediaType: (p.type === 'banner' ? 'image' : p.type || 'image') as 'image' | 'video',
-                    placement: p.isFeatured ? 'BANNER' : 'GALLERY',
-                    ctaUrl: googlePlaceUrl,
-                    s3Key: p.s3Key,
-                })) as unknown as typeof updateBusiness extends { mutateAsync: (data: { ads?: infer T }) => unknown } ? T : never,
+                // Filter out any persistent blobs that failed to upload
+                ads: finalPosts
+                    .filter((p) => !p.url?.startsWith('blob:'))
+                    .map((p) => ({
+                        title: p.title || 'Untitled Ad',
+                        mediaUrl: p.url,
+                        mediaType: (p.type === 'banner' ? 'image' : p.type || 'image') as 'image' | 'video',
+                        placement: p.isFeatured ? 'BANNER' : 'GALLERY',
+                        ctaUrl: googlePlaceUrl,
+                        s3Key: p.s3Key,
+                    })) as unknown as typeof updateBusiness extends { mutateAsync: (data: { ads?: infer T }) => unknown } ? T : never,
             };
 
             await updateBusiness.mutateAsync(updateData as Parameters<typeof updateBusiness.mutateAsync>[0]);
