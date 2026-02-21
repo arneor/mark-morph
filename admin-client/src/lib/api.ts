@@ -168,6 +168,7 @@ export interface AdminStats {
 export interface AdminBusinessListItem {
     id: string;
     businessName: string;
+    username: string;
     ownerPhone?: string;
     ownerEmail?: string;
     location?: string;
@@ -175,6 +176,8 @@ export interface AdminBusinessListItem {
     adsCount: number;
     connectionCount: number;
     isActive: boolean;
+    isBeetLinkSuspended?: boolean;
+    isSplashSuspended?: boolean;
     status: "pending_approval" | "active" | "suspended" | "rejected";
     rejectionReason?: string;
     suspensionReason?: string;
@@ -358,6 +361,55 @@ export const adminApi = {
         return adminApiRequest(`/admin/businesses/${businessId}/suspend`, {
             method: "PUT",
             body: JSON.stringify({ reason }),
+        });
+    },
+
+    // Approve Beet Link
+    async approveBeetLink(
+        businessId: string,
+    ): Promise<AdminBusinessListItem> {
+        return adminApiRequest(`/admin/businesses/${businessId}/beet-link/approve`, {
+            method: "PUT",
+        });
+    },
+
+    // Suspend Beet Link
+    async suspendBeetLink(
+        businessId: string,
+        reason?: string,
+    ): Promise<AdminBusinessListItem> {
+        return adminApiRequest(`/admin/businesses/${businessId}/beet-link/suspend`, {
+            method: "PUT",
+            body: JSON.stringify({ reason }),
+        });
+    },
+
+    // Unsuspend Beet Link
+    async unsuspendBeetLink(
+        businessId: string,
+    ): Promise<AdminBusinessListItem> {
+        return adminApiRequest(`/admin/businesses/${businessId}/beet-link/unsuspend`, {
+            method: "PUT",
+        });
+    },
+
+    // Suspend Splash
+    async suspendSplash(
+        businessId: string,
+        reason?: string,
+    ): Promise<AdminBusinessListItem> {
+        return adminApiRequest(`/admin/businesses/${businessId}/splash/suspend`, {
+            method: "PUT",
+            body: JSON.stringify({ reason }),
+        });
+    },
+
+    // Unsuspend Splash
+    async unsuspendSplash(
+        businessId: string,
+    ): Promise<AdminBusinessListItem> {
+        return adminApiRequest(`/admin/businesses/${businessId}/splash/unsuspend`, {
+            method: "PUT",
         });
     },
 

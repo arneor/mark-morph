@@ -78,7 +78,7 @@ export class AdminService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   /**
    * Check if email is in admin whitelist
@@ -398,6 +398,7 @@ export class AdminService {
       result.push({
         id: biz._id.toString(),
         businessName: biz.businessName,
+        username: biz.username || "",
         ownerPhone: owner?.phone,
         ownerEmail: owner?.email,
         location: biz.location,
@@ -405,6 +406,8 @@ export class AdminService {
         adsCount: 0, // Ads now in wifi_profiles collection
         connectionCount,
         isActive: biz.isActive,
+        isBeetLinkSuspended: biz.isBeetLinkSuspended || false,
+        isSplashSuspended: biz.isSplashSuspended || false,
         status: biz.status || "pending_approval",
         rejectionReason: biz.rejectionReason,
         suspensionReason: biz.suspensionReason,
@@ -433,6 +436,7 @@ export class AdminService {
       result.push({
         id: biz._id.toString(),
         businessName: biz.businessName,
+        username: biz.username || "",
         ownerPhone: owner?.phone,
         ownerEmail: owner?.email,
         location: biz.location,
@@ -440,6 +444,8 @@ export class AdminService {
         adsCount: 0, // Ads now in wifi_profiles collection
         connectionCount: 0,
         isActive: biz.isActive,
+        isBeetLinkSuspended: biz.isBeetLinkSuspended || false,
+        isSplashSuspended: biz.isSplashSuspended || false,
         status: biz.status,
         createdAt: biz.createdAt as any,
       });
@@ -499,11 +505,14 @@ export class AdminService {
     return {
       id: business._id.toString(),
       businessName: business.businessName,
+      username: business.username || "",
       location: business.location,
       category: business.category,
       adsCount: 0, // Ads now in wifi_profiles collection
       connectionCount: 0,
       isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended ?? false,
+      isSplashSuspended: business.isSplashSuspended ?? false,
       status: business.status,
       createdAt: business.createdAt as any,
     };
@@ -559,11 +568,14 @@ export class AdminService {
     return {
       id: business._id.toString(),
       businessName: business.businessName,
+      username: business.username || "",
       location: business.location,
       category: business.category,
       adsCount: 0, // Ads now in wifi_profiles collection
       connectionCount: 0,
       isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended ?? false,
+      isSplashSuspended: business.isSplashSuspended ?? false,
       status: business.status,
       rejectionReason: business.rejectionReason,
       createdAt: business.createdAt as any,
@@ -620,13 +632,190 @@ export class AdminService {
     return {
       id: business._id.toString(),
       businessName: business.businessName,
+      username: business.username || "",
       location: business.location,
       category: business.category,
       adsCount: 0, // Ads now in wifi_profiles collection
       connectionCount: 0,
       isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended ?? false,
+      isSplashSuspended: business.isSplashSuspended ?? false,
       status: business.status,
       suspensionReason: business.suspensionReason,
+      createdAt: business.createdAt as any,
+    };
+  }
+
+  // ---- Fine-Grained Access Controls ----
+
+  /**
+   * Approve a Beet Link profile
+   * This also activates the overall business if it is pending approval.
+   */
+  async approveBeetLink(
+    businessId: string,
+    adminId: Types.ObjectId,
+    adminEmail: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<BusinessListItemDto> {
+    const business = await this.businessModel.findById(businessId);
+    if (!business) {
+      throw new NotFoundException("Business not found");
+    }
+
+    business.isBeetLinkSuspended = false;
+
+    // If the overall business is still pending approval, activate it when Beet Link is approved.
+    if (business.status === "pending_approval") {
+      business.status = "active";
+      business.isActive = true;
+      business.activatedBy = adminId;
+      business.activatedAt = new Date();
+      business.statusHistory.push({
+        status: "active",
+        changedBy: adminId,
+        changedAt: new Date(),
+      });
+
+      // Also ensure the owner user is verified
+      await this.userModel.findByIdAndUpdate(business.ownerId, {
+        isVerified: true,
+      });
+    }
+
+    await business.save();
+
+    await this.logAccess(
+      adminId,
+      adminEmail,
+      "approve_beet_link",
+      business._id as Types.ObjectId,
+      ipAddress,
+      userAgent,
+      { businessName: business.businessName },
+    );
+
+    this.logger.log(
+      `Beet Link approved for: ${business.businessName} by admin: ${adminEmail}`,
+    );
+
+    return {
+      id: business._id.toString(),
+      businessName: business.businessName,
+      username: business.username || "",
+      location: business.location,
+      category: business.category,
+      adsCount: 0,
+      connectionCount: 0,
+      isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended,
+      isSplashSuspended: business.isSplashSuspended,
+      status: business.status,
+      createdAt: business.createdAt as any,
+    };
+  }
+
+  /**
+   * Suspend/Unsuspend a Beet Link profile
+   */
+  async suspendBeetLink(
+    businessId: string,
+    dto: BusinessActionDto | null,
+    adminId: Types.ObjectId,
+    adminEmail: string,
+    ipAddress?: string,
+    userAgent?: string,
+    isSuspended: boolean = true,
+  ): Promise<BusinessListItemDto> {
+    const business = await this.businessModel.findById(businessId);
+    if (!business) {
+      throw new NotFoundException("Business not found");
+    }
+
+    business.isBeetLinkSuspended = isSuspended;
+
+    await business.save();
+
+    const actionText = isSuspended ? "suspend_beet_link" : "unsuspend_beet_link";
+    await this.logAccess(
+      adminId,
+      adminEmail,
+      actionText,
+      business._id as Types.ObjectId,
+      ipAddress,
+      userAgent,
+      { businessName: business.businessName, reason: dto?.reason },
+    );
+
+    this.logger.log(
+      `Beet Link ${isSuspended ? 'suspended' : 'unsuspended'} for: ${business.businessName} by admin: ${adminEmail}`,
+    );
+
+    return {
+      id: business._id.toString(),
+      businessName: business.businessName,
+      username: business.username || "",
+      location: business.location,
+      category: business.category,
+      adsCount: 0,
+      connectionCount: 0,
+      isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended,
+      isSplashSuspended: business.isSplashSuspended,
+      status: business.status,
+      createdAt: business.createdAt as any,
+    };
+  }
+
+  /**
+   * Suspend/Unsuspend a Splash page
+   */
+  async suspendSplash(
+    businessId: string,
+    dto: BusinessActionDto | null,
+    adminId: Types.ObjectId,
+    adminEmail: string,
+    ipAddress?: string,
+    userAgent?: string,
+    isSuspended: boolean = true,
+  ): Promise<BusinessListItemDto> {
+    const business = await this.businessModel.findById(businessId);
+    if (!business) {
+      throw new NotFoundException("Business not found");
+    }
+
+    business.isSplashSuspended = isSuspended;
+
+    await business.save();
+
+    const actionText = isSuspended ? "suspend_splash" : "unsuspend_splash";
+    await this.logAccess(
+      adminId,
+      adminEmail,
+      actionText,
+      business._id as Types.ObjectId,
+      ipAddress,
+      userAgent,
+      { businessName: business.businessName, reason: dto?.reason },
+    );
+
+    this.logger.log(
+      `Splash ${isSuspended ? 'suspended' : 'unsuspended'} for: ${business.businessName} by admin: ${adminEmail}`,
+    );
+
+    return {
+      id: business._id.toString(),
+      businessName: business.businessName,
+      username: business.username || "",
+      location: business.location,
+      category: business.category,
+      adsCount: 0,
+      connectionCount: 0,
+      isActive: business.isActive,
+      isBeetLinkSuspended: business.isBeetLinkSuspended,
+      isSplashSuspended: business.isSplashSuspended,
+      status: business.status,
       createdAt: business.createdAt as any,
     };
   }
@@ -719,6 +908,7 @@ export class AdminService {
     return {
       id: business._id.toString(),
       businessName: business.businessName,
+      username: business.username || "",
       ownerPhone: owner?.phone,
       ownerEmail: owner?.email,
       ownerName: owner?.name,

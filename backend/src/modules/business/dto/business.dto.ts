@@ -448,6 +448,12 @@ export class BusinessResponseDto {
   @ApiProperty({ description: "Active status" })
   isActive: boolean;
 
+  @ApiProperty({ description: "Beet Link suspended status" })
+  isBeetLinkSuspended: boolean;
+
+  @ApiProperty({ description: "Splash suspended status" })
+  isSplashSuspended: boolean;
+
   @ApiProperty({ description: "Onboarding completed" })
   onboardingCompleted: boolean;
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import {
     ArrowLeft,
@@ -22,6 +22,7 @@ import {
     Wifi,
     Megaphone,
     Loader2,
+    Shield,
     LucideIcon
 } from 'lucide-react';
 import {
@@ -50,6 +51,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 // Interface for interaction logs since it's typed as unknown[] in api.ts
 interface InteractionLog {
@@ -113,6 +117,42 @@ export default function AdminBusinessDetailsPage() {
             setIsLogsLoading(false);
         }
     };
+
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+
+    const toggleBeetLinkSuspendedMutation = useMutation({
+        mutationFn: (suspend: boolean) => suspend ? adminApi.suspendBeetLink(businessId as string, 'Admin action') : adminApi.unsuspendBeetLink(businessId as string),
+        onSuccess: (_, suspend) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-business-details', businessId] });
+            toast({ title: 'Success', description: `Beet Link ${suspend ? 'suspended' : 'unsuspended'}.` });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed to toggle Beet Link suspension', variant: 'destructive' });
+        }
+    });
+
+    const approveBeetLinkMutation = useMutation({
+        mutationFn: () => adminApi.approveBeetLink(businessId as string),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-business-details', businessId] });
+            toast({ title: 'Success', description: `Beet Link approved.` });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed to approve Beet Link', variant: 'destructive' });
+        }
+    });
+
+    const toggleSplashSuspendedMutation = useMutation({
+        mutationFn: (suspend: boolean) => suspend ? adminApi.suspendSplash(businessId as string, 'Admin action') : adminApi.unsuspendSplash(businessId as string),
+        onSuccess: (_, suspend) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-business-details', businessId] });
+            toast({ title: 'Success', description: `Splash Page ${suspend ? 'suspended' : 'unsuspended'}.` });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed to toggle Splash suspension', variant: 'destructive' });
+        }
+    });
 
     // Prevent hydration mismatch
     if (!isMounted) {
@@ -213,6 +253,67 @@ export default function AdminBusinessDetailsPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Access Controls */}
+                <Card className="border shadow-sm bg-white">
+                    <CardHeader className="pb-4">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-gray-500" />
+                            Access Controls
+                        </CardTitle>
+                        <CardDescription>Manage visibility and access to this business&apos;s digital touchpoints</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-sm text-gray-900">Beet Link Profile</h4>
+                                {business.status === 'pending_approval' && (
+                                    <div className="flex items-center justify-between p-3 rounded-lg border bg-yellow-50/50">
+                                        <div className="space-y-0.5">
+                                            <Label>Pending Approval</Label>
+                                            <p className="text-xs text-muted-foreground">The business is not yet approved.</p>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => approveBeetLinkMutation.mutate()}
+                                            disabled={approveBeetLinkMutation.isPending}
+                                        >
+                                            Approve Profile
+                                        </Button>
+                                    </div>
+                                )}
+                                {(business.status === 'active' || business.isBeetLinkSuspended) && (
+                                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                                        <div className="space-y-0.5">
+                                            <Label className="font-semibold text-gray-800">Suspend Beet Link</Label>
+                                            <p className="text-xs text-muted-foreground">Hide profile from public view.</p>
+                                        </div>
+                                        <Switch
+                                            checked={business.isBeetLinkSuspended}
+                                            onCheckedChange={(checked) => toggleBeetLinkSuspendedMutation.mutate(checked)}
+                                            disabled={toggleBeetLinkSuspendedMutation.isPending || business.status !== 'active'}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="font-medium text-sm text-gray-900">WiFi Splash Page</h4>
+                                <div className="flex items-center justify-between p-3 rounded-lg border">
+                                    <div className="space-y-0.5">
+                                        <Label className="font-semibold text-gray-800">Suspend Splash Page</Label>
+                                        <p className="text-xs text-muted-foreground">Disable WiFi captive portal.</p>
+                                    </div>
+                                    <Switch
+                                        checked={business.isSplashSuspended}
+                                        onCheckedChange={(checked) => toggleSplashSuspendedMutation.mutate(checked)}
+                                        disabled={toggleSplashSuspendedMutation.isPending || (business.status !== 'active' && business.status !== 'suspended')}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Analytics Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -323,7 +424,7 @@ export default function AdminBusinessDetailsPage() {
                     </CardContent>
                 </Card>
 
-            </div>
+            </div >
 
             <Dialog open={!!selectedAdId} onOpenChange={(open) => !open && setSelectedAdId(null)}>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white">

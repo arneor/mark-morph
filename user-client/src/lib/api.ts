@@ -42,6 +42,8 @@ export interface Business {
   profileType: "private" | "public";
   onboardingCompleted: boolean;
   isActive: boolean;
+  isBeetLinkSuspended?: boolean;
+  isSplashSuspended?: boolean;
   status?: "pending_approval" | "active" | "suspended" | "rejected";
   rejectionReason?: string;
   suspensionReason?: string;

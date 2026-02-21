@@ -61,6 +61,14 @@ export class Business {
   @Prop({ type: String, enum: ["private", "public"], default: "private" })
   profileType: string;
 
+  @ApiProperty({ description: "Whether Beet Link profile is suspended by admin" })
+  @Prop({ default: false })
+  isBeetLinkSuspended: boolean;
+
+  @ApiProperty({ description: "Whether Splash page is suspended by admin" })
+  @Prop({ default: false })
+  isSplashSuspended: boolean;
+
   @ApiProperty({ description: "Whether onboarding is completed" })
   @Prop({ default: false })
   onboardingCompleted: boolean;

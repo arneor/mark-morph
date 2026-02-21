@@ -41,7 +41,7 @@ export default async function ProfileLayout({
         notFound();
     }
 
-    if (!business) {
+    if (!business || business.status !== 'active' || business.isBeetLinkSuspended) {
         notFound();
     }
 

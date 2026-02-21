@@ -559,7 +559,7 @@ export class BusinessService {
       throw new NotFoundException("Business not found");
     }
 
-    if (business.status !== "active") {
+    if (business.status !== "active" || business.isSplashSuspended) {
       throw new NotFoundException("This WiFi network is currently unavailable");
     }
 

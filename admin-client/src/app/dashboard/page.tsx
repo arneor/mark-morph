@@ -51,6 +51,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import AdminAnalytics from '@/components/admin/AdminAnalytics';
 
 function StatsCard({
@@ -228,6 +235,58 @@ export default function AdminDashboardPage() {
                 description: err.message || 'Could not suspend business',
                 variant: 'destructive',
             });
+        },
+    });
+
+    // Suspend Beet Link mutation
+    const suspendBeetLinkMutation = useMutation({
+        mutationFn: ({ businessId, reason }: { businessId: string; reason?: string }) =>
+            adminApi.suspendBeetLink(businessId, reason),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+            toast({ title: 'Beet Link Suspended', description: 'Beet Link profile has been suspended.' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed', variant: 'destructive' });
+        },
+    });
+
+    // Unsuspend Beet Link mutation
+    const unsuspendBeetLinkMutation = useMutation({
+        mutationFn: (businessId: string) =>
+            adminApi.unsuspendBeetLink(businessId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+            toast({ title: 'Beet Link Restored', description: 'Beet Link profile has been restored.' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed', variant: 'destructive' });
+        },
+    });
+
+    // Suspend Splash mutation
+    const suspendSplashMutation = useMutation({
+        mutationFn: ({ businessId, reason }: { businessId: string; reason?: string }) =>
+            adminApi.suspendSplash(businessId, reason),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+            toast({ title: 'Splash Suspended', description: 'WiFi Splash page has been suspended.' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed', variant: 'destructive' });
+        },
+    });
+
+    // Unsuspend Splash mutation
+    const unsuspendSplashMutation = useMutation({
+        mutationFn: (businessId: string) =>
+            adminApi.unsuspendSplash(businessId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+            toast({ title: 'Splash Restored', description: 'WiFi Splash page has been restored.' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message || 'Failed', variant: 'destructive' });
         },
     });
 
@@ -541,6 +600,20 @@ export default function AdminDashboardPage() {
                                                                     size="sm"
                                                                     onClick={() =>
                                                                         window.open(
+                                                                            `${process.env.NEXT_PUBLIC_CUSTOMER_APP_URL || 'https://www.linkbeet.in'}/${biz.username}`,
+                                                                            '_blank',
+                                                                            'noopener,noreferrer'
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Beet Link
+                                                                    <ExternalLink className="w-4 h-4 ml-2" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        window.open(
                                                                             `${process.env.NEXT_PUBLIC_CUSTOMER_APP_URL || 'https://www.linkbeet.in'}/splash/${biz.id}`,
                                                                             '_blank',
                                                                             'noopener,noreferrer'
@@ -564,22 +637,70 @@ export default function AdminDashboardPage() {
                                                                 )}
 
                                                                 {biz.status === 'active' && (
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        className="text-orange-600 border-orange-600"
-                                                                        onClick={() =>
-                                                                            setActionDialog({
-                                                                                open: true,
-                                                                                type: 'suspend',
-                                                                                businessId: biz.id,
-                                                                                businessName: biz.businessName,
-                                                                            })
-                                                                        }
-                                                                    >
-                                                                        <Ban className="w-4 h-4 mr-1" />
-                                                                        Suspend
-                                                                    </Button>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                className="text-orange-600 border-orange-600"
+                                                                            >
+                                                                                <Ban className="w-4 h-4 mr-1" />
+                                                                                Suspend
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end" className="bg-white">
+                                                                            {biz.isBeetLinkSuspended ? (
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => unsuspendBeetLinkMutation.mutate(biz.id)}
+                                                                                    className="text-green-600"
+                                                                                >
+                                                                                    <Check className="w-4 h-4 mr-2" />
+                                                                                    Restore Beet Link
+                                                                                </DropdownMenuItem>
+                                                                            ) : (
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => suspendBeetLinkMutation.mutate({ businessId: biz.id, reason: 'Admin action' })}
+                                                                                    className="text-orange-600"
+                                                                                >
+                                                                                    <Ban className="w-4 h-4 mr-2" />
+                                                                                    Suspend Beet Link
+                                                                                </DropdownMenuItem>
+                                                                            )}
+
+                                                                            {biz.isSplashSuspended ? (
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => unsuspendSplashMutation.mutate(biz.id)}
+                                                                                    className="text-green-600"
+                                                                                >
+                                                                                    <Check className="w-4 h-4 mr-2" />
+                                                                                    Restore Splash Page
+                                                                                </DropdownMenuItem>
+                                                                            ) : (
+                                                                                <DropdownMenuItem
+                                                                                    onClick={() => suspendSplashMutation.mutate({ businessId: biz.id, reason: 'Admin action' })}
+                                                                                    className="text-orange-600"
+                                                                                >
+                                                                                    <Ban className="w-4 h-4 mr-2" />
+                                                                                    Suspend Splash Page
+                                                                                </DropdownMenuItem>
+                                                                            )}
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    setActionDialog({
+                                                                                        open: true,
+                                                                                        type: 'suspend',
+                                                                                        businessId: biz.id,
+                                                                                        businessName: biz.businessName,
+                                                                                    })
+                                                                                }
+                                                                                className="text-red-600"
+                                                                            >
+                                                                                <Ban className="w-4 h-4 mr-2" />
+                                                                                Suspend Entire Business
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
                                                                 )}
                                                             </div>
                                                         </TableCell>
@@ -607,7 +728,7 @@ export default function AdminDashboardPage() {
 
                 {/* Action Dialog */}
                 <Dialog open={actionDialog.open} onOpenChange={(open) => !open && setActionDialog(prev => ({ ...prev, open: false }))}>
-                    <DialogContent>
+                    <DialogContent className="bg-white">
                         <DialogHeader>
                             <DialogTitle>
                                 {actionDialog.type === 'reject' ? 'Reject Business' : 'Suspend Business'}

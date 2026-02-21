@@ -103,8 +103,10 @@ export class BusinessController {
       category: merged.category,
       logoUrl: merged.logoUrl,
       primaryColor: merged.primaryColor,
-      description: merged.description,
-      // Tree profile data
+      status: merged.status,
+      isActive: merged.isActive,
+      isBeetLinkSuspended: merged.isBeetLinkSuspended ?? false,
+      isSplashSuspended: merged.isSplashSuspended ?? false,
       tagline: merged.tagline,
       sectionTitle: merged.sectionTitle,
       linksTitle: merged.linksTitle,

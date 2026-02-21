@@ -25,7 +25,7 @@ import { Types } from "mongoose";
 
 @Controller("admin")
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(private readonly adminService: AdminService) { }
 
   /**
    * Request OTP for admin login
@@ -164,6 +164,121 @@ export class AdminController {
       req.user.email,
       ipAddress,
       userAgent,
+    );
+  }
+
+  /**
+   * Suspend a Beet Link
+   * PUT /api/admin/businesses/:id/beet-link/suspend
+   */
+  @Put("businesses/:id/beet-link/suspend")
+  @UseGuards(AdminJwtAuthGuard)
+  async suspendBeetLink(
+    @Param("id") businessId: string,
+    @Body() dto: BusinessActionDto,
+    @Request() req: any,
+  ): Promise<BusinessListItemDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    return this.adminService.suspendBeetLink(
+      businessId,
+      dto,
+      new Types.ObjectId(req.user._id),
+      req.user.email,
+      ipAddress,
+      userAgent,
+      true,
+    );
+  }
+
+  /**
+   * Unsuspend a Beet Link
+   * PUT /api/admin/businesses/:id/beet-link/unsuspend
+   */
+  @Put("businesses/:id/beet-link/unsuspend")
+  @UseGuards(AdminJwtAuthGuard)
+  async unsuspendBeetLink(
+    @Param("id") businessId: string,
+    @Request() req: any,
+  ): Promise<BusinessListItemDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    return this.adminService.suspendBeetLink(
+      businessId,
+      null,
+      new Types.ObjectId(req.user._id),
+      req.user.email,
+      ipAddress,
+      userAgent,
+      false,
+    );
+  }
+
+  /**
+   * Approve a Beet Link
+   * PUT /api/admin/businesses/:id/beet-link/approve
+   */
+  @Put("businesses/:id/beet-link/approve")
+  @UseGuards(AdminJwtAuthGuard)
+  async approveBeetLink(
+    @Param("id") businessId: string,
+    @Request() req: any,
+  ): Promise<BusinessListItemDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    return this.adminService.approveBeetLink(
+      businessId,
+      new Types.ObjectId(req.user._id),
+      req.user.email,
+      ipAddress,
+      userAgent,
+    );
+  }
+
+  /**
+   * Suspend a Splash Page
+   * PUT /api/admin/businesses/:id/splash/suspend
+   */
+  @Put("businesses/:id/splash/suspend")
+  @UseGuards(AdminJwtAuthGuard)
+  async suspendSplash(
+    @Param("id") businessId: string,
+    @Body() dto: BusinessActionDto,
+    @Request() req: any,
+  ): Promise<BusinessListItemDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    return this.adminService.suspendSplash(
+      businessId,
+      dto,
+      new Types.ObjectId(req.user._id),
+      req.user.email,
+      ipAddress,
+      userAgent,
+      true,
+    );
+  }
+
+  /**
+   * Unsuspend a Splash Page
+   * PUT /api/admin/businesses/:id/splash/unsuspend
+   */
+  @Put("businesses/:id/splash/unsuspend")
+  @UseGuards(AdminJwtAuthGuard)
+  async unsuspendSplash(
+    @Param("id") businessId: string,
+    @Request() req: any,
+  ): Promise<BusinessListItemDto> {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+    return this.adminService.suspendSplash(
+      businessId,
+      null,
+      new Types.ObjectId(req.user._id),
+      req.user.email,
+      ipAddress,
+      userAgent,
+      false,
     );
   }
 

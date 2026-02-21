@@ -68,6 +68,7 @@ export class AdminStatsDto {
 export class BusinessListItemDto {
   id: string;
   businessName: string;
+  username: string;
   ownerPhone?: string;
   ownerEmail?: string;
   location?: string;
@@ -75,6 +76,8 @@ export class BusinessListItemDto {
   adsCount: number;
   connectionCount: number;
   isActive: boolean;
+  isBeetLinkSuspended: boolean;
+  isSplashSuspended: boolean;
   status: string;
   rejectionReason?: string;
   suspensionReason?: string;
