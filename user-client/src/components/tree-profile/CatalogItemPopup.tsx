@@ -130,7 +130,7 @@ export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName }:
                 </button>
 
                 {/* Image Section */}
-                <div className="relative w-full aspect-square sm:aspect-video shrink-0 bg-black/5">
+                <div className="relative w-full aspect-square shrink-0 bg-black/5">
                     {item.imageUrl ? (
                         <Image
                             src={item.imageUrl}

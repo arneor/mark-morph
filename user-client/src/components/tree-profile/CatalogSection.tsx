@@ -456,8 +456,17 @@ function CatalogSectionComponent({
             </div>
 
             {/* Empty state */}
-            {/* Empty state - Removed for View Mode */}
-            {filteredItems.length === 0 && !isEditMode && null}
+            {filteredItems.length === 0 && !isEditMode && (
+                <div className="py-14 min-h-[300px] flex flex-col items-center justify-center text-center gap-3">
+                    <Sparkles className="w-6 h-6 opacity-30" style={{ color: 'var(--text-color)' }} />
+                    <p
+                        className="text-sm font-medium opacity-40"
+                        style={{ color: 'var(--text-color)' }}
+                    >
+                        Coming soon
+                    </p>
+                </div>
+            )}
 
             {/* Modals */}
             <AddItemModal
