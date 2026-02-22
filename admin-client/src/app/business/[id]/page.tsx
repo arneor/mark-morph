@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '@/lib/api';
+import { adminApi, beetLinkAnalyticsApi, type BeetLinkAnalytics } from '@/lib/api';
 import {
     ArrowLeft,
     Building2,
@@ -23,7 +23,15 @@ import {
     Megaphone,
     Loader2,
     Shield,
-    LucideIcon
+    LucideIcon,
+    Link2,
+    Users,
+    Tag,
+    ShoppingBag,
+    ExternalLink,
+    BarChart3,
+    ArrowUpRight,
+    MousePointerClick,
 } from 'lucide-react';
 import {
     Card,
@@ -103,6 +111,26 @@ export default function AdminBusinessDetailsPage() {
     const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
     const [interactionLogs, setInteractionLogs] = useState<InteractionLog[]>([]);
     const [isLogsLoading, setIsLogsLoading] = useState(false);
+
+    // Leaderboard tab state
+    const [leaderboardTab, setLeaderboardTab] = useState<'wifi-splash' | 'beet-link'>('wifi-splash');
+    const [beetLinkDatePreset, setBeetLinkDatePreset] = useState<'7d' | '14d' | '30d' | '90d'>('7d');
+
+    const beetLinkDateRange = useMemo(() => {
+        const days = beetLinkDatePreset === '7d' ? 7 : beetLinkDatePreset === '14d' ? 14 : beetLinkDatePreset === '30d' ? 30 : 90;
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(start.getDate() - days);
+        start.setHours(0, 0, 0, 0);
+        return { startDate: start.toISOString(), endDate: now.toISOString() };
+    }, [beetLinkDatePreset]);
+
+    const { data: beetLinkAnalytics, isLoading: isBeetLinkLoading } = useQuery<BeetLinkAnalytics>({
+        queryKey: ['beet-link-analytics', businessId, beetLinkDateRange.startDate, beetLinkDateRange.endDate],
+        queryFn: () => beetLinkAnalyticsApi.getAnalytics(businessId!, beetLinkDateRange.startDate, beetLinkDateRange.endDate),
+        enabled: isMounted && !!businessId && leaderboardTab === 'beet-link',
+        staleTime: 60_000,
+    });
 
     const handleViewLogs = async (adId: string) => {
         setSelectedAdId(adId);
@@ -349,9 +377,9 @@ export default function AdminBusinessDetailsPage() {
                     />
                 </div>
 
-                {/* Top Performing Content */}
+                {/* Engagement Leaderboard — Tabbed */}
                 <Card className="border-0 shadow-lg bg-white overflow-hidden">
-                    <CardHeader className="bg-linear-to-r from-gray-900 to-gray-800 text-white">
+                    <CardHeader className="bg-linear-to-r from-gray-900 to-gray-800 text-white pb-3">
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle className="flex items-center gap-2">
@@ -359,66 +387,124 @@ export default function AdminBusinessDetailsPage() {
                                     Engagement Leaderboard
                                 </CardTitle>
                                 <CardDescription className="text-gray-300">
-                                    Top performing ads ranked by engagement score
+                                    Track performance across your digital touchpoints
                                 </CardDescription>
                             </div>
                         </div>
+                        {/* Tab Switcher */}
+                        <div className="flex items-center gap-1 mt-3 bg-white/10 rounded-lg p-1 w-fit">
+                            <button
+                                onClick={() => setLeaderboardTab('wifi-splash')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer ${leaderboardTab === 'wifi-splash'
+                                    ? 'bg-white text-gray-900 shadow-sm'
+                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`}
+                            >
+                                <Wifi className="w-4 h-4" />
+                                WiFi Splash
+                            </button>
+                            <button
+                                onClick={() => setLeaderboardTab('beet-link')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer ${leaderboardTab === 'beet-link'
+                                    ? 'bg-white text-gray-900 shadow-sm'
+                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`}
+                            >
+                                <Link2 className="w-4 h-4" />
+                                Beet Link
+                            </button>
+                        </div>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        {business.topPosts && business.topPosts.length > 0 ? (
-                            <div className="divide-y divide-gray-100">
-                                {business.topPosts.map((post, index) => (
-                                    <div key={post.id} className="p-4 flex items-center hover:bg-slate-50 transition-colors">
-                                        <div className="flex items-center justify-center w-8 font-bold text-gray-400 mr-4">
-                                            #{index + 1}
-                                        </div>
-                                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0 border mr-4 relative">
-                                            {post.mediaUrl ? (
-                                                <Image src={post.mediaUrl} fill className="object-cover" alt="" />
-                                            ) : (
-                                                <div className="w-full h-full bg-slate-200" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0 mr-4">
-                                            <h4 className="font-semibold text-gray-900 truncate">{post.title}</h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="outline" className="text-xs font-normal">
-                                                    {post.status}
-                                                </Badge>
-                                                <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800 hover:bg-transparent" onClick={() => handleViewLogs(post.id)}>
-                                                    View Logs
-                                                </Button>
-                                            </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-6 text-sm">
-                                            <div className="text-center w-12 hidden md:block">
-                                                <div className="text-gray-500 text-xs mb-0.5">Views</div>
-                                                <div className="font-medium">{post.views}</div>
+                    <CardContent className="p-0">
+                        {/* ===== WiFi Splash Tab (existing, untouched) ===== */}
+                        {leaderboardTab === 'wifi-splash' && (
+                            <>
+                                {business.topPosts && business.topPosts.length > 0 ? (
+                                    <div className="divide-y divide-gray-100">
+                                        {business.topPosts.map((post, index) => (
+                                            <div key={post.id} className="p-4 flex items-center hover:bg-slate-50 transition-colors">
+                                                <div className="flex items-center justify-center w-8 font-bold text-gray-400 mr-4">
+                                                    #{index + 1}
+                                                </div>
+                                                <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0 border mr-4 relative">
+                                                    {post.mediaUrl ? (
+                                                        <Image src={post.mediaUrl} fill className="object-cover" alt="" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-slate-200" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0 mr-4">
+                                                    <h4 className="font-semibold text-gray-900 truncate">{post.title}</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Badge variant="outline" className="text-xs font-normal">
+                                                            {post.status}
+                                                        </Badge>
+                                                        <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800 hover:bg-transparent" onClick={() => handleViewLogs(post.id)}>
+                                                            View Logs
+                                                        </Button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-6 text-sm">
+                                                    <div className="text-center w-12 hidden md:block">
+                                                        <div className="text-gray-500 text-xs mb-0.5">Views</div>
+                                                        <div className="font-medium">{post.views}</div>
+                                                    </div>
+                                                    <div className="text-center w-12 text-blue-600 hidden md:block">
+                                                        <div className="text-blue-400 text-xs mb-0.5">Clicks</div>
+                                                        <div className="font-bold">{post.clicks}</div>
+                                                    </div>
+                                                    <div className="text-center w-12 text-red-600 hidden sm:block">
+                                                        <div className="text-red-400 text-xs mb-0.5">Likes</div>
+                                                        <div className="font-bold">{post.likes}</div>
+                                                    </div>
+                                                    <div className="text-center w-12 text-green-600 hidden sm:block">
+                                                        <div className="text-green-400 text-xs mb-0.5">Shares</div>
+                                                        <div className="font-bold">{post.shares}</div>
+                                                    </div>
+                                                    <div className="text-center w-12 text-orange-600 hidden sm:block">
+                                                        <div className="text-orange-400 text-xs mb-0.5">Taps</div>
+                                                        <div className="font-bold">{post.expands}</div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="text-center w-12 text-blue-600 hidden md:block">
-                                                <div className="text-blue-400 text-xs mb-0.5">Clicks</div>
-                                                <div className="font-bold">{post.clicks}</div>
-                                            </div>
-                                            <div className="text-center w-12 text-red-600 hidden sm:block">
-                                                <div className="text-red-400 text-xs mb-0.5">Likes</div>
-                                                <div className="font-bold">{post.likes}</div>
-                                            </div>
-                                            <div className="text-center w-12 text-green-600 hidden sm:block">
-                                                <div className="text-green-400 text-xs mb-0.5">Shares</div>
-                                                <div className="font-bold">{post.shares}</div>
-                                            </div>
-                                            <div className="text-center w-12 text-orange-600 hidden sm:block">
-                                                <div className="text-orange-400 text-xs mb-0.5">Taps</div>
-                                                <div className="font-bold">{post.expands}</div>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-12 text-center text-muted-foreground">
-                                No active advertisements or data found.
+                                ) : (
+                                    <div className="p-12 text-center text-muted-foreground">
+                                        No active advertisements or data found.
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* ===== Beet Link Tab ===== */}
+                        {leaderboardTab === 'beet-link' && (
+                            <div className="p-6 space-y-6">
+                                {/* Date Range Presets */}
+                                <div className="flex items-center gap-1 bg-gray-50 border rounded-lg p-1 w-fit">
+                                    {(['7d', '14d', '30d', '90d'] as const).map(preset => (
+                                        <button
+                                            key={preset}
+                                            onClick={() => setBeetLinkDatePreset(preset)}
+                                            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${beetLinkDatePreset === preset
+                                                ? 'bg-gray-900 text-white shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                                                }`}
+                                        >
+                                            {preset === '7d' ? '7 Days' : preset === '14d' ? '14 Days' : preset === '30d' ? '30 Days' : '90 Days'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {isBeetLinkLoading ? (
+                                    <div className="flex items-center justify-center py-16">
+                                        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                                    </div>
+                                ) : (
+                                    <BeetLinkAnalyticsContent analytics={beetLinkAnalytics} />
+                                )}
                             </div>
                         )}
                     </CardContent>
@@ -545,3 +631,215 @@ function DetailsSkeleton() {
         </div>
     )
 }
+
+// ===== Beet Link Analytics Subcomponents =====
+
+const beetLinkEventLabels: Record<string, string> = {
+    page_view: 'Page Views',
+    category_tap: 'Category Taps',
+    product_view: 'Product Views',
+    link_click: 'Link Clicks',
+    social_click: 'Social Clicks',
+    share: 'Shares',
+    tab_switch: 'Tab Switches',
+    banner_click: 'Banner Clicks',
+    gallery_view: 'Gallery Views',
+};
+
+const beetLinkEventIcons: Record<string, LucideIcon> = {
+    page_view: Eye,
+    category_tap: Tag,
+    product_view: ShoppingBag,
+    link_click: ExternalLink,
+    social_click: Link2,
+    share: Share2,
+    banner_click: MousePointerClick,
+    gallery_view: Eye,
+};
+
+function BeetLinkAnalyticsContent({ analytics }: { analytics?: BeetLinkAnalytics }) {
+    const data = analytics || {
+        totalPageViews: 0,
+        uniqueSessions: 0,
+        eventBreakdown: [],
+        dailyTrend: [],
+        topCategories: [],
+        topProducts: [],
+        topLinks: [],
+    };
+
+    const totalInteractions = data.eventBreakdown
+        .filter(e => e.eventType !== 'page_view')
+        .reduce((sum, e) => sum + e.count, 0);
+
+    const engagementRate = data.totalPageViews > 0
+        ? Math.round((totalInteractions / data.totalPageViews) * 100)
+        : 0;
+
+    return (
+        <div className="space-y-6">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <BeetLinkKPICard title="Page Views" value={data.totalPageViews} icon={Eye} color="text-blue-600" bgColor="bg-blue-50" />
+                <BeetLinkKPICard title="Unique Visitors" value={data.uniqueSessions} icon={Users} color="text-emerald-600" bgColor="bg-emerald-50" />
+                <BeetLinkKPICard title="Total Interactions" value={totalInteractions} icon={MousePointerClick} color="text-violet-600" bgColor="bg-violet-50" />
+                <BeetLinkKPICard title="Engagement Rate" value={engagementRate} icon={TrendingUp} color="text-orange-600" bgColor="bg-orange-50" suffix="%" />
+            </div>
+
+            {/* Interaction Breakdown + Top Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Interaction Breakdown */}
+                <div className="border rounded-xl p-5 bg-gray-50/50">
+                    <h4 className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-gray-500" />
+                        Interaction Breakdown
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-4">How visitors engage with this profile</p>
+                    {data.eventBreakdown.filter(e => e.eventType !== 'page_view').length === 0 ? (
+                        <div className="py-8 text-center text-sm text-gray-400">No interactions recorded yet.</div>
+                    ) : (
+                        <div className="space-y-3">
+                            {data.eventBreakdown
+                                .filter(e => e.eventType !== 'page_view')
+                                .sort((a, b) => b.count - a.count)
+                                .map(event => {
+                                    const pct = totalInteractions > 0 ? Math.round((event.count / totalInteractions) * 100) : 0;
+                                    const IconComp = beetLinkEventIcons[event.eventType] || BarChart3;
+                                    return (
+                                        <div key={event.eventType}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                                    <IconComp className="w-3.5 h-3.5 text-gray-400" />
+                                                    {beetLinkEventLabels[event.eventType] || event.eventType}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-gray-900">{event.count}</span>
+                                                    <span className="text-xs text-gray-400">{pct}%</span>
+                                                </div>
+                                            </div>
+                                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-gray-800 rounded-full transition-all duration-500"
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Top Content */}
+                <div className="border rounded-xl p-5 bg-gray-50/50">
+                    <h4 className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <Award className="w-4 h-4 text-yellow-500" />
+                        Top Content
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-4">Most popular categories and products</p>
+                    {data.topCategories.length === 0 && data.topProducts.length === 0 ? (
+                        <div className="py-8 text-center text-sm text-gray-400">No category or product views yet.</div>
+                    ) : (
+                        <div className="space-y-4">
+                            {data.topCategories.length > 0 && (
+                                <div>
+                                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                                        <Tag className="w-3 h-3" /> Categories
+                                    </h5>
+                                    <div className="space-y-2">
+                                        {data.topCategories.slice(0, 5).map((cat, i) => (
+                                            <TopItemRow key={cat.elementId} rank={i + 1} label={cat.elementLabel} count={cat.count} percentage={cat.percentage} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {data.topProducts.length > 0 && (
+                                <div>
+                                    <h5 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 mt-3 flex items-center gap-1.5">
+                                        <ShoppingBag className="w-3 h-3" /> Products
+                                    </h5>
+                                    <div className="space-y-2">
+                                        {data.topProducts.slice(0, 5).map((prod, i) => (
+                                            <TopItemRow key={prod.elementId} rank={i + 1} label={prod.elementLabel} count={prod.count} percentage={prod.percentage} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Top Links */}
+            {data.topLinks.length > 0 && (
+                <div className="border rounded-xl p-5 bg-gray-50/50">
+                    <h4 className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-blue-500" />
+                        Top Links
+                    </h4>
+                    <p className="text-xs text-muted-foreground mb-4">Most clicked links and social profiles</p>
+                    <div className="space-y-2">
+                        {data.topLinks.slice(0, 8).map((link, i) => (
+                            <TopItemRow key={link.elementId} rank={i + 1} label={link.elementLabel} count={link.count} percentage={link.percentage} />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function BeetLinkKPICard({ title, value, icon: Icon, color, bgColor, suffix }: {
+    title: string;
+    value: number;
+    icon: LucideIcon;
+    color: string;
+    bgColor: string;
+    suffix?: string;
+}) {
+    return (
+        <div className="border rounded-xl p-4 bg-white hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground">{title}</p>
+                <div className={`p-1.5 rounded-lg ${bgColor} ${color}`}>
+                    <Icon className="w-4 h-4" />
+                </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">
+                {value.toLocaleString()}{suffix || ''}
+            </div>
+        </div>
+    );
+}
+
+function TopItemRow({ rank, label, count, percentage }: {
+    rank: number;
+    label: string;
+    count: number;
+    percentage: number;
+}) {
+    return (
+        <div className="flex items-center gap-3">
+            <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0">
+                {rank}
+            </span>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-800 truncate">{label}</span>
+                    <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                        <span className="text-sm font-bold text-gray-900">{count}</span>
+                        <span className="text-[10px] text-gray-400 font-medium">{percentage}%</span>
+                        <ArrowUpRight className="w-3 h-3 text-emerald-500" />
+                    </div>
+                </div>
+                <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gray-700 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+

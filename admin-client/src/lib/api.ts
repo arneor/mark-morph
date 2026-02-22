@@ -453,3 +453,66 @@ export const adminApi = {
         return adminApiRequest(`/admin/ads/${adId}/interactions`);
     },
 };
+
+// ===== BEET LINK ANALYTICS (Public API — no admin auth required) =====
+
+export interface BeetLinkAnalytics {
+    totalPageViews: number;
+    uniqueSessions: number;
+    eventBreakdown: Array<{
+        eventType: string;
+        count: number;
+        breakdown: Array<{
+            elementId: string;
+            elementLabel: string;
+            count: number;
+            percentage: number;
+        }>;
+    }>;
+    dailyTrend: Array<{
+        date: string;
+        pageViews: number;
+        interactions: number;
+    }>;
+    topCategories: Array<{
+        elementId: string;
+        elementLabel: string;
+        count: number;
+        percentage: number;
+    }>;
+    topProducts: Array<{
+        elementId: string;
+        elementLabel: string;
+        count: number;
+        percentage: number;
+    }>;
+    topLinks: Array<{
+        elementId: string;
+        elementLabel: string;
+        count: number;
+        percentage: number;
+    }>;
+    startDate: string;
+    endDate: string;
+}
+
+export const beetLinkAnalyticsApi = {
+    async getAnalytics(
+        businessId: string,
+        startDate?: string,
+        endDate?: string,
+    ): Promise<BeetLinkAnalytics> {
+        const params = new URLSearchParams();
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+        const query = params.toString() ? `?${params.toString()}` : "";
+
+        const response = await fetch(
+            `${API_BASE_URL}/beet-link-events/analytics/${businessId}${query}`,
+        );
+        if (!response.ok) {
+            throw new ApiError(response.status, "Failed to fetch Beet Link analytics");
+        }
+        return response.json();
+    },
+};
