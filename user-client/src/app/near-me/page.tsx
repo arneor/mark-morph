@@ -672,7 +672,7 @@ export default function NearMePage() {
                             {selectedOffer.businessUsername && (
                                 <div className="mt-5 pt-4 border-t border-slate-100">
                                     <a
-                                        href={`https://www.linkbeet.in/${selectedOffer.businessUsername}`}
+                                        href={`${typeof window !== 'undefined' ? window.location.origin : 'https://www.linkbeet.in'}/${selectedOffer.businessUsername}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors text-sm"
