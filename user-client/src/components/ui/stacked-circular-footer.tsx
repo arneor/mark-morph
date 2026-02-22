@@ -22,6 +22,7 @@ function StackedCircularFooter() {
                     </div>
                     <nav className="mb-8 flex flex-wrap justify-center gap-6 text-sm font-medium">
                         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+                        <Link href="/near-me" className="hover:text-primary transition-colors font-semibold text-primary">Near Me</Link>
                         <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
                         <Link href="/#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
                         <Link href="/#faq" className="hover:text-primary transition-colors">FAQ</Link>

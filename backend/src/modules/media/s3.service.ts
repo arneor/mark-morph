@@ -117,6 +117,10 @@ export class S3Service {
   private getPrefix(context: string, id: string, placement: string): string {
     switch (context) {
       case "business":
+        // Offers banner placement
+        if (placement === "offers-banner") {
+          return `businesses/${id}/offers/banners/`;
+        }
         // Tree-profile specific placements (tree-profile-banners, tree-profile-gallery, etc.)
         if (placement.startsWith("tree-profile-")) {
           const subFolder = placement.replace("tree-profile-", "");
