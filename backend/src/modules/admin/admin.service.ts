@@ -924,6 +924,8 @@ export class AdminService {
 
       isActive: business.isActive,
       status: business.status,
+      isBeetLinkSuspended: business.isBeetLinkSuspended ?? false,
+      isSplashSuspended: business.isSplashSuspended ?? false,
       rejectionReason: business.rejectionReason,
       suspensionReason: business.suspensionReason,
 
