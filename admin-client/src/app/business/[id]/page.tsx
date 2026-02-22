@@ -113,7 +113,7 @@ export default function AdminBusinessDetailsPage() {
     const [isLogsLoading, setIsLogsLoading] = useState(false);
 
     // Leaderboard tab state
-    const [leaderboardTab, setLeaderboardTab] = useState<'wifi-splash' | 'beet-link'>('wifi-splash');
+    const [leaderboardTab, setLeaderboardTab] = useState<'wifi-splash' | 'beet-link'>('beet-link');
     const [beetLinkDatePreset, setBeetLinkDatePreset] = useState<'7d' | '14d' | '30d' | '90d'>('7d');
 
     const beetLinkDateRange = useMemo(() => {
@@ -343,39 +343,6 @@ export default function AdminBusinessDetailsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Analytics Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <StatCard
-                        title="Total Ad Views"
-                        value={business.totalAdViews}
-                        icon={Eye}
-                        color="bg-blue-50 text-blue-600"
-                    />
-                    <StatCard
-                        title="Total Clicks"
-                        value={business.totalAdClicks}
-                        icon={MousePointer2}
-                        color="bg-purple-50 text-purple-600"
-                    />
-                    <StatCard
-                        title="Total Likes"
-                        value={business.totalAdLikes}
-                        icon={Heart}
-                        color="bg-red-50 text-red-600"
-                    />
-                    <StatCard
-                        title="Total Shares"
-                        value={business.totalAdShares}
-                        icon={Share2}
-                        color="bg-green-50 text-green-600"
-                    />
-                    <StatCard
-                        title="Gallery Expands"
-                        value={business.totalAdExpands}
-                        icon={Maximize2}
-                        color="bg-orange-50 text-orange-600"
-                    />
-                </div>
 
                 {/* Engagement Leaderboard — Tabbed */}
                 <Card className="border-0 shadow-lg bg-white overflow-hidden">
@@ -394,16 +361,6 @@ export default function AdminBusinessDetailsPage() {
                         {/* Tab Switcher */}
                         <div className="flex items-center gap-1 mt-3 bg-white/10 rounded-lg p-1 w-fit">
                             <button
-                                onClick={() => setLeaderboardTab('wifi-splash')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer ${leaderboardTab === 'wifi-splash'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
-                                    }`}
-                            >
-                                <Wifi className="w-4 h-4" />
-                                WiFi Splash
-                            </button>
-                            <button
                                 onClick={() => setLeaderboardTab('beet-link')}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer ${leaderboardTab === 'beet-link'
                                     ? 'bg-white text-gray-900 shadow-sm'
@@ -413,13 +370,31 @@ export default function AdminBusinessDetailsPage() {
                                 <Link2 className="w-4 h-4" />
                                 Beet Link
                             </button>
+                            <button
+                                onClick={() => setLeaderboardTab('wifi-splash')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all cursor-pointer ${leaderboardTab === 'wifi-splash'
+                                    ? 'bg-white text-gray-900 shadow-sm'
+                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                    }`}
+                            >
+                                <Wifi className="w-4 h-4" />
+                                WiFi Splash
+                            </button>
                         </div>
                     </CardHeader>
 
                     <CardContent className="p-0">
-                        {/* ===== WiFi Splash Tab (existing, untouched) ===== */}
+                        {/* ===== WiFi Splash Tab ===== */}
                         {leaderboardTab === 'wifi-splash' && (
                             <>
+                                {/* WiFi Splash Key Metrics */}
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-6 pb-2">
+                                    <StatCard title="Total Ad Views" value={business.totalAdViews} icon={Eye} color="bg-blue-50 text-blue-600" />
+                                    <StatCard title="Total Clicks" value={business.totalAdClicks} icon={MousePointer2} color="bg-purple-50 text-purple-600" />
+                                    <StatCard title="Total Likes" value={business.totalAdLikes} icon={Heart} color="bg-red-50 text-red-600" />
+                                    <StatCard title="Total Shares" value={business.totalAdShares} icon={Share2} color="bg-green-50 text-green-600" />
+                                    <StatCard title="Gallery Expands" value={business.totalAdExpands} icon={Maximize2} color="bg-orange-50 text-orange-600" />
+                                </div>
                                 {business.topPosts && business.topPosts.length > 0 ? (
                                     <div className="divide-y divide-gray-100">
                                         {business.topPosts.map((post, index) => (
