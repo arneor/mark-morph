@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { offersApi, type Offer } from '@/lib/api';
 import {
@@ -91,8 +90,6 @@ const emptyForm: OfferFormData = {
 
 // ─── Main Component ──────────────────────────────
 export default function OffersPage() {
-    const params = useParams();
-    const businessId = params.businessId as string;
     const queryClient = useQueryClient();
     const { toast } = useToast();
 
