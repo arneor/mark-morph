@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '@/lib/api';
+import { adminApi, type AdminBanner } from '@/lib/api';
+import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
     Wifi,
@@ -23,6 +24,11 @@ import {
     Loader2,
     LucideIcon,
     Eye,
+    Plus,
+    Pencil,
+    Trash2,
+    ImageIcon,
+    Upload,
 } from 'lucide-react';
 import {
     Card,
@@ -35,6 +41,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -92,6 +100,334 @@ function StatsCard({
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+// ─── Banners Tab Component ───────────────────────
+function BannersTab() {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Dialog state
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingBanner, setEditingBanner] = useState<AdminBanner | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+    // Form state
+    const [title, setTitle] = useState('');
+    const [linkUrl, setLinkUrl] = useState('');
+    const [linkType, setLinkType] = useState<'internal' | 'external' | 'category'>('internal');
+    const [accentColor, setAccentColor] = useState('#9EE53B');
+    const [position, setPosition] = useState(0);
+    const [isActive, setIsActive] = useState(true);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
+
+    const resetForm = () => {
+        setTitle('');
+        setLinkUrl('');
+        setLinkType('internal');
+        setAccentColor('#9EE53B');
+        setPosition(0);
+        setIsActive(true);
+        setImageFile(null);
+        setImagePreview('');
+        setEditingBanner(null);
+    };
+
+    const openCreate = () => {
+        resetForm();
+        setDialogOpen(true);
+    };
+
+    const openEdit = (b: AdminBanner) => {
+        setEditingBanner(b);
+        setTitle(b.title);
+        setLinkUrl(b.linkUrl || '');
+        setLinkType(b.linkType);
+        setAccentColor(b.accentColor);
+        setPosition(b.position);
+        setIsActive(b.isActive);
+        setImagePreview(b.imageUrl);
+        setImageFile(null);
+        setDialogOpen(true);
+    };
+
+    // Fetch banners
+    const { data: banners, isLoading } = useQuery({
+        queryKey: ['admin-banners'],
+        queryFn: async () => {
+            try { return await adminApi.getBanners(); } catch { return []; }
+        },
+    });
+
+    // Create mutation
+    const createMutation = useMutation({
+        mutationFn: (fd: FormData) => adminApi.createBanner(fd),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+            setDialogOpen(false);
+            resetForm();
+            toast({ title: 'Banner Created', description: 'The banner is now live.' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message, variant: 'destructive' });
+        },
+    });
+
+    // Update mutation
+    const updateMutation = useMutation({
+        mutationFn: ({ id, fd }: { id: string; fd: FormData }) => adminApi.updateBanner(id, fd),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+            setDialogOpen(false);
+            resetForm();
+            toast({ title: 'Banner Updated' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message, variant: 'destructive' });
+        },
+    });
+
+    // Delete mutation
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => adminApi.deleteBanner(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+            setDeleteConfirm(null);
+            toast({ title: 'Banner Deleted' });
+        },
+        onError: (err: Error) => {
+            toast({ title: 'Error', description: err.message, variant: 'destructive' });
+        },
+    });
+
+    const handleSubmit = () => {
+        if (!title.trim()) {
+            toast({ title: 'Title is required', variant: 'destructive' });
+            return;
+        }
+        if (!editingBanner && !imageFile) {
+            toast({ title: 'Image is required', variant: 'destructive' });
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append('title', title);
+        fd.append('linkUrl', linkUrl);
+        fd.append('linkType', linkType);
+        fd.append('accentColor', accentColor);
+        fd.append('position', String(position));
+        fd.append('isActive', String(isActive));
+        if (imageFile) fd.append('image', imageFile);
+
+        if (editingBanner) {
+            updateMutation.mutate({ id: editingBanner._id, fd });
+        } else {
+            createMutation.mutate(fd);
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const isSaving = createMutation.isPending || updateMutation.isPending;
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div>
+                        <CardTitle className="flex items-center gap-2">
+                            <ImageIcon className="w-5 h-5 text-green-500" />
+                            Near-Me Promotional Banners
+                        </CardTitle>
+                        <CardDescription>
+                            Manage banners displayed in the Near Me page carousel.
+                        </CardDescription>
+                    </div>
+                    <Button onClick={openCreate}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Banner
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <div className="flex justify-center py-12">
+                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : banners && banners.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">Preview</TableHead>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Link</TableHead>
+                                    <TableHead>Position</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {banners.map((b) => (
+                                    <TableRow key={b._id}>
+                                        <TableCell>
+                                            <div className="w-24 h-10 rounded-md overflow-hidden bg-gray-100 relative">
+                                                <Image src={b.imageUrl} alt={b.title} fill className="object-cover" sizes="96px" />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="font-medium">{b.title}</TableCell>
+                                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                                            {b.linkUrl || '—'}
+                                        </TableCell>
+                                        <TableCell>{b.position}</TableCell>
+                                        <TableCell>
+                                            {b.isActive ? (
+                                                <Badge className="bg-green-500">Active</Badge>
+                                            ) : (
+                                                <Badge variant="secondary">Inactive</Badge>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <Button variant="ghost" size="sm" onClick={() => openEdit(b)}>
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-red-500 hover:text-red-700"
+                                                    onClick={() => setDeleteConfirm(b._id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                            <ImageIcon className="w-12 h-12 mb-4 opacity-30" />
+                            <p>No banners yet. Add your first banner to start promoting!</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Create / Edit Dialog */}
+            <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
+                <DialogContent className="bg-white max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{editingBanner ? 'Edit Banner' : 'Create Banner'}</DialogTitle>
+                        <DialogDescription>
+                            {editingBanner ? 'Update this promotional banner.' : 'Add a new banner to the Near Me carousel.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        {/* Image Upload */}
+                        <div>
+                            <Label>Banner Image</Label>
+                            <div
+                                className="mt-1 border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {imagePreview ? (
+                                    <div className="relative aspect-21/9 w-full rounded-lg overflow-hidden">
+                                        <Image src={imagePreview} alt="Preview" fill className="object-cover" sizes="400px" />
+                                    </div>
+                                ) : (
+                                    <div className="py-6">
+                                        <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                                        <p className="text-sm text-muted-foreground">Click to upload banner image</p>
+                                    </div>
+                                )}
+                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <div>
+                            <Label htmlFor="banner-title">Title</Label>
+                            <Input id="banner-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Summer Sale — up to 50% off" />
+                        </div>
+
+                        {/* Link URL */}
+                        <div>
+                            <Label htmlFor="banner-link">Link URL (optional)</Label>
+                            <Input id="banner-link" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." />
+                        </div>
+
+                        {/* Link Type + Accent Color row */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="banner-linkType">Link Type</Label>
+                                <select
+                                    id="banner-linkType"
+                                    value={linkType}
+                                    onChange={e => setLinkType(e.target.value as 'internal' | 'external' | 'category')}
+                                    className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+                                >
+                                    <option value="internal">Internal</option>
+                                    <option value="external">External</option>
+                                    <option value="category">Category</option>
+                                </select>
+                            </div>
+                            <div>
+                                <Label htmlFor="banner-color">Accent Color</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <input type="color" id="banner-color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer border-0" />
+                                    <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="flex-1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Position + Active row */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="banner-position">Position</Label>
+                                <Input id="banner-position" type="number" min={0} value={position} onChange={e => setPosition(Number(e.target.value))} />
+                            </div>
+                            <div className="flex items-center justify-between pt-6">
+                                <Label htmlFor="banner-active">Active</Label>
+                                <Switch id="banner-active" checked={isActive} onCheckedChange={setIsActive} />
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancel</Button>
+                        <Button onClick={handleSubmit} disabled={isSaving}>
+                            {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            {editingBanner ? 'Save Changes' : 'Create Banner'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>
+                <DialogContent className="bg-white max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Delete Banner</DialogTitle>
+                        <DialogDescription>Are you sure? This action cannot be undone.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+                        <Button variant="destructive" onClick={() => deleteConfirm && deleteMutation.mutate(deleteConfirm)} disabled={deleteMutation.isPending}>
+                            {deleteMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 }
 
@@ -368,8 +704,9 @@ export default function AdminDashboardPage() {
                 {/* Tabs for Top-Level Navigation */}
                 <Tabs defaultValue="operations" className="w-full space-y-6">
                     <div className="flex justify-start">
-                        <TabsList className="grid w-[400px] grid-cols-2">
+                        <TabsList className="grid w-[600px] grid-cols-3">
                             <TabsTrigger value="operations">Business Operations</TabsTrigger>
+                            <TabsTrigger value="banners">Near-Me Banners</TabsTrigger>
                             <TabsTrigger value="overview">Analytics Overview</TabsTrigger>
                         </TabsList>
                     </div>
@@ -723,6 +1060,11 @@ export default function AdminDashboardPage() {
                     {/* ANALYTICS OVERVIEW TAB */}
                     <TabsContent value="overview">
                         <AdminAnalytics />
+                    </TabsContent>
+
+                    {/* BANNERS TAB */}
+                    <TabsContent value="banners">
+                        <BannersTab />
                     </TabsContent>
                 </Tabs>
 

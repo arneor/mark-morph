@@ -16,6 +16,7 @@ import {
     PhoneCall,
     MessageCircle,
     HelpCircle,
+    Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -63,6 +64,11 @@ export function Sidebar({ businessId }: SidebarProps) {
             label: 'Overview',
             icon: LayoutDashboard,
             exact: true,
+        },
+        {
+            href: `/dashboard/${businessId}/offers`,
+            label: 'Offers',
+            icon: Tag,
         },
         {
             href: `/dashboard/${businessId}/onboarding`,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Shapes, ArrowRight, Plus } from "lucide-react";
+import { Shapes, ArrowRight, Plus, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Hero() {
@@ -43,12 +43,12 @@ export default function Hero() {
             <div className="z-10 mb-12 pt-16 md:pt-0 flex justify-center relative w-full">
                 <div className="relative flex items-center whitespace-nowrap rounded-full border border-border px-4 py-1.5 text-sm leading-6 text-muted-foreground hover:bg-muted/50 transition-colors">
                     <Shapes className="h-4 w-4 mr-2" />
-                    <span className="font-medium">Introducing LinkBeet.</span>
+                    <span className="font-medium">Introducing Near Me.</span>
                     <Link
-                        href="#features"
+                        href="/near-me"
                         className="hover:text-foreground ml-1 flex items-center font-semibold transition-colors group"
                     >
-                        <span className="ml-1">Explore</span>
+                        <span className="ml-1">Explore Offers</span>
                         <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                 </div>
@@ -101,8 +101,20 @@ export default function Hero() {
                 </div>
 
 
-                {/* Get Start Button*/}
-                <div className="w-full sm:w-auto animate-element animate-delay-300">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full animate-element animate-delay-300">
+                    <div className="relative group w-full sm:w-auto">
+                        <div className="absolute -inset-0.5 bg-linear-to-r from-cyan-400 via-blue-400 to-purple-500 rounded-full blur-lg opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                        <Button
+                            asChild
+                            size="lg"
+                            className="relative rounded-full px-8 py-6 text-base font-bold bg-linear-to-r from-cyan-400 via-blue-400 to-purple-500 text-white hover:from-cyan-500 hover:via-blue-500 hover:to-purple-600 border-none transition-all duration-300 shadow-xl w-full flex items-center justify-center gap-2"
+                        >
+                            <Link href="/near-me">
+                                <MapPin className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-300" />
+                                Explore Near Me Offers
+                            </Link>
+                        </Button>
+                    </div>
                     <Button
                         asChild
                         size="lg"

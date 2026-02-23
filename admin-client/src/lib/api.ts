@@ -252,6 +252,22 @@ export interface AdminTrendData {
     connections: number;
 }
 
+export interface AdminBanner {
+    _id: string;
+    title: string;
+    imageUrl: string;
+    imageS3Key?: string;
+    accentColor: string;
+    linkUrl?: string;
+    linkType: 'internal' | 'external' | 'category';
+    position: number;
+    isActive: boolean;
+    startsAt?: string;
+    expiresAt?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 // ===== ADMIN API =====
 export const adminApi = {
     // Request OTP for admin login
@@ -451,6 +467,31 @@ export const adminApi = {
     // Get granular interaction details for a specific ad
     async getAdInteractionDetails(adId: string): Promise<unknown[]> {
         return adminApiRequest(`/admin/ads/${adId}/interactions`);
+    },
+
+    // ─── Banners ─────────────────────────────────
+    async getBanners(): Promise<AdminBanner[]> {
+        return adminApiRequest("/banners");
+    },
+
+    async createBanner(formData: FormData): Promise<AdminBanner> {
+        return adminApiRequest("/banners", {
+            method: "POST",
+            body: formData,
+        });
+    },
+
+    async updateBanner(id: string, formData: FormData): Promise<AdminBanner> {
+        return adminApiRequest(`/banners/${id}`, {
+            method: "PUT",
+            body: formData,
+        });
+    },
+
+    async deleteBanner(id: string): Promise<void> {
+        return adminApiRequest(`/banners/${id}`, {
+            method: "DELETE",
+        });
     },
 };
 

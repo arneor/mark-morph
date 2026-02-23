@@ -867,4 +867,178 @@ export const adsApi = {
   },
 };
 
+// ===== OFFERS API =====
+export interface Offer {
+  id: string;
+  _id?: string;
+  businessId: string;
+  businessName: string;
+  businessUsername?: string;
+  title: string;
+  description?: string;
+  bannerUrl?: string;
+  bannerS3Key?: string;
+  category: string;
+  industry?: string;
+  originalPrice?: number;
+  offerPrice?: number;
+  discountPercentage?: number;
+  currency: string;
+  validFrom?: string;
+  validUntil?: string;
+  location: {
+    type: string;
+    coordinates: number[]; // [lng, lat]
+  };
+  address?: string;
+  status: "active" | "expired" | "draft";
+  tags: string[];
+  termsAndConditions?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  businessLogoUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
+export interface NearbyOffersResponse {
+  offers: Offer[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export const offersApi = {
+  // ─── Authenticated (merchant) ─────────────────
+  async create(data: {
+    title: string;
+    description?: string;
+    category: string;
+    originalPrice?: number;
+    offerPrice?: number;
+    discountPercentage?: number;
+    currency?: string;
+    validFrom?: string;
+    validUntil?: string;
+    latitude: number;
+    longitude: number;
+    address?: string;
+    status?: string;
+    tags?: string[];
+    termsAndConditions?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+  }): Promise<Offer> {
+    return apiRequest("/offers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getMyOffers(): Promise<Offer[]> {
+    return apiRequest("/offers/my");
+  },
+
+  async getById(id: string): Promise<Offer> {
+    return apiRequest(`/offers/${id}`);
+  },
+
+  async update(id: string, data: Partial<Offer>): Promise<Offer> {
+    return apiRequest(`/offers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async delete(id: string): Promise<{ success: boolean; message: string }> {
+    return apiRequest(`/offers/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async uploadBanner(
+    offerId: string,
+    file: File,
+  ): Promise<{ url: string; key: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return apiRequest(`/offers/${offerId}/upload-banner`, {
+      method: "POST",
+      body: formData,
+    });
+  },
+
+  // ─── Public (no auth) ─────────────────────────
+  async getNearby(params: {
+    latitude: number;
+    longitude: number;
+    maxDistanceKm?: number;
+    category?: string;
+    industry?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<NearbyOffersResponse> {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+
+    const response = await fetch(
+      `${API_BASE_URL}/offers/nearby?${searchParams.toString()}`,
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    if (!response.ok) {
+      throw new ApiError(response.status, "Failed to fetch nearby offers");
+    }
+    return response.json();
+  },
+
+  async getPublicById(id: string): Promise<Offer> {
+    const response = await fetch(`${API_BASE_URL}/offers/public/${id}`, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new ApiError(response.status, "Offer not found");
+    }
+    return response.json();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ═══ Banners (Admin-managed, public fetch) ════════════════════
+// ═══════════════════════════════════════════════════════════════
+
+export interface Banner {
+  _id: string;
+  title: string;
+  imageUrl: string;
+  accentColor: string;
+  linkUrl?: string;
+  linkType: 'internal' | 'external' | 'category';
+  position: number;
+  isActive: boolean;
+  startsAt?: string;
+  expiresAt?: string;
+}
+
+export const bannersApi = {
+  async getActive(): Promise<Banner[]> {
+    const response = await fetch(`${API_BASE_URL}/banners/active`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      return [];
+    }
+    return response.json();
+  },
+};
