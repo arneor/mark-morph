@@ -103,14 +103,32 @@ export default function Hero() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full animate-element animate-delay-300">
                     <div className="relative group w-full sm:w-auto">
-                        <div className="absolute -inset-0.5 bg-linear-to-r from-cyan-400 via-blue-400 to-purple-500 rounded-full blur-lg opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                        {/* Animated SVG Border Overlay */}
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible" xmlns="http://www.w3.org/2000/svg">
+                            <rect
+                                x="1"
+                                y="1"
+                                width="calc(100% - 2px)"
+                                height="calc(100% - 2px)"
+                                rx="38"
+                                ry="38"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray="3 4"
+                                className="text-black/50 group-hover:text-black/80 transition-colors duration-300 animate-[hero-svg-march_20s_linear_infinite]"
+                            />
+                        </svg>
                         <Button
                             asChild
                             size="lg"
-                            className="relative rounded-full px-8 py-6 text-base font-bold bg-linear-to-r from-cyan-400 via-blue-400 to-purple-500 text-white hover:from-cyan-500 hover:via-blue-500 hover:to-purple-600 border-none transition-all duration-300 shadow-xl w-full flex items-center justify-center gap-2"
+                            className="relative rounded-full px-8 py-6 text-base font-medium bg-transparent border-2 border-transparent text-black hover:bg-black hover:text-white transition-all duration-300 shadow-sm hover:shadow-md w-full z-10"
                         >
                             <Link href="/near-me">
-                                <MapPin className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-300" />
+                                <span className="relative flex h-5 w-5 mr-2">
+                                    <MapPin className="absolute animate-ping h-5 w-5 text-current opacity-75" />
+                                    <MapPin className="relative h-5 w-5 text-current" />
+                                </span>
                                 Explore Near Me Offers
                             </Link>
                         </Button>
