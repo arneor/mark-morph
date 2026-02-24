@@ -253,6 +253,7 @@ function BannersTab() {
         setImageFile(croppedFile);
         setImagePreview(URL.createObjectURL(croppedBlob));
     };
+
     const isSaving = createMutation.isPending || updateMutation.isPending;
 
     return (
@@ -435,6 +436,7 @@ function BannersTab() {
                 aspectRatio={16 / 9}
                 onCropComplete={handleCropComplete}
             />
+
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>
                 <DialogContent className="bg-white max-w-sm">

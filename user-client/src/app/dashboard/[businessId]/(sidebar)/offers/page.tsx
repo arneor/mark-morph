@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { offersApi, type Offer } from '@/lib/api';
+import { ImageCropperModal } from '@/components/ui/ImageCropperModal';
 import {
     Plus,
     Pencil,
@@ -98,6 +99,9 @@ export default function OffersPage() {
     const [form, setForm] = useState<OfferFormData>(emptyForm);
     const [bannerFile, setBannerFile] = useState<File | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+    const [rawBannerFile, setRawBannerFile] = useState<File | null>(null);
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLocating, setIsLocating] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -160,6 +164,8 @@ export default function OffersPage() {
         setEditingOffer(null);
         setBannerFile(null);
         setBannerPreview(null);
+        setRawBannerFile(null);
+        setIsCropperOpen(false);
     }, []);
 
     const openEditForm = useCallback((offer: Offer) => {
@@ -267,11 +273,22 @@ export default function OffersPage() {
     const handleBannerChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setBannerFile(file);
-            setBannerPreview(URL.createObjectURL(file));
+            setRawBannerFile(file);
+            setIsCropperOpen(true);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     }, []);
 
+    const handleCropComplete = useCallback((croppedBlob: Blob) => {
+        if (!rawBannerFile) return;
+        const croppedFile = new File([croppedBlob], `${rawBannerFile.name.split('.')[0]}-cropped.jpeg`, {
+            type: 'image/jpeg',
+        });
+        setBannerFile(croppedFile);
+        setBannerPreview(URL.createObjectURL(croppedBlob));
+    }, [rawBannerFile]);
     // Cleanup blob URLs
     useEffect(() => {
         return () => {
@@ -341,7 +358,7 @@ export default function OffersPage() {
                                     <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
                                     <span className="text-sm text-slate-500">Click to upload banner</span>
                                     <span className="text-xs text-slate-400 mt-1">PNG, JPG, WebP up to 5MB</span>
-                                    <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
                                 </label>
                             )}
                         </div>
@@ -734,6 +751,15 @@ export default function OffersPage() {
                     })}
                 </div>
             )}
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={rawBannerFile}
+                aspectRatio={16 / 9}
+                onCropComplete={handleCropComplete}
+            />
         </div>
     );
 }
