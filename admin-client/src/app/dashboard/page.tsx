@@ -67,6 +67,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import AdminAnalytics from '@/components/admin/AdminAnalytics';
+import { ImageCropperModal } from '@/components/ui/ImageCropperModal';
 
 function StatsCard({
     title,
@@ -123,6 +124,8 @@ function BannersTab() {
     const [isActive, setIsActive] = useState(true);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
+    const [rawBannerFile, setRawBannerFile] = useState<File | null>(null);
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
 
     const resetForm = () => {
         setTitle('');
@@ -134,6 +137,8 @@ function BannersTab() {
         setImageFile(null);
         setImagePreview('');
         setEditingBanner(null);
+        setRawBannerFile(null);
+        setIsCropperOpen(false);
     };
 
     const openCreate = () => {
@@ -232,9 +237,21 @@ function BannersTab() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
+            setRawBannerFile(file);
+            setIsCropperOpen(true);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
+    };
+
+    const handleCropComplete = (croppedBlob: Blob) => {
+        if (!rawBannerFile) return;
+        const croppedFile = new File([croppedBlob], `${rawBannerFile.name.split('.')[0]}-cropped.jpeg`, {
+            type: 'image/jpeg',
+        });
+        setImageFile(croppedFile);
+        setImagePreview(URL.createObjectURL(croppedBlob));
     };
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
@@ -410,6 +427,15 @@ function BannersTab() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Image Cropper */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => setIsCropperOpen(false)}
+                imageFile={rawBannerFile}
+                aspectRatio={16 / 9}
+                onCropComplete={handleCropComplete}
+            />
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>

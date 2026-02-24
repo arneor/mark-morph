@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { Star, Sparkles, Flame, Leaf, Edit2, Plus, Trash2 } from 'lucide-react';
@@ -7,6 +7,9 @@ import { cn, isColorExclusivelyDark } from '@/lib/utils';
 import { AddItemModal } from './AddItemModal';
 import { AddCategoryModal } from './AddCategoryModal';
 import { CatalogItemPopup } from './CatalogItemPopup';
+import { CatalogSearchBar } from './CatalogSearchBar';
+import { NoResultsState } from './NoResultsState';
+import { useCatalogSearch } from '@/hooks/useCatalogSearch';
 import type { ProfileEventType } from '@/hooks/use-profile-event-tracker';
 
 interface CatalogItemCardProps {
@@ -215,6 +218,9 @@ function CatalogSectionComponent({
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<CatalogCategory | null>(null);
 
+    // ─── Search ──────────────────────────────────────────────
+    const search = useCatalogSearch(items, categories);
+
     // Deep Linking - Derived State 
     const itemId = searchParams.get('item');
     const viewingItem = !isEditMode && itemId ? items.find(i => i.id === itemId) || null : null;
@@ -222,9 +228,44 @@ function CatalogSectionComponent({
     // Check if theme is likely light mode
     const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
-    const filteredItems = activeCategory
-        ? items.filter(item => item.categoryId === activeCategory)
-        : items;
+    // ─── Category auto-switch during search ───
+    // Derived: when search is active, pick the category with the most results
+    const hasSearchResults = search.debouncedQuery.length > 0 && search.resultCount > 0;
+
+    const effectiveCategory = useMemo(() => {
+        if (hasSearchResults && search.matchedCategories.length > 0) {
+            // If current activeCategory has results, keep it (user may have tapped manually)
+            if (search.resultCountByCategory.get(activeCategory || '') ?? 0 > 0) {
+                return activeCategory;
+            }
+            // Otherwise, pick the category with the most results
+            let bestCatId = search.matchedCategories[0].id;
+            let bestCount = 0;
+            for (const cat of search.matchedCategories) {
+                const count = search.resultCountByCategory.get(cat.id) || 0;
+                if (count > bestCount) {
+                    bestCount = count;
+                    bestCatId = cat.id;
+                }
+            }
+            return bestCatId;
+        }
+        return activeCategory;
+    }, [hasSearchResults, search.matchedCategories, search.resultCountByCategory, activeCategory]);
+
+    // Items to display: during search → search results filtered by effective category,
+    // otherwise → all items filtered by active category
+    const filteredItems = hasSearchResults
+        ? search.results.filter(item => item.categoryId === effectiveCategory)
+        : activeCategory
+            ? items.filter(item => item.categoryId === activeCategory)
+            : items;
+
+    // When a search category pill is clicked from no-results
+    const handleSearchCategoryClick = useCallback((cat: CatalogCategory) => {
+        search.clearSearch();
+        setActiveCategory(cat.id);
+    }, [search]);
 
     const handleAddCategory = () => {
         if (!onUpdateCategories) return;
@@ -333,11 +374,20 @@ function CatalogSectionComponent({
             metadata: { categoryId: item.categoryId, price: item.price },
         });
 
+        // Track search-originated views
+        if (search.debouncedQuery) {
+            onTrackEvent?.('search' as ProfileEventType, {
+                elementId: 'search_result_tap',
+                elementLabel: search.debouncedQuery,
+                metadata: { resultItem: item.id, resultCount: search.resultCount },
+            });
+        }
+
         // Update URL to include item ID (Deep Linking)
         const params = new URLSearchParams(searchParams.toString());
         params.set('item', item.id);
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    }, [isEditMode, pathname, router, searchParams, onTrackEvent]);
+    }, [isEditMode, pathname, router, searchParams, onTrackEvent, search.debouncedQuery, search.resultCount]);
 
     const handleClosePopup = useCallback(() => {
         // Remove item ID from URL
@@ -354,118 +404,188 @@ function CatalogSectionComponent({
         <div
             className="mt-8"
         >
-            {/* Category Pills */}
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-                {categories.map((category) => (
-                    <div
-                        role="button"
-                        tabIndex={0}
-                        key={category.id}
-                        onClick={() => {
-                            setActiveCategory(category.id);
-                            if (!isEditMode) {
-                                onTrackEvent?.('category_tap', {
-                                    elementId: category.id,
-                                    elementLabel: category.name,
-                                });
-                            }
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                setActiveCategory(category.id);
-                            }
-                        }}
-                        className={cn(
-                            'cursor-pointer shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border relative group select-none active:scale-95 hover:scale-105',
-                            activeCategory === category.id
-                                ? 'text-white border-transparent'
-                                : 'bg-transparent hover:bg-white/10',
-                        )}
-                        style={{
-                            background: activeCategory === category.id
-                                ? 'var(--primary)'
-                                : undefined,
-                            color: activeCategory === category.id ? '#fff' : 'var(--text-color)',
-                            borderColor: activeCategory === category.id ? 'transparent' : 'color-mix(in srgb, var(--text-color) 30%, transparent)',
-                        }}
-                    >
-                        {category.emoji && <span className="mr-1">{category.emoji}</span>}
-                        {category.name}
+            {/* Category Pills Row — search button always visible at right */}
+            <div className="mb-4">
+                <div className="flex items-start gap-2 pb-3">
+                    {/* Scrollable category pills with right-edge fade */}
+                    {!search.isActive && (
+                        <div className="relative flex-1 min-w-0">
+                            <div
+                                className="overflow-x-auto scrollbar-hide"
+                                style={{
+                                    maskImage: 'linear-gradient(to right, black calc(100% - 32px), transparent 100%)',
+                                    WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 32px), transparent 100%)',
+                                }}
+                            >
+                                <div className="flex gap-2 items-center">
+                                    {categories.map((category) => {
+                                        const searchCount = hasSearchResults
+                                            ? search.resultCountByCategory.get(category.id) || 0
+                                            : null;
 
-                        {isEditMode && (
-                            <div className="absolute -top-1 -right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={(e) => handleEditCategoryClick(category, e)}
-                                    className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center hover:bg-white/50 transition-colors"
-                                >
-                                    <Edit2 className="w-2.5 h-2.5 text-white" />
-                                </button>
+                                        return (
+                                            <div
+                                                role="button"
+                                                tabIndex={0}
+                                                key={category.id}
+                                                onClick={() => {
+                                                    setActiveCategory(category.id);
+                                                    if (!isEditMode) {
+                                                        onTrackEvent?.('category_tap', {
+                                                            elementId: category.id,
+                                                            elementLabel: category.name,
+                                                        });
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        setActiveCategory(category.id);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    'cursor-pointer shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border relative group select-none active:scale-95 hover:scale-105',
+                                                    activeCategory === category.id
+                                                        ? 'text-white border-transparent'
+                                                        : 'bg-transparent hover:bg-white/10',
+                                                )}
+                                                style={{
+                                                    background: activeCategory === category.id
+                                                        ? 'var(--primary)'
+                                                        : undefined,
+                                                    color: activeCategory === category.id ? '#fff' : 'var(--text-color)',
+                                                    borderColor: activeCategory === category.id ? 'transparent' : 'color-mix(in srgb, var(--text-color) 30%, transparent)',
+                                                }}
+                                            >
+                                                {category.emoji && <span className="mr-1">{category.emoji}</span>}
+                                                {category.name}
+
+                                                {/* Search result count badge on pills */}
+                                                {searchCount !== null && searchCount > 0 && (
+                                                    <span
+                                                        className={cn(
+                                                            'ml-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold tabular-nums catalog-search-cat-badge',
+                                                            activeCategory === category.id
+                                                                ? 'bg-white/30 text-white'
+                                                                : isLightTheme
+                                                                    ? 'bg-black/10 text-black/60'
+                                                                    : 'bg-white/15 text-white/60',
+                                                        )}
+                                                    >
+                                                        {searchCount}
+                                                    </span>
+                                                )}
+
+                                                {isEditMode && (
+                                                    <div className="absolute -top-1 -right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => handleEditCategoryClick(category, e)}
+                                                            className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center hover:bg-white/50 transition-colors"
+                                                        >
+                                                            <Edit2 className="w-2.5 h-2.5 text-white" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                    {isEditMode && (
+                                        <button
+                                            onClick={handleAddCategory}
+                                            className="shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-white/5 border border-dashed text-white/50 hover:bg-white/10 hover:text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                            style={{ color: 'var(--text-color)', borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
+                                        >
+                                            + New Category
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Search button — always visible, pinned right. Expands to full width when active */}
+                    {!isEditMode && items.length > 0 && (
+                        <div className={cn('shrink-0', search.isActive && 'flex-1')}>
+                            <CatalogSearchBar
+                                query={search.query}
+                                onQueryChange={search.setQuery}
+                                isActive={search.isActive}
+                                onActivate={() => search.setIsActive(true)}
+                                onDeactivate={search.clearSearch}
+                                resultCount={search.resultCount}
+                                isSearching={search.isSearching}
+                                theme={theme}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ─── No Results State ─── */}
+            {search.isActive && search.debouncedQuery.length > 0 && search.resultCount === 0 && !search.isSearching ? (
+                <NoResultsState
+                    query={search.debouncedQuery}
+                    suggestions={search.suggestions}
+                    popularCategories={search.popularCategories}
+                    onSuggestionClick={(suggestion) => search.setQuery(suggestion)}
+                    onCategoryClick={handleSearchCategoryClick}
+                    onClearSearch={search.clearSearch}
+                    theme={theme}
+                />
+            ) : (
+                <>
+                    {/* Items Grid — same grid for both search and category view */}
+                    <div
+                        key={`${effectiveCategory}-${search.debouncedQuery}`}
+                        className="grid grid-cols-2 gap-3 content-auto catalog-search-results-enter"
+                    >
+                        {filteredItems.map((item, index) => (
+                            <CatalogItemCard
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                theme={theme}
+                                isEditMode={isEditMode}
+                                onEdit={() => openForEdit(item)}
+                                onDelete={() => handleDeleteItem(item)}
+                                onView={() => handleViewItem(item)}
+                            />
+                        ))}
+                        {isEditMode && (
+                            <button
+                                onClick={openForAdd}
+                                className={cn(
+                                    "aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-colors group",
+                                    isLightTheme
+                                        ? "border-black/10 hover:border-black/20 hover:bg-black/5"
+                                        : "border-white/10 hover:border-white/20 hover:bg-white/5"
+                                )}
+                                style={{ color: 'var(--text-color)' }}
+                            >
+                                <div className={cn(
+                                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                    isLightTheme ? "bg-black/5 group-hover:bg-black/10" : "bg-white/10 group-hover:bg-white/20"
+                                )}>
+                                    <Plus className="w-5 h-5 opacity-70" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-wider opacity-60">Add Item</span>
+                            </button>
                         )}
                     </div>
-                ))}
-                {isEditMode && (
-                    <button
-                        onClick={handleAddCategory}
-                        className="shrink-0 px-3 py-2 rounded-full text-sm font-medium bg-white/5 border border-dashed text-white/50 hover:bg-white/10 hover:text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                        style={{ color: 'var(--text-color)', borderColor: 'color-mix(in srgb, var(--text-color) 20%, transparent)' }}
-                    >
-                        + New Category
-                    </button>
-                )}
-            </div>
 
-            {/* Items Grid */}
-            <div
-                key={activeCategory}
-                className="grid grid-cols-2 gap-3 content-auto"
-            >
-                {filteredItems.map((item, index) => (
-                    <CatalogItemCard
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        theme={theme}
-                        isEditMode={isEditMode}
-                        onEdit={() => openForEdit(item)}
-                        onDelete={() => handleDeleteItem(item)}
-                        onView={() => handleViewItem(item)}
-                    />
-                ))}
-                {isEditMode && (
-                    <button
-                        onClick={openForAdd}
-                        className={cn(
-                            "aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-colors group",
-                            isLightTheme
-                                ? "border-black/10 hover:border-black/20 hover:bg-black/5"
-                                : "border-white/10 hover:border-white/20 hover:bg-white/5"
-                        )}
-                        style={{ color: 'var(--text-color)' }}
-                    >
-                        <div className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                            isLightTheme ? "bg-black/5 group-hover:bg-black/10" : "bg-white/10 group-hover:bg-white/20"
-                        )}>
-                            <Plus className="w-5 h-5 opacity-70" />
+                    {/* Empty state */}
+                    {filteredItems.length === 0 && !isEditMode && !search.isSearching && (
+                        <div className="py-14 min-h-[300px] flex flex-col items-center justify-center text-center gap-3">
+                            <Sparkles className="w-6 h-6 opacity-30" style={{ color: 'var(--text-color)' }} />
+                            <p
+                                className="text-sm font-medium opacity-40"
+                                style={{ color: 'var(--text-color)' }}
+                            >
+                                {hasSearchResults ? 'No items in this category' : 'Coming soon'}
+                            </p>
                         </div>
-                        <span className="text-xs font-bold uppercase tracking-wider opacity-60">Add Item</span>
-                    </button>
-                )}
-            </div>
-
-            {/* Empty state */}
-            {filteredItems.length === 0 && !isEditMode && (
-                <div className="py-14 min-h-[300px] flex flex-col items-center justify-center text-center gap-3">
-                    <Sparkles className="w-6 h-6 opacity-30" style={{ color: 'var(--text-color)' }} />
-                    <p
-                        className="text-sm font-medium opacity-40"
-                        style={{ color: 'var(--text-color)' }}
-                    >
-                        Coming soon
-                    </p>
-                </div>
+                    )}
+                </>
             )}
 
             {/* Modals */}
