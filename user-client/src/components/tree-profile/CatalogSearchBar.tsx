@@ -44,28 +44,30 @@ function CatalogSearchBarComponent({
 
     const hasQuery = query.trim().length > 0;
 
-    // ─── Collapsed state: compact pill button ───
+    // ─── Collapsed state: visually distinct search button ───
     if (!isActive) {
         return (
             <button
                 onClick={onActivate}
                 className={cn(
-                    'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium',
-                    'border transition-all duration-200 select-none',
+                    'shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-semibold',
+                    'border-[1.5px] border-dashed transition-all duration-200 select-none',
                     'active:scale-95 hover:scale-105',
-                    isLightTheme
-                        ? 'bg-black/3 border-black/8 hover:bg-black/5 hover:border-black/12'
-                        : 'bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/15',
+                    'catalog-search-btn-pulse',
                 )}
+                style={{
+                    borderColor: 'var(--primary)',
+                    background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
+                }}
                 aria-label="Search catalog items"
             >
                 <Search
-                    className="w-3.5 h-3.5 opacity-50"
-                    style={{ color: 'var(--text-color)' }}
+                    className="w-4 h-4"
+                    style={{ color: 'var(--primary)', opacity: 0.85 }}
                 />
                 <span
-                    className="text-xs opacity-40 hidden min-[360px]:inline"
-                    style={{ color: 'var(--text-color)' }}
+                    className="text-xs font-semibold hidden min-[360px]:inline"
+                    style={{ color: 'var(--primary)', opacity: 0.75 }}
                 >
                     Search
                 </span>

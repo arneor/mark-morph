@@ -12,6 +12,17 @@
 }
 
 @layer utilities {
+
+  /* Hide scrollbar but keep scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .animate-element {
     opacity: 0;
     filter: blur(10px);
@@ -779,4 +790,24 @@ img {
   .catalog-search-no-results-icon {
     animation: none;
   }
+}
+
+/* Search button attention pulse — runs once on mount */
+@keyframes search-btn-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary, #9EE53B) 40%, transparent);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary, #9EE53B) 0%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.catalog-search-btn-pulse {
+  animation: search-btn-pulse 1.8s ease-out 1;
+  animation-delay: 0.5s;
 }

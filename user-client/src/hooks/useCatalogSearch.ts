@@ -63,7 +63,8 @@ interface ScoredItem {
 function scoreItem(
     item: CatalogItem,
     queryTerms: string[],
-    categories: CatalogCategory[]
+    categories: CatalogCategory[],
+    fullQuery: string
 ): ScoredItem | null {
     let bestScore = 0;
     let bestField: ScoredItem['matchedField'] = 'title';
@@ -74,74 +75,143 @@ function scoreItem(
     const category = categories.find(c => c.id === item.categoryId);
     const categoryName = category?.name.toLowerCase() || '';
 
-    for (const term of queryTerms) {
-        // 1. Exact title match (highest score)
-        if (titleLower === term) {
-            bestScore = Math.max(bestScore, 100);
+    // ─── Phase 1: Full-query matching (highest priority) ─────────
+    // This handles multi-word searches like "iphone 14" as a single phrase.
+    if (fullQuery.length > 0) {
+        if (titleLower === fullQuery) {
+            // Perfect full match: "iphone 14" === "iphone 14"
+            bestScore = 110;
             bestField = 'title';
+        } else if (titleLower.startsWith(fullQuery)) {
+            // Title starts with the full query
+            bestScore = 105;
+            bestField = 'title';
+        } else if (titleLower.includes(fullQuery)) {
+            // Title contains the full query as substring
+            bestScore = 100;
+            bestField = 'title';
+        } else if (descLower.includes(fullQuery)) {
+            bestScore = 60;
+            bestField = 'description';
+        }
+    }
+
+    // ─── Phase 2: Per-term scoring (cumulative) ──────────────────
+    // Each matching term adds to the score, rewarding items that
+    // match more of the user's query.
+    let termMatchCount = 0;
+    let termScoreSum = 0;
+
+    for (const term of queryTerms) {
+        let termBest = 0;
+        let termField: ScoredItem['matchedField'] = 'title';
+
+        // 1. Exact title match
+        if (titleLower === term) {
+            termBest = 100;
+            termField = 'title';
         }
         // 2. Title starts with term
         else if (titleLower.startsWith(term)) {
-            bestScore = Math.max(bestScore, 90);
-            bestField = 'title';
+            termBest = 90;
+            termField = 'title';
         }
         // 3. Title contains term
         else if (titleLower.includes(term)) {
-            bestScore = Math.max(bestScore, 80);
-            bestField = 'title';
+            termBest = 80;
+            termField = 'title';
         }
-        // 4. Title word starts with term
-        else if (titleLower.split(/\s+/).some(word => word.startsWith(term))) {
-            bestScore = Math.max(bestScore, 75);
-            bestField = 'title';
+        // 4. Individual word in title starts with or exactly matches term
+        else {
+            const titleWords = titleLower.split(/\s+/);
+            for (const word of titleWords) {
+                if (word === term) {
+                    termBest = Math.max(termBest, 85);
+                    termField = 'title';
+                } else if (word.startsWith(term)) {
+                    termBest = Math.max(termBest, 75);
+                    termField = 'title';
+                }
+            }
         }
 
         // 5. Tag exact match
         if (tags.includes(term)) {
-            bestScore = Math.max(bestScore, 70);
-            bestField = 'tag';
+            if (70 > termBest) {
+                termBest = 70;
+                termField = 'tag';
+            }
         }
 
         // 6. Category match
         if (categoryName.includes(term)) {
-            bestScore = Math.max(bestScore, 65);
-            bestField = 'category';
+            if (65 > termBest) {
+                termBest = 65;
+                termField = 'category';
+            }
         }
 
         // 7. Description contains
-        if (descLower.includes(term)) {
-            bestScore = Math.max(bestScore, 50);
-            bestField = 'description';
+        if (descLower.includes(term) && termBest < 50) {
+            termBest = 50;
+            termField = 'description';
         }
 
         // 8. Fuzzy match on title words (typo tolerance)
-        if (bestScore < 40) {
+        if (termBest < 40) {
             const titleWords = titleLower.split(/\s+/);
             for (const word of titleWords) {
                 const maxDist = term.length <= 4 ? 1 : term.length <= 7 ? 2 : 3;
                 const dist = levenshtein(term, word);
                 if (dist <= maxDist && dist > 0) {
                     const fuzzyScore = 40 - dist * 5;
-                    if (fuzzyScore > bestScore) {
-                        bestScore = fuzzyScore;
-                        bestField = 'title';
+                    if (fuzzyScore > termBest) {
+                        termBest = fuzzyScore;
+                        termField = 'title';
                     }
                 }
             }
         }
 
         // 9. Fuzzy match on category name
-        if (bestScore < 30 && categoryName.length > 0) {
+        if (termBest < 30 && categoryName.length > 0) {
             const maxDist = term.length <= 4 ? 1 : 2;
             const dist = levenshtein(term, categoryName);
             if (dist <= maxDist && dist > 0) {
-                bestScore = Math.max(bestScore, 25);
-                bestField = 'category';
+                if (25 > termBest) {
+                    termBest = 25;
+                    termField = 'category';
+                }
+            }
+        }
+
+        if (termBest > 0) {
+            termMatchCount++;
+            termScoreSum += termBest;
+            if (termBest > bestScore) {
+                bestField = termField;
             }
         }
     }
 
-    return bestScore > 0 ? { item, score: bestScore, matchedField: bestField } : null;
+    // Combine: use the higher of full-query score or cumulative per-term score
+    const rawTerms = queryTerms.filter((t, i, a) => a.indexOf(t) === i);
+    const uniqueRawTermCount = rawTerms.length;
+
+    // Multi-term bonus: if ALL original query terms matched, reward significantly
+    const allTermsMatched = uniqueRawTermCount > 1 && termMatchCount >= uniqueRawTermCount;
+    const multiTermBonus = allTermsMatched ? 15 : 0;
+
+    // Take best between full-query score and cumulative per-term average + bonus
+    const perTermScore = uniqueRawTermCount > 0
+        ? Math.round(termScoreSum / uniqueRawTermCount) + multiTermBonus
+        : 0;
+    const finalScore = Math.max(bestScore, perTermScore);
+
+    // Tiebreaker: shorter titles get a tiny bonus (more specific match)
+    const lengthBonus = Math.max(0, (50 - titleLower.length) * 0.1);
+
+    return finalScore > 0 ? { item, score: finalScore + lengthBonus, matchedField: bestField } : null;
 }
 
 // ─── Suggestion Generator ────────────────────────────────────────────
@@ -238,7 +308,7 @@ export function useCatalogSearch(
         // Score all items
         const scored: ScoredItem[] = [];
         for (const item of items) {
-            const result = scoreItem(item, queryTerms, categories);
+            const result = scoreItem(item, queryTerms, categories, debouncedQuery.toLowerCase());
             if (result) scored.push(result);
         }
 
