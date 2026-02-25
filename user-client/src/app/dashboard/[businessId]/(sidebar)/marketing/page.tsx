@@ -18,6 +18,7 @@ export default function MarketingPage() {
 
     const qrRef = useRef<HTMLDivElement>(null);
     const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+    const [qrType, setQrType] = useState<'profile' | 'catalog'>('profile');
 
     useEffect(() => {
         const imageUrl = business?.profileImage || business?.logoUrl;
@@ -60,7 +61,7 @@ export default function MarketingPage() {
         htmlToImage.toPng(qrRef.current, { cacheBust: true, pixelRatio: 3 })
             .then((dataUrl) => {
                 const link = document.createElement('a');
-                link.download = `${business?.username || 'business'}-catalog-qr.png`;
+                link.download = `${business?.username || 'business'}-${qrType === 'catalog' ? 'catalog' : 'profile'}-qr.png`;
                 link.href = dataUrl;
                 link.click();
             })
@@ -72,10 +73,12 @@ export default function MarketingPage() {
                     variant: 'destructive',
                 });
             });
-    }, [business, toast]);
+    }, [business, toast, qrType]);
 
     const handleCopyLink = useCallback(async () => {
-        const link = `https://www.linkbeet.in/${business?.username || ''}`;
+        const link = qrType === 'catalog'
+            ? `https://www.linkbeet.in/${business?.username || ''}/catalog`
+            : `https://www.linkbeet.in/${business?.username || ''}`;
         try {
             await navigator.clipboard.writeText(link);
             toast({
@@ -90,11 +93,14 @@ export default function MarketingPage() {
                 variant: 'destructive',
             });
         }
-    }, [business?.username, toast]);
+    }, [business?.username, toast, qrType]);
 
     if (!business) return null;
 
     const profileUrl = `https://www.linkbeet.in/${business.username}`;
+    const catalogUrl = `https://www.linkbeet.in/${business.username}/catalog`;
+    const activeUrl = qrType === 'catalog' ? catalogUrl : profileUrl;
+    const activeShortUrl = qrType === 'catalog' ? `linkbeet.in/${business.username}/catalog` : `linkbeet.in/${business.username}`;
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 max-w-5xl mx-auto w-full">
@@ -105,30 +111,54 @@ export default function MarketingPage() {
             <div className="flex flex-col lg:flex-row gap-6">
                 <Card className="flex-1 border-0 shadow-sm md:border-2">
                     <CardHeader className="bg-muted/30 pb-4 border-b px-4 md:px-6">
-                        <CardTitle className="text-xl">QR Code Flyer</CardTitle>
-                        <CardDescription className="text-sm">
-                            Download your custom QR code flyer to display at your business.
-                        </CardDescription>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div>
+                                <CardTitle className="text-xl">QR Code Flyer</CardTitle>
+                                <CardDescription className="text-sm mt-1">
+                                    Download your custom QR code flyer to display at your business.
+                                </CardDescription>
+                            </div>
+                            <div className="flex bg-muted rounded-lg p-1 gap-1 shrink-0 self-start md:self-auto">
+                                <button
+                                    onClick={() => setQrType('profile')}
+                                    className={`px-4 py-2 text-sm md:text-xs md:px-3 md:py-1.5 font-semibold rounded-md transition-all ${qrType === 'profile'
+                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                >
+                                    Profile
+                                </button>
+                                <button
+                                    onClick={() => setQrType('catalog')}
+                                    className={`px-4 py-2 text-sm md:text-xs md:px-3 md:py-1.5 font-semibold rounded-md transition-all ${qrType === 'catalog'
+                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                >
+                                    Catalog
+                                </button>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6 pt-6 pb-6 px-4 md:px-6">
                         {/* Hidden printable area to render the full flyer image offscreen perfectly */}
                         <div className="w-full flex justify-center p-0 mb-2">
                             {/* Visual representation - accurately scaled down Version of the final flyer */}
-                            <div className="bg-[#EEEEEE] overflow-hidden relative flex flex-col items-center w-full max-w-[340px] aspect-[1/1.414] shadow-xl border border-gray-200 shrink-0 select-none">
-                                {/* Abstract Waves Background (approximate via SVG) */}
-                                <div className="absolute inset-0 opacity-[0.10] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='800' height='1130' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-100 200 C 200 100, 600 300, 900 100' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 250 C 300 100, 500 500, 900 200' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 300 C 400 0, 400 600, 900 300' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 400 C 200 800, 600 -100, 900 400' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 500 C 300 700, 500 -200, 900 500' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 600 C 400 800, 400 -100, 900 600' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 700 C 200 400, 600 900, 900 700' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 100 C 200 -100, 600 400, 900 100' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 800 C 300 500, 500 1000, 900 800' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundSize: 'cover' }}></div>
+                            <div className="bg-[#FBC02D] overflow-hidden relative flex flex-col items-center w-full max-w-[340px] aspect-[1/1.414] shadow-xl border border-[#E8B800]/40 shrink-0 select-none">
+                                {/* Abstract Waves Background - thin golden curves */}
+                                <div className="absolute inset-0 opacity-[0.50] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='800' height='1130' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-100 80 C 200 -20, 500 180, 900 60' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 140 C 300 40, 600 280, 900 120' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 200 C 200 100, 600 300, 900 180' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 280 C 400 80, 400 480, 900 260' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 360 C 200 560, 600 60, 900 340' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 440 C 300 640, 500 40, 900 420' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 520 C 400 720, 400 120, 900 500' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 600 C 200 400, 600 800, 900 580' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M700 -50 C 750 200, 850 400, 900 700' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3Cpath d='M600 -50 C 680 150, 780 350, 820 650' stroke='%23DAA520' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundSize: 'cover' }}></div>
 
-                                {/* Bottom solid gray block */}
-                                <div className="absolute bottom-0 w-full h-[28%] bg-[#DFDFDF] z-0"></div>
+                                {/* Bottom solid amber block */}
+                                <div className="absolute bottom-0 w-full h-[20%] bg-[#F0AD00] z-0"></div>
 
-                                {/* Header / Logo */}
-                                <div className="w-full flex items-center justify-center mt-8 gap-3 z-10 px-4">
+                                {/* Header: Logo + Business Name - LEFT aligned */}
+                                <div className="w-full flex items-center mt-[7%] gap-2.5 z-10 px-[8%]">
                                     {logoDataUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
                                             src={logoDataUrl}
                                             alt="Logo"
-                                            className="w-[52px] h-[52px] rounded-full object-cover bg-black shrink-0 relative z-20"
+                                            className="w-[62px] h-[62px] rounded-full object-cover bg-black shrink-0 relative z-20 border-2 border-black/10"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.style.display = 'none';
@@ -137,21 +167,21 @@ export default function MarketingPage() {
                                             }}
                                         />
                                     ) : null}
-                                    <div className="w-[52px] h-[52px] rounded-full bg-black items-center justify-center shrink-0 relative z-20" style={{ display: (business.profileImage || business.logoUrl) && logoDataUrl ? 'none' : 'flex' }}>
-                                        <span className="text-white font-bold text-xs tracking-wide">Logo</span>
+                                    <div className="w-[62px] h-[62px] rounded-full bg-black items-center justify-center shrink-0 relative z-20 border-2 border-black/10" style={{ display: (business.profileImage || business.logoUrl) && logoDataUrl ? 'none' : 'flex' }}>
+                                        <span className="text-white font-bold text-[10px] tracking-wide">Logo</span>
                                     </div>
-                                    <div className="flex flex-col justify-center min-w-0">
-                                        <h3 className="font-sans text-[22px] font-black text-black leading-none tracking-wider uppercase truncate relative z-20">
-                                            {business.businessName}
-                                        </h3>
-                                        <p className="text-[15px] text-black font-bold mt-1.5 leading-none relative z-20">Product Catalog</p>
-                                    </div>
+                                    <h3 className="font-sans text-[24px] font-black text-[#1a1a1a] leading-none tracking-[0.06em] uppercase relative z-20" style={{ fontStretch: 'condensed' }}>
+                                        {business.businessName}
+                                    </h3>
                                 </div>
 
-                                {/* QR Code Container */}
-                                <div className="bg-white p-3 mt-7 mb-auto z-10 w-[72%] aspect-square flex items-center justify-center shadow-sm relative">
+                                {/* Service Catalog subtitle - centered */}
+                                <p className="text-[16px] text-[#1a1a1a] font-bold mt-[3%] leading-none relative z-20 tracking-wide">{qrType === 'catalog' ? 'Service Catalog' : 'Profile'}</p>
+
+                                {/* QR Code Container - generous white padding */}
+                                <div className="bg-white p-[5%] mt-[5%] z-10 w-[78%] aspect-square flex items-center justify-center relative rounded-[2px]">
                                     <QRCodeSVG
-                                        value={profileUrl}
+                                        value={activeUrl}
                                         width="100%"
                                         height="100%"
                                         level="H"
@@ -161,37 +191,37 @@ export default function MarketingPage() {
                                     />
                                 </div>
 
-                                {/* Footer Text */}
-                                <div className="mt-auto text-center w-full pb-6 z-10 flex flex-col justify-end h-[28%] relative">
-                                    <p className="text-black text-[13px] mb-2 leading-none">Scan the QR code to see our <span className="font-bold">full Catlog</span></p>
-                                    <div className="w-[85%] h-[2px] bg-white mx-auto mb-2"></div>
-                                    <p className="text-black text-[13px] leading-none text-center flex items-center gap-1.5 justify-center">
-                                        Or visit <span className="font-bold">linkbeet.in/{business.username}</span>
+                                {/* Footer Text - in amber bottom area */}
+                                <div className="mt-auto text-center w-full pb-[5%] z-10 flex flex-col items-center justify-end h-[20%] relative px-[6%]">
+                                    <p className="text-[#1a1a1a] text-[14px] mb-[6px] leading-none font-medium">Scan the QR code to see our <span className="font-extrabold">{qrType === 'catalog' ? 'full Catlog' : 'Profile'}</span></p>
+                                    <div className="w-[90%] h-[2px] bg-[#D4A017] mx-auto mb-[6px]"></div>
+                                    <p className="text-[#1a1a1a] text-[14px] leading-none text-center font-medium">
+                                        Or visit <span className="font-extrabold tracking-wide">{activeShortUrl}</span>
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Actual full-resolution node to convert to image. Rendered offscreen perfectly. */}
+                        {/* Actual full-resolution node to convert to image. Rendered offscreen. */}
                         <div className="fixed -left-[9999px] top-0 pointer-events-none">
                             <div
                                 ref={qrRef}
-                                className="bg-[#EEEEEE] overflow-hidden relative flex flex-col items-center w-[800px] h-[1131px]"
+                                className="bg-[#FBC02D] overflow-hidden relative flex flex-col items-center w-[800px] h-[1131px]"
                             >
-                                {/* Abstract Waves Background (approximate via SVG) */}
-                                <div className="absolute inset-0 opacity-[0.10] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='800' height='1130' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-100 200 C 200 100, 600 300, 900 100' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 250 C 300 100, 500 500, 900 200' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 300 C 400 0, 400 600, 900 300' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 400 C 200 800, 600 -100, 900 400' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 500 C 300 700, 500 -200, 900 500' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 600 C 400 800, 400 -100, 900 600' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 700 C 200 400, 600 900, 900 700' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 100 C 200 -100, 600 400, 900 100' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3Cpath d='M-100 800 C 300 500, 500 1000, 900 800' stroke='%23000' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundSize: 'cover' }}></div>
+                                {/* Abstract Waves Background - thin golden curves */}
+                                <div className="absolute inset-0 opacity-[0.50] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='800' height='1130' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-100 80 C 200 -20, 500 180, 900 60' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 140 C 300 40, 600 280, 900 120' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 200 C 200 100, 600 300, 900 180' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 280 C 400 80, 400 480, 900 260' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 360 C 200 560, 600 60, 900 340' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 440 C 300 640, 500 40, 900 420' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 520 C 400 720, 400 120, 900 500' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M-100 600 C 200 400, 600 800, 900 580' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M700 -50 C 750 200, 850 400, 900 700' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3Cpath d='M600 -50 C 680 150, 780 350, 820 650' stroke='%23DAA520' stroke-width='2' fill='none'/%3E%3C/svg%3E")`, backgroundSize: 'cover' }}></div>
 
-                                {/* Bottom solid gray block */}
-                                <div className="absolute bottom-0 w-full h-[28%] bg-[#DFDFDF] z-0"></div>
+                                {/* Bottom solid amber block */}
+                                <div className="absolute bottom-0 w-full h-[20%] bg-[#F0AD00] z-0"></div>
 
-                                {/* Header / Logo */}
-                                <div className="w-full flex items-center justify-center mt-20 gap-8 z-10 px-10">
+                                {/* Header: Logo + Business Name - LEFT aligned */}
+                                <div className="w-full flex items-center mt-[80px] gap-[20px] z-10 px-[60px]">
                                     {logoDataUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
                                             src={logoDataUrl}
                                             alt="Logo"
-                                            className="w-[124px] h-[124px] rounded-full object-cover bg-black shrink-0 relative z-20"
+                                            className="w-[140px] h-[140px] rounded-full object-cover bg-black shrink-0 relative z-20 border-[3px] border-black/10"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.style.display = 'none';
@@ -200,21 +230,21 @@ export default function MarketingPage() {
                                             }}
                                         />
                                     ) : null}
-                                    <div className="w-[124px] h-[124px] rounded-full bg-black items-center justify-center shrink-0 relative z-20" style={{ display: (business.profileImage || business.logoUrl) && logoDataUrl ? 'none' : 'flex' }}>
+                                    <div className="w-[140px] h-[140px] rounded-full bg-black items-center justify-center shrink-0 relative z-20 border-[3px] border-black/10" style={{ display: (business.profileImage || business.logoUrl) && logoDataUrl ? 'none' : 'flex' }}>
                                         <span className="text-white font-bold text-[28px] tracking-wide">Logo</span>
                                     </div>
-                                    <div className="flex flex-col justify-center min-w-0">
-                                        <h3 className="font-sans text-[52px] font-black text-black leading-none tracking-wider uppercase relative z-20">
-                                            {business.businessName}
-                                        </h3>
-                                        <p className="text-[36px] text-black font-bold mt-3 leading-none relative z-20">Product Catalog</p>
-                                    </div>
+                                    <h3 className="font-sans text-[56px] font-black text-[#1a1a1a] leading-none tracking-[0.06em] uppercase relative z-20" style={{ fontStretch: 'condensed' }}>
+                                        {business.businessName}
+                                    </h3>
                                 </div>
 
-                                {/* QR Code Container */}
-                                <div className="bg-white p-7 mt-16 mb-auto z-10 w-[580px] h-[580px] flex items-center justify-center shadow-sm relative">
+                                {/* Service Catalog subtitle - centered */}
+                                <p className="text-[38px] text-[#1a1a1a] font-bold mt-[30px] leading-none relative z-20 tracking-wide">{qrType === 'catalog' ? 'Service Catalog' : 'Profile'}</p>
+
+                                {/* QR Code Container - generous white padding matching reference */}
+                                <div className="bg-white p-[40px] mt-[45px] z-10 w-[620px] h-[620px] flex items-center justify-center relative rounded-[3px]">
                                     <QRCodeSVG
-                                        value={profileUrl}
+                                        value={activeUrl}
                                         width="100%"
                                         height="100%"
                                         level="H"
@@ -224,12 +254,12 @@ export default function MarketingPage() {
                                     />
                                 </div>
 
-                                {/* Footer Text */}
-                                <div className="mt-auto text-center w-full pb-14 z-10 flex flex-col justify-end h-[28%] relative">
-                                    <p className="text-black text-[30px] mb-5 leading-none">Scan the QR code to see our <span className="font-bold">full Catlog</span></p>
-                                    <div className="w-[85%] h-[4px] bg-white mx-auto mb-5"></div>
-                                    <p className="text-black text-[30px] leading-none text-center flex items-center justify-center">
-                                        Or visit <span className="font-bold ml-2 tracking-wide">linkbeet.in/{business.username}</span>
+                                {/* Footer Text - in amber bottom area */}
+                                <div className="mt-auto text-center w-full pb-[50px] z-10 flex flex-col items-center justify-end h-[20%] relative px-[50px]">
+                                    <p className="text-[#1a1a1a] text-[32px] mb-[18px] leading-none font-medium">Scan the QR code to see our <span className="font-extrabold">{qrType === 'catalog' ? 'full Catlog' : 'Profile'}</span></p>
+                                    <div className="w-[90%] h-[4px] bg-[#D4A017] mx-auto mb-[18px]"></div>
+                                    <p className="text-[#1a1a1a] text-[32px] leading-none text-center font-medium">
+                                        Or visit <span className="font-extrabold ml-2 tracking-wide">{activeShortUrl}</span>
                                     </p>
                                 </div>
                             </div>
@@ -242,7 +272,7 @@ export default function MarketingPage() {
                             </Button>
                             <Button onClick={handleCopyLink} variant="outline" className="w-full py-6 text-base font-medium border-2" size="lg">
                                 <Link className="w-5 h-5 mr-3" />
-                                Copy Profile Link
+                                Copy {qrType === 'catalog' ? 'Catalog' : 'Profile'} Link
                             </Button>
                         </div>
                     </CardContent>
