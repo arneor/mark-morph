@@ -12,14 +12,6 @@
 }
 
 @layer utilities {
-  <<<<<<< HEAD .animate-element {
-    opacity: 0;
-    filter: blur(10px);
-    transform: translateY(20px);
-    animation: fadeSlideIn 1s forwards cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  =======
 
   /* Hide scrollbar but keep scroll functionality */
   .scrollbar-hide {
@@ -38,7 +30,7 @@
     animation: fadeSlideIn 1s forwards cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  >>>>>>>develop .animate-slide-right {
+  .animate-slide-right {
     opacity: 0;
     filter: blur(10px);
     transform: translateX(-50px);
