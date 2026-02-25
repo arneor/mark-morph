@@ -289,6 +289,7 @@ export default function OffersPage() {
         setBannerFile(croppedFile);
         setBannerPreview(URL.createObjectURL(croppedBlob));
     }, [rawBannerFile]);
+
     // Cleanup blob URLs
     useEffect(() => {
         return () => {
