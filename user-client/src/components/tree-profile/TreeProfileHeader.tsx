@@ -285,8 +285,7 @@ function TreeProfileHeaderComponent({ businessId, data, isEditMode, onUpdate }: 
                     )}
                     {data.isVerified && (
                         <BadgeCheck
-                            className="w-6 h-6 shrink-0"
-                            style={{ color: 'var(--primary)' }}
+                            className="w-6 h-6 shrink-0 text-blue-500"
                         />
                     )}
                 </div>
