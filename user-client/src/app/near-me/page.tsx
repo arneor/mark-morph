@@ -433,7 +433,7 @@ export default function NearMePage() {
                                         href={banner.linkUrl || '#'}
                                         target={banner.linkType === 'external' ? '_blank' : '_self'}
                                         rel={banner.linkType === 'external' ? 'noopener noreferrer' : undefined}
-                                        className="block relative aspect-video w-full overflow-hidden rounded-2xl"
+                                        className="block relative aspect-2/1 sm:aspect-[2.5/1] lg:aspect-[3.5/1] w-full overflow-hidden rounded-2xl max-h-[320px]"
                                         style={{ backgroundColor: banner.accentColor || '#9EE53B' }}
                                     >
                                         <Image
