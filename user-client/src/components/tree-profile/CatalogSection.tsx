@@ -607,6 +607,7 @@ function CatalogSectionComponent({
                 key={editingItem ? editingItem.id : 'new'}
                 businessId={businessId}
                 theme={theme}
+                whatsappNumber={whatsappNumber}
             />
 
             <AddCategoryModal

@@ -27,6 +27,7 @@ interface AddItemModalProps {
     currency?: string;
     businessId: string;
     theme: TreeProfileTheme;
+    whatsappNumber?: string;
 }
 
 const TAGS: { id: string; label: string; icon: LucideIcon; color: string }[] = [
@@ -38,7 +39,7 @@ const TAGS: { id: string; label: string; icon: LucideIcon; color: string }[] = [
     { id: 'spicy', label: 'Spicy', icon: Flame, color: 'text-red-500' },
 ];
 
-export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, currency = '₹', businessId, theme }: AddItemModalProps) {
+export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, currency = '₹', businessId, theme, whatsappNumber }: AddItemModalProps) {
     const isLightTheme = isColorExclusivelyDark(theme.textColor);
 
     // Dynamic Styles
@@ -61,7 +62,7 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
     const [image, setImage] = useState(initialData?.imageUrl || '');
     const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
     const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable !== false);
-    const [whatsappEnquiryEnabled, setWhatsappEnquiryEnabled] = useState(initialData?.whatsappEnquiryEnabled !== false);
+    const [whatsappEnquiryEnabled, setWhatsappEnquiryEnabled] = useState(!!whatsappNumber && initialData?.whatsappEnquiryEnabled !== false);
     const [isUploading, setIsUploading] = useState(false);
     const [s3Key, setS3Key] = useState(initialData?.s3Key || '');
 
@@ -276,23 +277,32 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
                             </div>
 
                             {/* WhatsApp Enquiry Toggle (per-item) */}
-                            <div className="flex items-center justify-between py-2 px-1">
-                                <div className="flex items-center gap-2">
-                                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                                    <span className={cn("text-sm font-medium", styles.text)}>WhatsApp Enquiry</span>
+                            <div className="py-2 px-1">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                                        <span className={cn("text-sm font-medium", styles.text)}>WhatsApp Enquiry</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setWhatsappEnquiryEnabled(!whatsappEnquiryEnabled)}
+                                        disabled={!whatsappNumber}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full p-1 transition-colors duration-300 relative",
+                                            !whatsappNumber ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+                                            whatsappEnquiryEnabled ? "bg-[#25D366]" : (isLightTheme ? "bg-black/10" : "bg-white/10")
+                                        )}
+                                    >
+                                        <div
+                                            className="w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300"
+                                            style={{ transform: whatsappEnquiryEnabled ? 'translateX(24px)' : 'translateX(0)' }}
+                                        />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => setWhatsappEnquiryEnabled(!whatsappEnquiryEnabled)}
-                                    className={cn(
-                                        "w-12 h-6 rounded-full p-1 transition-colors duration-300 relative cursor-pointer",
-                                        whatsappEnquiryEnabled ? "bg-[#25D366]" : (isLightTheme ? "bg-black/10" : "bg-white/10")
-                                    )}
-                                >
-                                    <div
-                                        className="w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300"
-                                        style={{ transform: whatsappEnquiryEnabled ? 'translateX(24px)' : 'translateX(0)' }}
-                                    />
-                                </button>
+                                {!whatsappNumber && (
+                                    <p className={cn("text-xs mt-2 italic", styles.textMuted)}>
+                                        Please add WhatsApp number in dashboard to enable enquiries.
+                                    </p>
+                                )}
                             </div>
 
                             {/* Tags */}
