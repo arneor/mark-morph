@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Users, Wifi, Megaphone, Loader2, Link2, Eye, MousePointerClick,
     ShoppingBag, Tag, ExternalLink, Share2, TrendingUp, Calendar,
-    BarChart3, ArrowUpRight
+    BarChart3, ArrowUpRight, MessageCircle, X, Check
 } from 'lucide-react';
 import {
     AreaChart,
@@ -22,7 +22,7 @@ import {
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { useBusinessStats, useBusiness } from '@/hooks/use-businesses';
 import { useQuery } from '@tanstack/react-query';
-import { beetLinkApi, type BeetLinkAnalytics } from '@/lib/api';
+import { beetLinkApi, businessApi, type BeetLinkAnalytics } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 // ===== Date Range Presets =====
@@ -84,7 +84,44 @@ export default function DashboardOverviewPage() {
     const businessId = params.businessId as string;
     const [activeTab, setActiveTab] = useState<'beet-link' | 'wifi'>('beet-link');
 
-    const { data: business, isLoading: isLoadingBusiness } = useBusiness(businessId);
+    const { data: business, isLoading: isLoadingBusiness, refetch: refetchBusiness } = useBusiness(businessId);
+
+    // WhatsApp popup state
+    const [whatsappDismissed, setWhatsappDismissed] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        return localStorage.getItem(`wa-prompt-dismissed-${businessId}`) === 'true';
+    });
+    const [showWhatsAppPopup, setShowWhatsAppPopup] = useState(false);
+    const [waNumber, setWaNumber] = useState('');
+    const [waSaving, setWaSaving] = useState(false);
+
+    const showWhatsAppPrompt = !isLoadingBusiness && business && !business.whatsappNumber && !whatsappDismissed;
+
+    const dismissWhatsAppPrompt = () => {
+        setWhatsappDismissed(true);
+        setShowWhatsAppPopup(false);
+        localStorage.setItem(`wa-prompt-dismissed-${businessId}`, 'true');
+    };
+
+    const handleSaveWhatsApp = async () => {
+        if (!waNumber.trim()) return;
+        setWaSaving(true);
+        try {
+            await businessApi.update(businessId, {
+                whatsappNumber: waNumber.trim(),
+                whatsappEnquiryEnabled: true,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any);
+            await refetchBusiness();
+            setShowWhatsAppPopup(false);
+            setWhatsappDismissed(true);
+            localStorage.setItem(`wa-prompt-dismissed-${businessId}`, 'true');
+        } catch {
+            // silently fail — user can retry
+        } finally {
+            setWaSaving(false);
+        }
+    };
 
     return (
         <div className="p-6 md:p-8 lg:p-10 space-y-6">
@@ -109,6 +146,86 @@ export default function DashboardOverviewPage() {
                     )}
                 </div>
             </div>
+
+            {/* WhatsApp Number Prompt */}
+            {showWhatsAppPrompt && !showWhatsAppPopup && (
+                <div className="relative bg-linear-to-r from-[#25D366]/10 to-[#128C7E]/10 border border-[#25D366]/20 rounded-2xl p-4 flex items-center gap-4 animate-fade-in">
+                    <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
+                        <MessageCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">Add your WhatsApp number</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Let customers enquire about products directly via WhatsApp.</p>
+                    </div>
+                    <button
+                        onClick={() => setShowWhatsAppPopup(true)}
+                        className="shrink-0 px-4 py-2 bg-[#25D366] text-white text-sm font-semibold rounded-xl hover:bg-[#20BD5A] transition-colors shadow-sm"
+                    >
+                        Set Up
+                    </button>
+                    <button
+                        onClick={dismissWhatsAppPrompt}
+                        className="shrink-0 p-1.5 rounded-full hover:bg-black/5 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label="Dismiss"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* WhatsApp Setup Popup */}
+            {showWhatsAppPopup && (
+                <div className="relative bg-white border border-[#25D366]/30 rounded-2xl p-5 shadow-lg animate-fade-in space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
+                                <MessageCircle className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-900">Set up WhatsApp Enquiry</p>
+                                <p className="text-xs text-gray-500">Customers can message you about products</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={dismissWhatsAppPrompt}
+                            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-600 ml-1">WhatsApp Number (with country code)</label>
+                        <input
+                            type="tel"
+                            placeholder="e.g. 919876543210"
+                            value={waNumber}
+                            onChange={(e) => setWaNumber(e.target.value.replace(/[^\d+]/g, ''))}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/30 focus:border-[#25D366] transition-all"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={dismissWhatsAppPrompt}
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                        >
+                            Skip
+                        </button>
+                        <button
+                            onClick={handleSaveWhatsApp}
+                            disabled={!waNumber.trim() || waSaving}
+                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-[#25D366] rounded-xl hover:bg-[#20BD5A] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {waSaving ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Check className="w-4 h-4" />
+                            )}
+                            {waSaving ? 'Saving...' : 'Save & Enable'}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Tab Switcher */}
             <div className="flex items-center bg-white border rounded-xl p-1 w-fit shadow-sm">

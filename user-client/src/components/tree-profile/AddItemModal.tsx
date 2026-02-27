@@ -1,7 +1,7 @@
 import { useState, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 
-import { X, Trash2, Camera, Star, Sparkles, Flame, Leaf, ShoppingBag, CreditCard, Tag, LucideIcon, Loader2 } from 'lucide-react';
+import { X, Trash2, Camera, Star, Sparkles, Flame, Leaf, ShoppingBag, CreditCard, Tag, LucideIcon, Loader2, MessageCircle } from 'lucide-react';
 import { CatalogItem, TreeProfileTheme } from '@/lib/treeProfileTypes';
 import { cn, isColorExclusivelyDark } from '@/lib/utils';
 
@@ -61,6 +61,7 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
     const [image, setImage] = useState(initialData?.imageUrl || '');
     const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags || []);
     const [isAvailable, setIsAvailable] = useState(initialData?.isAvailable !== false);
+    const [whatsappEnquiryEnabled, setWhatsappEnquiryEnabled] = useState(initialData?.whatsappEnquiryEnabled !== false);
     const [isUploading, setIsUploading] = useState(false);
     const [s3Key, setS3Key] = useState(initialData?.s3Key || '');
 
@@ -118,6 +119,7 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
             s3Key,
             tags: selectedTags as CatalogItem['tags'],
             isAvailable,
+            whatsappEnquiryEnabled,
             currency
         });
         onClose();
@@ -273,6 +275,26 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
                                 </button>
                             </div>
 
+                            {/* WhatsApp Enquiry Toggle (per-item) */}
+                            <div className="flex items-center justify-between py-2 px-1">
+                                <div className="flex items-center gap-2">
+                                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                                    <span className={cn("text-sm font-medium", styles.text)}>WhatsApp Enquiry</span>
+                                </div>
+                                <button
+                                    onClick={() => setWhatsappEnquiryEnabled(!whatsappEnquiryEnabled)}
+                                    className={cn(
+                                        "w-12 h-6 rounded-full p-1 transition-colors duration-300 relative cursor-pointer",
+                                        whatsappEnquiryEnabled ? "bg-[#25D366]" : (isLightTheme ? "bg-black/10" : "bg-white/10")
+                                    )}
+                                >
+                                    <div
+                                        className="w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300"
+                                        style={{ transform: whatsappEnquiryEnabled ? 'translateX(24px)' : 'translateX(0)' }}
+                                    />
+                                </button>
+                            </div>
+
                             {/* Tags */}
                             <div className="space-y-2">
                                 <label className={cn("text-xs font-semibold uppercase tracking-wider pl-1 flex items-center gap-2", styles.textMuted)}>
@@ -348,3 +370,5 @@ export function AddItemModal({ isOpen, onClose, onSave, onDelete, initialData, c
         document.body
     );
 }
+
+

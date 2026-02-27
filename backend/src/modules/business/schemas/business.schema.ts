@@ -123,6 +123,10 @@ export class Business {
     reason?: string;
   }>;
 
+  @ApiProperty({ description: "WhatsApp business number (digits only, e.g. 919876543210)" })
+  @Prop()
+  whatsappNumber?: string;
+
   @ApiProperty({ description: "Created timestamp" })
   createdAt?: Date;
 

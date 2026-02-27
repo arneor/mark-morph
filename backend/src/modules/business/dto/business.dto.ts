@@ -363,6 +363,16 @@ export class UpdateTreeProfileDto {
   @ValidateNested({ each: true })
   @Type(() => ProfileReviewDto)
   reviews?: ProfileReviewDto[];
+
+  @ApiProperty({ description: "WhatsApp business number (digits only)" })
+  @IsString()
+  @IsOptional()
+  whatsappNumber?: string;
+
+  @ApiProperty({ description: "Whether WhatsApp product enquiry is enabled" })
+  @IsBoolean()
+  @IsOptional()
+  whatsappEnquiryEnabled?: boolean;
 }
 
 // ---- WiFi Profile DTO ----

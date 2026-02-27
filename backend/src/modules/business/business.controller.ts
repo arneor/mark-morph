@@ -122,6 +122,7 @@ export class BusinessController {
       categories: merged.categories,
       catalogItems: merged.catalogItems,
       reviews: merged.reviews,
+      whatsappNumber: merged.whatsappNumber,
       // WiFi ads (active only)
       ads: (merged.ads || []).filter((ad: any) => ad.status === "active"),
       createdAt: merged.createdAt,
@@ -201,6 +202,7 @@ export class BusinessController {
       categories: merged.categories,
       catalogItems: merged.catalogItems,
       reviews: merged.reviews,
+      whatsappNumber: merged.whatsappNumber,
     };
   }
 
@@ -300,6 +302,7 @@ export class BusinessController {
       categories: merged.categories,
       catalogItems: merged.catalogItems,
       reviews: merged.reviews,
+      whatsappNumber: merged.whatsappNumber,
     };
   }
 
@@ -338,6 +341,7 @@ export class BusinessController {
       "isActive",
       "onboardingCompleted",
       "industryType",
+      "whatsappNumber",
     ];
 
     // Tree profile fields

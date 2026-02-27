@@ -125,6 +125,9 @@ export interface Business {
   bannerImage?: string;
   openingHours?: { start: string; end: string };
 
+  whatsappNumber?: string;
+  whatsappEnquiryEnabled?: boolean;
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -540,6 +543,7 @@ export const businessApi = {
     contactEmail?: string;
     contactPhone?: string;
     industryType?: string;
+    whatsappNumber?: string;
   }): Promise<Business> {
     return apiRequest('/business/register', {
       method: 'POST',

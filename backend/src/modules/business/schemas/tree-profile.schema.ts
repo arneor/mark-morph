@@ -73,6 +73,7 @@ export class CatalogItem {
   @Prop() imageUrl: string;
   @Prop({ type: [String], default: [] }) tags: string[];
   @Prop({ default: true }) isAvailable: boolean;
+  @Prop({ default: true }) whatsappEnquiryEnabled: boolean;
   @Prop() s3Key: string;
 }
 

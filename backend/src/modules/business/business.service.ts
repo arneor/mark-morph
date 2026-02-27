@@ -336,6 +336,7 @@ export class BusinessService {
       categories: tree.categories || [],
       catalogItems: tree.catalogItems || [],
       reviews: tree.reviews || [],
+      whatsappNumber: business.whatsappNumber,
       // WiFi profile fields
       wifiSsid: wifi.wifiSsid,
       googleReviewUrl: wifi.googleReviewUrl,

@@ -3,7 +3,7 @@
 import { useState, useRef, useSyncExternalStore, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { X, Share2, Star, Sparkles, Flame, Leaf, Check } from 'lucide-react';
+import { X, Share2, MessageCircle, Star, Sparkles, Flame, Leaf, Check } from 'lucide-react';
 import { CatalogItem, TreeProfileTheme } from '@/lib/treeProfileTypes';
 import { cn, isColorExclusivelyDark } from '@/lib/utils';
 
@@ -22,9 +22,12 @@ interface CatalogItemPopupProps {
     item: CatalogItem | null;
     theme: TreeProfileTheme;
     businessName?: string;
+    whatsappNumber?: string;
+    whatsappEnquiryEnabled?: boolean;
+    username?: string;
 }
 
-export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName }: CatalogItemPopupProps) {
+export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName, whatsappNumber, username }: CatalogItemPopupProps) {
     const mounted = useIsMounted();
     const [isCopied, setIsCopied] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
@@ -72,6 +75,15 @@ export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName }:
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
         });
+    };
+
+    const handleWhatsAppEnquiry = () => {
+        if (!item || !whatsappNumber) return;
+        const profileUrl = username ? `${window.location.origin}/${username}` : window.location.href;
+        const priceText = item.price != null && item.price > 0 ? ` (${item.currency || '₹'}${item.price})` : '';
+        const message = `Hi! I'm interested in *${item.title}*${priceText} from ${businessName || 'your store'}.\n🔗 ${profileUrl}\n\nCould you share more details?`;
+        const url = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
     };
 
     if (!mounted || !isOpen || !item) return null;
@@ -178,19 +190,33 @@ export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName }:
                             )}
                         </div>
 
-                        {/* Share Button (Desktop/Mobile) */}
-                        <button
-                            onClick={handleShare}
-                            className={cn(
-                                "p-2.5 rounded-full shrink-0 transition-all active:scale-95 flex items-center justify-center gap-2",
-                                isLightTheme
-                                    ? "bg-black/5 hover:bg-black/10 text-black"
-                                    : "bg-white/10 hover:bg-white/20 text-white"
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* WhatsApp Enquiry Button */}
+                            {(item?.whatsappEnquiryEnabled !== false) && whatsappNumber && (
+                                <button
+                                    onClick={handleWhatsAppEnquiry}
+                                    className="p-2.5 rounded-full shrink-0 transition-all active:scale-95 flex items-center justify-center bg-[#25D366] hover:bg-[#20BD5A] text-white shadow-lg shadow-[#25D366]/20"
+                                    title="Enquire on WhatsApp"
+                                >
+                                    <MessageCircle className="w-5 h-5" />
+                                </button>
                             )}
-                            title="Share Item"
-                        >
-                            {isCopied ? <Check className="w-5 h-5 text-green-500" /> : <Share2 className="w-5 h-5" />}
-                        </button>
+
+                            {/* Share Button */}
+                            <button
+                                onClick={handleShare}
+                                className={cn(
+                                    "p-2.5 rounded-full shrink-0 transition-all active:scale-95 flex items-center justify-center gap-2",
+                                    isLightTheme
+                                        ? "bg-black/5 hover:bg-black/10 text-black"
+                                        : "bg-white/10 hover:bg-white/20 text-white"
+                                )}
+                                title="Share Item"
+                            >
+                                {isCopied ? <Check className="w-5 h-5 text-green-500" /> : <Share2 className="w-5 h-5" />}
+                            </button>
+                        </div>
                     </div>
 
                     {item.description && (
