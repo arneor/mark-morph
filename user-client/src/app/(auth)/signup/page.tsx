@@ -207,6 +207,39 @@ export default function SignupPage() {
             }
         } catch (error: unknown) {
             const err = error as Error;
+
+            // Handle edge case: User signed up before but failed to register business
+            if (err.message && err.message.toLowerCase().includes('already')) {
+                try {
+                    // Try to log them in transparently
+                    const loginResponse = await authApi.login({
+                        email: data.email,
+                        password: data.password,
+                    });
+
+                    if (loginResponse.success) {
+                        setBusinessData(data);
+                        setStep('otp');
+                        setCountdown(60);
+                        setOtpExpiresIn(600); // 10 mins
+
+                        toast({
+                            title: 'Welcome Back!',
+                            description: `We've sent a new verification code to ${data.email}`,
+                        });
+                        return; // Exit the catch block early on successful login
+                    }
+                } catch {
+                    // Login failed (likely wrong password)
+                    toast({
+                        title: 'Email Already Registered',
+                        description: 'Please sign in or use the correct password to continue.',
+                        variant: 'destructive',
+                    });
+                    return;
+                }
+            }
+
             toast({
                 title: 'Signup Failed',
                 description: err.message || 'Something went wrong. Please try again.',
