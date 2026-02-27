@@ -79,7 +79,7 @@ export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName, w
 
     const handleWhatsAppEnquiry = () => {
         if (!item || !whatsappNumber) return;
-        const profileUrl = username ? `${window.location.origin}/${username}` : window.location.href;
+        const profileUrl = username ? `${window.location.origin}/${username}?item=${item.id}` : window.location.href;
         const priceText = item.price != null && item.price > 0 ? ` (${item.currency || '₹'}${item.price})` : '';
         const message = `Hi! I'm interested in *${item.title}*${priceText} from ${businessName || 'your store'}.\n🔗 ${profileUrl}\n\nCould you share more details?`;
         const url = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`;
