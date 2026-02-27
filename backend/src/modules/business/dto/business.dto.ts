@@ -246,6 +246,11 @@ export class CreateBusinessDto {
   @IsOptional()
   contactPhone?: string;
 
+  @ApiProperty({ description: "WhatsApp number", example: "+919876543210" })
+  @IsString()
+  @IsOptional()
+  whatsappNumber?: string;
+
   @ApiProperty({ description: "Logo URL", required: false })
   @IsString()
   @IsOptional()

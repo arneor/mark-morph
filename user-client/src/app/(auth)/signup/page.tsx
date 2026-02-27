@@ -281,7 +281,10 @@ export default function SignupPage() {
 
         setIsLoading(true);
         try {
-            await authApi.signup(businessData); // Re-trigger registration email logic
+            await authApi.signup({
+                email: businessData.email,
+                password: businessData.password,
+            }); // Re-trigger registration email logic
 
             setCountdown(60);
             setOtpExpiresIn(600);
