@@ -27,6 +27,7 @@ interface TreeProfileState {
     updateBanners: (banners: ProfileBanner[]) => void;
     updateGallery: (images: ProfileGalleryImage[]) => void;
     updateReviews: (reviews: ProfileReview[]) => void;
+    updateWhatsApp: (whatsappNumber: string | undefined, whatsappEnquiryEnabled: boolean) => void;
 
     resetChanges: (originalData: TreeProfileData) => void;
 }
@@ -94,6 +95,11 @@ export const useTreeProfileStore = create<TreeProfileState>()(
 
             updateReviews: (reviews) => set((state) => ({
                 profileData: { ...state.profileData, reviews },
+                hasChanges: true
+            })),
+
+            updateWhatsApp: (whatsappNumber, whatsappEnquiryEnabled) => set((state) => ({
+                profileData: { ...state.profileData, whatsappNumber, whatsappEnquiryEnabled },
                 hasChanges: true
             })),
 

@@ -292,6 +292,9 @@ export function TreeProfileView({
                                         onUpdateCategories={onUpdateCategories}
                                         businessId={businessId}
                                         onTrackEvent={handleTrackEvent}
+                                        whatsappNumber={data.whatsappNumber}
+                                        whatsappEnquiryEnabled={data.whatsappEnquiryEnabled}
+                                        username={username}
                                     />
                                 </div>
                             </div>

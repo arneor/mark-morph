@@ -88,6 +88,8 @@ function mapBusinessToTreeProfile(business: Business | null | undefined): TreePr
         banners: business.banners || [],
         gallery: business.gallery || [],
         reviews: business.reviews || [],
+        whatsappNumber: business.whatsappNumber,
+        whatsappEnquiryEnabled: business.whatsappEnquiryEnabled ?? false,
     };
 }
 

@@ -2,7 +2,7 @@
 
 import { memo, useCallback } from 'react';
 
-import { Check, Sparkles, X } from 'lucide-react';
+import { Check, Sparkles, X, MessageCircle } from 'lucide-react';
 import { TEMPLATES } from '@/lib/treeProfileTypes';
 import { cn } from '@/lib/utils';
 import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
@@ -18,7 +18,7 @@ import { useTreeProfileStore } from '@/stores/useTreeProfileStore';
  * - Semantic HTML and accessibility
  */
 function ThemeCustomizerComponent() {
-    const { profileData, updateTheme, setIsThemeOpen } = useTreeProfileStore();
+    const { profileData, updateTheme, setIsThemeOpen, updateWhatsApp } = useTreeProfileStore();
     const theme = profileData.theme;
 
     /**
@@ -121,6 +121,72 @@ function ThemeCustomizerComponent() {
             <p className="text-white/40 text-xs text-center mt-6">
                 Select a template to instantly apply a professional theme to your profile
             </p>
+
+            {/* ─── WhatsApp Enquiry Settings ─── */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+                <h4 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    WhatsApp Enquiry
+                </h4>
+
+                {/* Toggle */}
+                <div className="flex items-center justify-between mb-3">
+                    <div>
+                        <p className="text-white/80 text-sm">Enable for products</p>
+                        <p className="text-white/40 text-xs">Show WhatsApp button on product popups</p>
+                    </div>
+                    <button
+                        onClick={() => {
+                            const newEnabled = !profileData.whatsappEnquiryEnabled;
+                            updateWhatsApp(profileData.whatsappNumber, newEnabled);
+                        }}
+                        className={cn(
+                            "relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0",
+                            profileData.whatsappEnquiryEnabled
+                                ? "bg-[#25D366]"
+                                : "bg-white/20"
+                        )}
+                        role="switch"
+                        aria-checked={!!profileData.whatsappEnquiryEnabled}
+                    >
+                        <span
+                            className={cn(
+                                "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200",
+                                profileData.whatsappEnquiryEnabled && "translate-x-5"
+                            )}
+                        />
+                    </button>
+                </div>
+
+                {/* Phone Number Input */}
+                {profileData.whatsappEnquiryEnabled && (
+                    <div className="mt-3">
+                        <label className="text-white/60 text-xs font-medium mb-1.5 block">
+                            WhatsApp Number (with country code)
+                        </label>
+                        <input
+                            type="tel"
+                            placeholder="e.g. 919876543210"
+                            value={profileData.whatsappNumber || ''}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^\d+]/g, '');
+                                updateWhatsApp(val, true);
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#25D366]/50 focus:ring-1 focus:ring-[#25D366]/30 transition-colors"
+                        />
+                        {profileData.whatsappNumber && (
+                            <p className="text-white/30 text-xs mt-1.5">
+                                Customers will message: wa.me/{profileData.whatsappNumber.replace(/[^\d]/g, '')}
+                            </p>
+                        )}
+                        {profileData.whatsappEnquiryEnabled && !profileData.whatsappNumber && (
+                            <p className="text-amber-400/80 text-xs mt-1.5">
+                                ⚠️ Enter a number to activate the WhatsApp button
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

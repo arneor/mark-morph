@@ -192,6 +192,9 @@ interface CatalogSectionProps {
     onUpdateCategories?: (categories: CatalogCategory[]) => void;
     businessId: string;
     onTrackEvent?: (eventType: ProfileEventType, options?: { elementId?: string; elementLabel?: string; metadata?: Record<string, unknown> }) => void;
+    whatsappNumber?: string;
+    whatsappEnquiryEnabled?: boolean;
+    username?: string;
 }
 
 function CatalogSectionComponent({
@@ -203,7 +206,10 @@ function CatalogSectionComponent({
     onUpdateCategories,
     businessId,
     title,
-    onTrackEvent
+    onTrackEvent,
+    whatsappNumber,
+    whatsappEnquiryEnabled,
+    username
 }: CatalogSectionProps) {
     const [activeCategory, setActiveCategory] = useState<string | null>(categories[0]?.id || null);
 
@@ -622,6 +628,9 @@ function CatalogSectionComponent({
                 item={viewingItem}
                 theme={theme}
                 businessName={title}
+                whatsappNumber={whatsappNumber}
+                whatsappEnquiryEnabled={whatsappEnquiryEnabled}
+                username={username}
             />
         </div>
     );
@@ -635,7 +644,9 @@ export const CatalogSection = memo(CatalogSectionComponent, (prev, next) => {
         prev.items === next.items &&
         prev.isEditMode === next.isEditMode &&
         prev.theme.cardStyle === next.theme.cardStyle &&
-        prev.theme.textColor === next.theme.textColor
+        prev.theme.textColor === next.theme.textColor &&
+        prev.whatsappNumber === next.whatsappNumber &&
+        prev.whatsappEnquiryEnabled === next.whatsappEnquiryEnabled
         // Ignore primaryColor
     );
 });

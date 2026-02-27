@@ -18,7 +18,8 @@ import {
     EyeOff,
     MapPin,
     AtSign,
-    Store
+    Store,
+    MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -91,6 +92,7 @@ export default function SignupPage() {
     const [step, setStep] = useState<Step>('details');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [whatsappNumber, setWhatsappNumber] = useState('');
 
     // Business Data
     const [businessData, setBusinessData] = useState<SignupValues | null>(null);
@@ -229,6 +231,7 @@ export default function SignupPage() {
                 location: businessData.location,
                 contactEmail: businessData.email,
                 industryType: businessData.industryType,
+                ...(whatsappNumber.trim() ? { whatsappNumber: whatsappNumber.trim() } : {}),
             });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -236,6 +239,19 @@ export default function SignupPage() {
 
             if (!businessId) {
                 throw new Error('Business registration failed - no ID returned');
+            }
+
+            // Save WhatsApp number if provided during signup
+            if (whatsappNumber.trim()) {
+                try {
+                    await businessApi.update(businessId, {
+                        whatsappNumber: whatsappNumber.trim(),
+                        whatsappEnquiryEnabled: true,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } as any);
+                } catch {
+                    // Non-blocking — WhatsApp can be set up later
+                }
             }
 
             setStep('success');
@@ -511,6 +527,24 @@ export default function SignupPage() {
                                     </FormItem>
                                 )}
                             />
+
+                            {/* WhatsApp Number (Optional) */}
+                            <div className="animate-element animate-delay-400">
+                                <label className="text-sm font-medium text-muted-foreground">WhatsApp Number <span className="text-xs text-muted-foreground/60">(Optional)</span></label>
+                                <GlassInputWrapper>
+                                    <div className="relative">
+                                        <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#25D366]" />
+                                        <input
+                                            type="tel"
+                                            placeholder="e.g. 919876543210"
+                                            value={whatsappNumber}
+                                            onChange={(e) => setWhatsappNumber(e.target.value.replace(/[^\d+]/g, ''))}
+                                            className="w-full bg-transparent text-sm p-4 pl-10 rounded-2xl focus:outline-none"
+                                        />
+                                    </div>
+                                </GlassInputWrapper>
+                                <p className="text-xs text-muted-foreground/60 mt-1 ml-1">Include country code. Customers can enquire about products via WhatsApp.</p>
+                            </div>
                         </div>
 
                         <Button

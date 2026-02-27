@@ -159,6 +159,7 @@ export function TreeProfileEditControls() {
                         imageUrl: item.imageUrl,
                         tags: item.tags,
                         isAvailable: item.isAvailable,
+                        whatsappEnquiryEnabled: item.whatsappEnquiryEnabled ?? true,
                     })),
 
                 reviews: (profileData.reviews || []).map(r => ({
@@ -169,6 +170,10 @@ export function TreeProfileEditControls() {
                     date: r.date,
                     avatarUrl: r.avatarUrl,
                 })),
+
+                // WhatsApp Enquiry
+                whatsappNumber: profileData.whatsappNumber,
+                whatsappEnquiryEnabled: profileData.whatsappEnquiryEnabled ?? false,
             };
 
             await businessApi.update(businessId, updatePayload);

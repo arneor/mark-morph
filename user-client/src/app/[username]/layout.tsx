@@ -91,6 +91,8 @@ export default async function ProfileLayout({
         banners: business.banners || [],
         gallery: business.gallery || [],
         reviews: business.reviews || [],
+        whatsappNumber: business.whatsappNumber,
+        whatsappEnquiryEnabled: business.whatsappEnquiryEnabled ?? false,
     };
 
     return (

@@ -35,6 +35,7 @@ export interface CatalogItem {
     s3Key?: string;
     tags?: ('bestseller' | 'new' | 'veg' | 'non-veg' | 'spicy' | 'featured')[];
     isAvailable: boolean;
+    whatsappEnquiryEnabled?: boolean; // per-item toggle, defaults to true
 }
 
 export interface ProfileBanner {
@@ -100,6 +101,8 @@ export interface TreeProfileData {
     gallery?: ProfileGalleryImage[];
     totalGalleryImages?: number;
     reviews?: ProfileReview[];
+    whatsappNumber?: string;
+    whatsappEnquiryEnabled?: boolean;
 }
 
 // Premium Template Definitions

@@ -33,7 +33,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness, useUpdateBusiness } from "@/hooks/use-businesses";
 import { businessApi } from "@/lib/api";
-import { Loader2, CheckCircle2, AtSign, Pencil } from "lucide-react";
+import { Loader2, CheckCircle2, AtSign, Pencil, MessageCircle } from "lucide-react";
 
 const INDUSTRY_OPTIONS = [
     '☕ Café / Coffee Shop',
@@ -92,6 +92,7 @@ export default function BusinessOnboarding() {
     // Username availability check
     const [usernameToCheck, setUsernameToCheck] = useState('');
     const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+    const [whatsappNumber, setWhatsappNumber] = useState('');
 
     useEffect(() => {
         if (!business) return;
@@ -105,6 +106,9 @@ export default function BusinessOnboarding() {
         if (business.username) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setUsernameToCheck(business.username);
+        }
+        if (business.whatsappNumber) {
+            setWhatsappNumber(business.whatsappNumber);
         }
     }, [business, form]);
 
@@ -156,6 +160,7 @@ export default function BusinessOnboarding() {
                 industryType: values.industryType,
                 username: values.username,
                 onboardingCompleted: true,
+                whatsappNumber: whatsappNumber.trim() || undefined,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any,
             {
@@ -281,6 +286,26 @@ export default function BusinessOnboarding() {
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* WhatsApp Number (Optional) */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium leading-none">
+                                        WhatsApp Number <span className="text-muted-foreground text-xs font-normal">(Optional)</span>
+                                    </label>
+                                    <div className="relative">
+                                        <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#25D366]" />
+                                        <Input
+                                            placeholder="e.g. 919876543210"
+                                            type="tel"
+                                            value={whatsappNumber}
+                                            onChange={(e) => setWhatsappNumber(e.target.value.replace(/[^\d+]/g, ''))}
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground px-1 italic">
+                                        Include country code. Customers can enquire about products via WhatsApp.
+                                    </p>
+                                </div>
 
                                 {/* Industry Type - Discrete Display with Popup Editor */}
                                 <FormField
