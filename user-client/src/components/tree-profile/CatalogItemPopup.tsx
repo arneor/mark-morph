@@ -51,7 +51,10 @@ export function CatalogItemPopup({ isOpen, onClose, item, theme, businessName, w
     const handleShare = async () => {
         if (!item) return;
 
-        const url = window.location.href;
+        const url = username
+            ? `${window.location.origin}/${username}?item=${item.id}`
+            : window.location.href;
+
         const shareData = {
             title: item.title,
             text: `Check out ${item.title} at ${businessName || 'LinkBeet'}!`,

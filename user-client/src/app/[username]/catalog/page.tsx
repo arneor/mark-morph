@@ -39,12 +39,25 @@ export async function generateMetadata({ params, searchParams }: CatalogPageProp
         if (itemId && business.catalogItems) {
             const catalogItem = business.catalogItems.find(i => i.id === itemId);
             if (catalogItem) {
-                title = `${catalogItem.title} | ${business.businessName}`;
-                description = catalogItem.description || `Check out ${catalogItem.title} at ${business.businessName}.`;
+                const formattedPrice = catalogItem.price ? ` (₹${catalogItem.price})` : '';
+                title = `${catalogItem.title}${formattedPrice} from ✨ ${sectionTitle} | ${business.businessName}`;
+
+                const baseDescription = catalogItem.description ? `${catalogItem.description}. ` : '';
+                description = `${baseDescription}Order directly from ${business.businessName}. ${business.tagline || ''}`.trim();
+
                 if (catalogItem.imageUrl) {
                     image = catalogItem.imageUrl;
                 }
             }
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.linkbeet.in';
+        let ogImageUrl = image;
+
+        if (validImage(image) && image.startsWith('http')) {
+            // Proxy via Next.js Edge Image Optimizer to guarantee WhatsApp <300KB constraint
+            // Format: /_next/image?url=ENCODED_URL&w=384&q=75
+            ogImageUrl = `${baseUrl}/_next/image?url=${encodeURIComponent(image)}&w=384&q=75`;
         }
 
         return {
@@ -53,14 +66,21 @@ export async function generateMetadata({ params, searchParams }: CatalogPageProp
             openGraph: {
                 title,
                 description,
-                images: validImage(image) ? [{ url: image }] : undefined,
-                type: itemId ? 'article' : 'website', // Use article or product for items
+                images: validImage(image) ? [
+                    {
+                        url: ogImageUrl,
+                        width: 384,
+                        height: 384,
+                        alt: title,
+                    }
+                ] : undefined,
+                type: itemId ? 'article' : 'website',
             },
             twitter: {
                 card: 'summary_large_image',
                 title,
                 description,
-                images: validImage(image) ? [image] : undefined,
+                images: validImage(image) ? [ogImageUrl] : undefined,
             },
         };
     } catch {
